@@ -1,3 +1,134 @@
-#root {
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #242933;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: #a6adba;
+  overflow: hidden;
+}
+
+.auth-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.auth-container-left {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-container-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url("../src/assets/Fingerprint-cuate\ \(3\).svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 130%;
+  width: 50%;
+ background-color: #242933;
+ margin-top: 5vh;
+}
+
+.login-card {
+  margin-right: 10vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  height: 400px;
+  padding: 40px;
+  background-color: #2a303c;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   text-align: center;
+}
+
+.signup-card {
+  margin-right: 10vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+  height: 500px;
+  padding: 40px;
+  background-color: #2a303c;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.login-card .heading,
+.signup-card .heading {
+  font-size: 1.8rem;
+  color: #a6adba;
+  margin-bottom: 5vh;
+}
+
+.auth-input {
+  display: block;
+  width: 300px;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 4px;
+  background-color: #242933;
+  color: #a6adba;
+  font-size: 1rem;
+}
+
+.login-card .forgot-password {
+  margin-right: 130px;
+}
+
+.auth-input::placeholder {
+  color: #a6adba;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6419e6;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+  background-color: #4a12b7;
+}
+
+.login-card p,
+.signup-card p {
+  font-size: 1rem;
+  color: #a6adba;
+  margin: 10px 0;
+}
+
+.login-card a,
+.signup-card a {
+  color: #6419e6;
+  text-decoration: none;
+}
+
+.login-card a:hover,
+.signup-card a:hover {
+  color: #4a12b7;
 }

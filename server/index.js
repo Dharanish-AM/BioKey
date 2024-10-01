@@ -14,6 +14,7 @@ const { sign } = require("jsonwebtoken");
 const { signUp, Login } = require("./controller/userController");
 const { addDevice } = require("./controller/deviceController");
 const { addStock } = require("./controller/productStockController");
+const { addFingerprint } = require("./controller/fingerprintController");
 
 app.use(
   cors({
@@ -89,6 +90,24 @@ app.post("/adddevice", verifyToken, async (req, res) => {
       success: false,
       message: "Error adding device. Please try again later.",
       error: error.message,
+    });
+  }
+});
+
+app.post("/addfingerprint", async (req, res) => {
+  try {
+    const { user_id, fp_template } = req.body;
+    const response = await addFingerprint(user_id, fp_template);
+
+    if (response.success) {
+      return res.status(200).json(response);
+    } else {
+      return res.status(400).json(response);
+    }
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Server error: ${error.message}`,
     });
   }
 });

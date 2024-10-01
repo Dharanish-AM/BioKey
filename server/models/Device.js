@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const AutoIncrement = require("mongoose-sequence")(mongoose);
+const { User } = require("../models/User");
 
 const devicesSchema = new mongoose.Schema({
   device_id: {

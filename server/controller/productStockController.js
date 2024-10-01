@@ -22,7 +22,7 @@ async function addStock() {
   }
 }
 
-async function removeStock(device_id) {
+async function updateStock(device_id) {
   try {
     const productDetails = await ProductStock.findOne({ device_id });
 
@@ -41,5 +41,5 @@ async function removeStock(device_id) {
 
 module.exports = {
   addStock,
-  removeStock,
+  updateStock,
 };

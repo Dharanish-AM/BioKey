@@ -1,3 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&display=swap");
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Afacad Flux;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+button {
+  font-family: Afacad Flux;
+}
+input{
+  font-family: Afacad Flux;
 }

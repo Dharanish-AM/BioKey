@@ -4,6 +4,7 @@
   align-items: center;
   height: 100vh;
   background-color: #242933;
+  /*background-image: url("");*/
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -17,6 +18,7 @@
   align-items: center;
   width: 100%;
   height: 100vh;
+  perspective: 1000px;
 }
 
 .auth-container-left {
@@ -37,8 +39,8 @@
   background-size: cover;
   height: 130%;
   width: 50%;
- background-color: #242933;
- margin-top: 5vh;
+
+  margin-top: 5vh;
 }
 
 .login-card {
@@ -51,8 +53,8 @@
   height: 400px;
   padding: 40px;
   background-color: #2a303c;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(23, 27, 31, 0.5);
   text-align: center;
 }
 
@@ -63,11 +65,11 @@
   justify-content: center;
   align-items: center;
   width: 300px;
-  height: 500px;
+  height: 460px;
   padding: 40px;
   background-color: #2a303c;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(23, 27, 31, 0.5);
   text-align: center;
 }
 
@@ -92,6 +94,22 @@
 
 .login-card .forgot-password {
   margin-right: 130px;
+}
+
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.toggle-password-visibility {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a6adba;
 }
 
 .auth-input::placeholder {

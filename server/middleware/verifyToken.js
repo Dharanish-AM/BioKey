@@ -19,4 +19,14 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-module.exports = verifyToken;
+async function checkToken(token) {
+  try {
+    const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+    return { success: true, decoded: decoded };
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return null;
+  }
+}
+
+module.exports = { verifyToken, checkToken };

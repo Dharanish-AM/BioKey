@@ -6,7 +6,7 @@ const port = 3000;
 app.use(express.json());
 
 const { connectToDb } = require("./config/db");
-const verifyToken = require("./middleware/verifyToken");
+const { verifyToken, checkToken } = require("./middleware/verifyToken");
 
 const dotenv = require("dotenv");
 const { sign } = require("jsonwebtoken");
@@ -51,6 +51,21 @@ app.post("/signup", async (req, res) => {
     });
   } else {
     res.status(400).json({ message: response.message });
+  }
+});
+
+app.post("/checktoken", async (req, res) => {
+  const { token } = req.body;
+
+  const response = await checkToken(token);
+
+  if (response.success) {
+    console.log(response.decoded);
+    return res
+      .status(200)
+      .json({ message: "Valid Token", user: response.decoded });
+  } else {
+    return res.status(401).json({ message: "Invalid Token" });
   }
 });
 

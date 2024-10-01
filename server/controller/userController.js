@@ -18,7 +18,6 @@ async function signUp(name, email, phone, password) {
     });
 
     await newUser.save();
-
     return {
       success: true,
       message: "User registered successfully",
@@ -33,7 +32,6 @@ async function signUp(name, email, phone, password) {
 
 async function Login(email, password) {
   const userDetails = await User.findOne({ email: email });
-
   if (!userDetails) {
     return { success: false, message: "User not found" };
   }
@@ -47,7 +45,10 @@ async function Login(email, password) {
   const token = jwt.sign({ email: userDetails.email }, process.env.TOKEN_KEY, {
     expiresIn: "1h",
   });
-
+  console.log({
+    UserDetails: userDetails,
+    token: token,
+  });
   return {
     success: true,
     user: userDetails,

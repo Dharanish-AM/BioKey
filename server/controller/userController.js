@@ -56,7 +56,30 @@ async function Login(email, password) {
   };
 }
 
+async function getUserDetails(email) {
+  try {
+    const userDetails = await User.findOne({ email: email }).select(
+      "-password"
+    );
+
+    if (!userDetails) {
+      return { success: false, message: "User not found" };
+    }
+
+    return {
+      success: true,
+      user: userDetails,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || "An error occurred while fetching user details",
+    };
+  }
+}
+
 module.exports = {
   signUp,
   Login,
+  getUserDetails,
 };

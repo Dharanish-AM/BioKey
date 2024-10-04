@@ -3,6 +3,8 @@ import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import NotFound from "./pages/404";
 import "./App.css";
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 
 function App() {
   return (

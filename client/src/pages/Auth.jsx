@@ -3,6 +3,7 @@ import Signup from "../components/Signup";
 import Login from "../components/Login";
 import { useEffect } from "react";
 import axios from "axios";
+import Logo from "../assets/BioKey_Logo.png";
 
 function Auth() {
   const location = useLocation();
@@ -36,6 +37,10 @@ function Auth() {
   return (
     <div className="auth-container">
       <div className="auth-content">
+        <div className="auth-logotitle">
+          <img src={Logo} className="home-header-logo" alt="BioKey Logo" />
+          <span className="home-header-text">BioKey</span>
+        </div>
         <div className="auth-container-left">
           {location.pathname === "/" || location.pathname === "/login" ? (
             <Login />

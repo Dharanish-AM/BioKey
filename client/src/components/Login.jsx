@@ -23,7 +23,11 @@ function Login() {
       if (response.status === 200) {
         console.log("Login Success:", response.data);
         sessionStorage.setItem("token", response.data.token);
-        navigate("/home");
+        navigate("/home", {
+          state: {
+            user: response.data.user,
+          },
+        });
       } else {
         setError(response.data.message);
       }
@@ -70,7 +74,10 @@ function Login() {
           Login
         </button>
         <p>
-          New User? <Link to="/signup">Signup</Link>
+          New User?{" "}
+          <Link to={"/signup"}>
+            <span>Click Here!</span>
+          </Link>
         </p>
       </form>
     </div>

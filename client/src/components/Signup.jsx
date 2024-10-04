@@ -44,88 +44,80 @@ function Signup() {
   }
 
   return (
-    <div className="flip-card">
-      <div className="flip-card-inner">
-        <div className="flip-card-front">
-          <div className="signup-card">
-            <p className="heading">Signup</p>
+    <div className="signup-card">
+      <p className="heading">Signup</p>
 
-            <form onSubmit={handleSignup}>
-              <input
-                className="auth-input"
-                type="text"
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-              <input
-                className="auth-input"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                className="auth-input"
-                type="tel"
-                placeholder="Phone Number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-              <div className="password-input-container">
-                <input
-                  className="auth-input"
-                  type={isPasswordVisible ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className="toggle-password-visibility"
-                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                >
-                  <FontAwesomeIcon
-                    icon={isPasswordVisible ? faEyeSlash : faEye}
-                  />
-                </button>
-              </div>
-              <div className="password-input-container">
-                <input
-                  className="auth-input"
-                  type={isConfirmPasswordVisible ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-                {error && <p className="error-message">{error}</p>}
-                <button
-                  type="button"
-                  className="toggle-password-visibility"
-                  onClick={() =>
-                    setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
-                  }
-                >
-                  <FontAwesomeIcon
-                    icon={isConfirmPasswordVisible ? faEyeSlash : faEye}
-                  />
-                </button>
-              </div>
-              <button className="auth-button" type="submit">
-                Signup
-              </button>
-              <p>
-                Already have an account? <Link to="/">Login</Link>
-              </p>
-            </form>
-          </div>
+      <form onSubmit={handleSignup}>
+        <input
+          className="auth-input"
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          className="auth-input"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          className="auth-input"
+          type="tel"
+          placeholder="Phone Number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+        <div className="password-input-container">
+          <input
+            className="auth-input"
+            type={isPasswordVisible ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            className="toggle-password-visibility"
+            onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+          >
+            <FontAwesomeIcon icon={isPasswordVisible ? faEyeSlash : faEye} />
+          </button>
         </div>
-      </div>
+        <div className="password-input-container">
+          <input
+            className="auth-input"
+            type={isConfirmPasswordVisible ? "text" : "password"}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          {error && <p className="error-message">{error}</p>}
+          <button
+            type="button"
+            className="toggle-password-visibility"
+            onClick={() =>
+              setIsConfirmPasswordVisible(!isConfirmPasswordVisible)
+            }
+          >
+            <FontAwesomeIcon
+              icon={isConfirmPasswordVisible ? faEyeSlash : faEye}
+            />
+          </button>
+        </div>
+        <button className="auth-button" type="submit">
+          Signup
+        </button>
+        <p>
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
+      </form>
     </div>
   );
 }

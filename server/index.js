@@ -79,9 +79,10 @@ app.post("/signup", async (req, res) => {
 app.post("/checktoken", async (req, res) => {
   const { token } = req.body;
   console.log(token);
+
   const response = await checkToken(token);
 
-  if (response.success) {
+  if (response && response.success) {
     console.log(response.decoded);
     return res
       .status(200)
@@ -126,16 +127,15 @@ app.post("/upload", verifyToken, upload.array("files[]"), async (req, res) => {
   } catch (error) {
     console.error("Error uploading files:", error);
     res.status(500).send("Error uploading files.");
-  }
+  } 
 });
 
 app.get("/viewfiles", async (req, res) => {
   try {
     const userId = req.query.userId;
-    console.log("Fetching files for userId:", userId);
 
-    const files = await listFiles(userId);
-    console.log("Files fetched:", files);
+    const files = await listFiles(userId); 
+    //console.log("Files fetched:", files);
 
     if (!files || files.length === 0) {
       return res
@@ -151,8 +151,8 @@ app.get("/viewfiles", async (req, res) => {
 });
 
 app.delete("/deletefile", async (req, res) => {
-  const { fileKey, userId } = req.query; // Use req.query instead of req.body
-
+  const { fileKey, userId } = req.query;
+  console.log(fileKey);
   if (!fileKey || !userId) {
     return res.status(400).json({ error: "File key and user ID are required" });
   }

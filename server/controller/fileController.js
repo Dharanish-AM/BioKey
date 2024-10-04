@@ -67,7 +67,7 @@ const listFiles = async (userId) => {
     });
     const response = await s3Client.send(command);
 
-    console.log("S3 Response:", response);
+    //console.log("S3 Response:", response);
 
     if (!Array.isArray(response.Contents) || response.Contents.length === 0) {
       console.log("No files found for the user:", userId);
@@ -97,7 +97,7 @@ const listFiles = async (userId) => {
       })
     );
 
-    console.log("Files retrieved:", filesWithDetails);
+    //console.log("Files retrieved:", filesWithDetails);
     return filesWithDetails;
   } catch (err) {
     console.error("Error listing files:", err.message);
@@ -107,10 +107,11 @@ const listFiles = async (userId) => {
 
 const deleteFile = async (fileName, userId) => {
   const fileKey = `${userId}/${fileName}`;
-
+  console.log("Attempting to delete file with key:", fileKey);
+  
   const params = {
-    Bucket: bucketName,
-    Key: fileKey,
+    Bucket: bucketName, // Ensure bucketName is correct
+    Key: fileKey,       // Ensure fileKey is correct
   };
 
   const command = new DeleteObjectCommand(params);
@@ -123,6 +124,10 @@ const deleteFile = async (fileName, userId) => {
     return response;
   } catch (error) {
     console.error("Error deleting file:", error.message);
+    if (error.$metadata) {
+      console.error("Request ID:", error.$metadata.requestId);
+      console.error("HTTP Status Code:", error.$metadata.httpStatusCode);
+    }
     throw new Error("File deletion failed");
   }
 };

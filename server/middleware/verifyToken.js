@@ -25,7 +25,7 @@ async function checkToken(token) {
     return { success: true, decoded: decoded };
   } catch (error) {
     console.error("Token verification error:", error);
-    return null;
+    return { success: false, error: "Token verification failed" };
   }
 }
 

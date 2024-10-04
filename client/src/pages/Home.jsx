@@ -124,14 +124,19 @@ function Home() {
 
       if (response.status === 200) {
         fetchFiles(user.user_id);
+        await fetchFiles();
       }
     } catch (error) {
       console.error("File upload failed", error);
     }
   };
 
-  const handleDelete = async (fileKey) => {
-    if (!fileKey) {
+  const handleDelete = async (fileKey, e) => {
+    e.stopPropagation();
+
+    const actualFileKey = fileKey.split("/").pop();
+
+    if (!actualFileKey) {
       console.error("File key is required");
       return;
     }
@@ -139,7 +144,7 @@ function Home() {
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.delete(`http://localhost:3000/deletefile`, {
-        params: { fileKey, userId: user.user_id },
+        params: { fileKey: actualFileKey, userId: user.user_id },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -147,6 +152,7 @@ function Home() {
 
       if (response.status === 200) {
         fetchFiles(user.user_id);
+        console.log(response);
       } else {
         console.error(`Error: ${response.data.error}`);
       }
@@ -204,11 +210,11 @@ function Home() {
       </div>
 
       <div className="home-content">
-        <input type="file" multiple onChange={handleFileChange} />
+        {/*<input type="file" multiple onChange={handleFileChange} />
         <button type="button" className="upload-button" onClick={uploadFile}>
           Upload
         </button>
-        <h2>Files:</h2>
+        <h2>Files:</h2>*/}
         <div className="file-preview-container">
           {Array.isArray(files) &&
             files.length > 0 &&

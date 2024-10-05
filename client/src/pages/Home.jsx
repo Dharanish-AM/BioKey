@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import Logo from "../assets/BioKey_Logo.png";
 import axios from "axios";
 import Modal from "../components/Modal";
+import Options from "../components/Options";
 
 function Home() {
   const navigate = useNavigate();
@@ -12,22 +13,16 @@ function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFile, setModalFile] = useState({ url: "", name: "" });
   const [user, setUser] = useState(null);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(null);
 
   const fetchFiles = async () => {
     try {
       const token = sessionStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("Token not found, redirecting to login.");
-      }
+      if (!token) throw new Error("Token not found, redirecting to login.");
 
       const response = await axios.get("http://localhost:3000/viewfiles", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          userId: user.user_id,
-        },
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId: user.user_id },
       });
 
       if (response.status === 200) {
@@ -41,22 +36,19 @@ function Home() {
         error.response?.data || error.message
       );
       sessionStorage.removeItem("token");
-      return navigate("/login");
+      navigate("/login");
     }
   };
 
   useEffect(() => {
     const validateToken = async () => {
       const token = sessionStorage.getItem("token");
-      if (!token) {
-        return navigate("/login");
-      }
+      if (!token) return navigate("/login");
 
       try {
         const response = await axios.post("http://localhost:3000/checktoken", {
           token,
         });
-
         const { exp } = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
@@ -68,12 +60,8 @@ function Home() {
         const userDetailsResponse = await axios.get(
           "http://localhost:3000/getuserdetails",
           {
-            params: {
-              email: response.data.user.email,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            params: { email: response.data.user.email },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
@@ -81,7 +69,7 @@ function Home() {
       } catch (error) {
         console.error("Token validation failed:", error);
         sessionStorage.removeItem("token");
-        return navigate("/login");
+        navigate("/login");
       }
     };
 
@@ -90,7 +78,7 @@ function Home() {
 
   useEffect(() => {
     if (user && user.user_id) {
-      fetchFiles(user.user_id);
+      fetchFiles();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -107,10 +95,7 @@ function Home() {
     }
 
     const form = new FormData();
-    Array.from(selectedFiles).forEach((file) => {
-      form.append(`files[]`, file);
-    });
-
+    selectedFiles.forEach((file) => form.append(`files[]`, file));
     form.append("userId", user.user_id);
 
     try {
@@ -123,36 +108,32 @@ function Home() {
       });
 
       if (response.status === 200) {
-        fetchFiles(user.user_id);
-        await fetchFiles();
+        fetchFiles();
       }
     } catch (error) {
       console.error("File upload failed", error);
     }
   };
 
-  const handleDelete = async (fileKey, e) => {
-    e.stopPropagation();
-
-    const actualFileKey = fileKey.split("/").pop();
-
-    if (!actualFileKey) {
-      console.error("File key is required");
+  const handleDelete = async (file) => {
+    const fileKey = file.Key;
+    if (typeof fileKey !== "string") {
+      console.error("fileKey is not a string", fileKey);
       return;
     }
+
+    const actualFileKey = fileKey.split("/").pop();
+    if (!actualFileKey) return;
 
     try {
       const token = sessionStorage.getItem("token");
       const response = await axios.delete(`http://localhost:3000/deletefile`, {
         params: { fileKey: actualFileKey, userId: user.user_id },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.status === 200) {
-        fetchFiles(user.user_id);
-        console.log(response);
+        fetchFiles();
       } else {
         console.error(`Error: ${response.data.error}`);
       }
@@ -173,6 +154,10 @@ function Home() {
   const closeModal = () => {
     setIsModalOpen(false);
     setModalFile({ url: "", name: "" });
+  };
+
+  const handleOptionsClick = (index) => {
+    setIsOptionsOpen(isOptionsOpen === index ? null : index);
   };
 
   return (
@@ -210,32 +195,22 @@ function Home() {
       </div>
 
       <div className="home-content">
-        {/*<input type="file" multiple onChange={handleFileChange} />
-        <button type="button" className="upload-button" onClick={uploadFile}>
-          Upload
-        </button>
-        <h2>Files:</h2>*/}
-        <div className="file-preview-container">
-          {Array.isArray(files) &&
-            files.length > 0 &&
-            files.map((file, index) => {
-              return (
-                <div
-                  key={index}
-                  className="file-wrapper"
-                  onClick={() => openModal(file)}
-                >
-                  <img src={file.Url} alt={file.Key} className="file-preview" />
-                  <p>{file.Key}</p>
-                  <button
-                    className="delete-button"
-                    onClick={(e) => handleDelete(file.Key, e)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              );
-            })}
+        <div className="left">
+          <div className="left-top">
+            {user && <span className="name-greeting">Hello {user.name}!</span>}
+            <button className="addfile-button">Add File</button>
+          </div>
+          <div className="left-center-recent"></div>
+        </div>
+        <div className="right">
+          <div className="medias-container">
+            <div className="box images-box">Images</div>
+            <div className="box videos-box">Videos</div>
+            <div className="box documents-box">Documents</div>
+            <div className="box audios-box">Audios</div>
+            <div className="box passwords-box">Passwords</div>
+            <div className="box recently-deleted-box">Recently Deleted</div>
+          </div>
         </div>
       </div>
 

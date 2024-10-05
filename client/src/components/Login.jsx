@@ -66,7 +66,11 @@ function Login() {
             <FontAwesomeIcon icon={isPasswordVisible ? faEyeSlash : faEye} />
           </button>
         </div>
-        {error && <p className="error-message">{error}</p>}
+        {error && (
+          <p style={{ color: "#FF3535" }} className="error-message">
+            {error}
+          </p>
+        )}
         <p className="forgot-password">
           Forgot Password? <Link to="#">Click Here!</Link>
         </p>

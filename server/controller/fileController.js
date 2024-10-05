@@ -67,8 +67,6 @@ const listFiles = async (userId) => {
     });
     const response = await s3Client.send(command);
 
-    //console.log("S3 Response:", response);
-
     if (!Array.isArray(response.Contents) || response.Contents.length === 0) {
       console.log("No files found for the user:", userId);
       return [];
@@ -86,7 +84,9 @@ const listFiles = async (userId) => {
         );
 
         return {
-          Key: file.Key,
+          Key: file.Key.startsWith(`${userId}/`)
+            ? file.Key.substring(userId.length + 1)
+            : file.Key, // Remove userId and leading slash
           LastModified: file.LastModified,
           Size: file.Size,
           ETag: file.ETag,
@@ -97,7 +97,6 @@ const listFiles = async (userId) => {
       })
     );
 
-    //console.log("Files retrieved:", filesWithDetails);
     return filesWithDetails;
   } catch (err) {
     console.error("Error listing files:", err.message);
@@ -108,10 +107,10 @@ const listFiles = async (userId) => {
 const deleteFile = async (fileName, userId) => {
   const fileKey = `${userId}/${fileName}`;
   console.log("Attempting to delete file with key:", fileKey);
-  
+
   const params = {
     Bucket: bucketName, // Ensure bucketName is correct
-    Key: fileKey,       // Ensure fileKey is correct
+    Key: fileKey, // Ensure fileKey is correct
   };
 
   const command = new DeleteObjectCommand(params);

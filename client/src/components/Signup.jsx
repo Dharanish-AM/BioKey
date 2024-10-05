@@ -98,7 +98,11 @@ function Signup() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-          {error && <p className="error-message">{error}</p>}
+          {error && (
+            <p style={{ color: "#FF3535" }} className="error-message">
+              {error}
+            </p>
+          )}
           <button
             type="button"
             className="toggle-password-visibility"

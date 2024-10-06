@@ -127,14 +127,14 @@ app.post("/upload", verifyToken, upload.array("files[]"), async (req, res) => {
   } catch (error) {
     console.error("Error uploading files:", error);
     res.status(500).send("Error uploading files.");
-  } 
+  }
 });
 
 app.get("/viewfiles", async (req, res) => {
   try {
     const userId = req.query.userId;
 
-    const files = await listFiles(userId); 
+    const files = await listFiles(userId);
     //console.log("Files fetched:", files);
 
     if (!files || files.length === 0) {
@@ -223,6 +223,19 @@ app.post("/addfingerprint", async (req, res) => {
   }
 });
 
+app.post("/fingerprint", (req, res) => {
+  const fingerprintData = req;
+
+  console.log(fingerprintData);
+
+  // Process the buffer as needed
+  // For example, save it to a database or compare it with stored templates
+
+  // Send a success response
+  res.status(200).send("Fingerprint data received successfully");
+});
+ 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+ 

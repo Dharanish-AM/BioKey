@@ -154,7 +154,6 @@
   height: 100vh;
   overflow: auto;
   width: 100vw;
-  background-color: #2a303c;
 }
 
 .home-container::-webkit-scrollbar {
@@ -173,12 +172,11 @@
 .home-header {
   background-color: #2a303c;
   padding: 20px;
-  height: 5vh;
-  border-bottom: 1px solid rgba(166, 173, 186, 0.3);
+  height: 5%;
+  /*border-bottom: 1px solid rgba(166, 173, 186, 0.3);*/
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: transparent;
 }
 
 .home-header-left-titlelogo {
@@ -204,8 +202,8 @@
 .home-content {
   display: flex;
   flex-direction: row;
-  padding: 20px;
-  height: 95vh;
+  padding: 30px;
+  height: 95%;
   align-items: center;
   justify-content: space-between;
   background-color: #242933;
@@ -411,6 +409,7 @@
   font-size: 1.6rem;
   color: #a6adba;
 }
+
 .left-top {
   display: flex;
   justify-content: space-between;
@@ -446,9 +445,9 @@
   align-items: center;
   padding: 20px;
   padding-top: 0;
-  background-color: #2a30;
+  background-color: #2a303c;
   width: 55%;
-  height: 95%;
+  height: 100%;
   border-radius: 15px;
 }
 
@@ -465,7 +464,7 @@
   align-items: center;
   padding: 20px;
   margin-top: 2vh;
-  background-color: #2a3d4c;
+  background-color: rgba(55, 65, 81, 0.5);
   width: 90%;
   height: 50%;
   border-radius: 15px;
@@ -476,11 +475,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 5px;
   width: 40%;
   background-color: #2a303c;
   border-radius: 15px;
-  height: 97%;
+  height: 100%;
+  background-color: red;
 }
 
 .medias-container {
@@ -494,46 +493,26 @@
 
 .box {
   flex: 0 0 calc(50% - 20px);
-  margin: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 150px;
+  height: 200%;
   font-size: 1.2rem;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);*/
   transition: transform 0.3s ease;
   cursor: pointer;
+  background-color: rgba(58, 63, 73, 0.3);
+  background-color: rgba(55, 65, 81, 0.5);
 }
-
-.images-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
-}
-
-.videos-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
-}
-
-.documents-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
-}
-
-.audios-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
-}
-
-.passwords-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
-}
-
+.images-box,
+.videos-box,
+.documents-box,
+.audios-box,
+.passwords-box,
 .recently-deleted-box {
-  background-color: #2a3d4c;
-  color: #e0e7ff;
+  color: #d6daf6;
+  opacity: 1;
 }
 
 .box:hover {

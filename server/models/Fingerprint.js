@@ -12,14 +12,14 @@ const fingerprintSchema = mongoose.Schema({
     required: true,
   },
   fingerprint: {
-    type: String,
+    type: Buffer,
     required: true,
   },
 });
 
 fingerprintSchema.plugin(AutoIncrement, {
   inc_field: "fingerprint_id",
-  start_seq: 100001,
+  start_seq: 1,
 });
 
 fingerprintSchema.virtual("padded_fingerprint_id").get(function () {
@@ -28,6 +28,4 @@ fingerprintSchema.virtual("padded_fingerprint_id").get(function () {
 
 const Fingerprint = mongoose.model("Fingerprint", fingerprintSchema);
 
-module.exports = {
-  Fingerprint,
-};
+module.exports = { Fingerprint };

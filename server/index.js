@@ -2,6 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 
+const fs = require("fs"); // Import the File System module
+const path = require("path"); // Import the Path module
+const { createCanvas } = require("canvas"); // Import createCanvas from the canvas library
+
 const app = express();
 const port = 3000;
 
@@ -223,19 +227,43 @@ app.post("/addfingerprint", async (req, res) => {
   }
 });
 
-app.post("/fingerprint", (req, res) => {
-  const fingerprintData = req;
+app.post("/fingerprint", async (req, res) => {
+  try {
+    const templateBase64 = req.body.template;
 
-  console.log(fingerprintData);
+    // Check if template is provided
+    if (!templateBase64) {
+      return res
+        .status(400)
+        .json({ error: "No fingerprint template provided" });
+    }
 
-  // Process the buffer as needed
-  // For example, save it to a database or compare it with stored templates
+    // Decode Base64 to Buffer
+    const templateBuffer = Buffer.from(templateBase64, "base64");
 
-  // Send a success response
-  res.status(200).send("Fingerprint data received successfully");
+    // Check if the buffer is the expected size (512 bytes)
+    if (templateBuffer.length !== 512) {
+      return res.status(400).json({ error: "Invalid template size" });
+    }
+
+    // Print the raw buffer for debugging
+    console.log("Fingerprint Template Buffer:", templateBuffer);
+
+    // Convert the buffer back to Base64 if needed
+    //const newBase64 = templateBuffer.toString("base64");
+
+    //console.log("Base64 : " + newBase64);
+
+    // Send a response with the Base64 string
+    res.status(200).json({
+      message: "Fingerprint template processed",
+    });
+  } catch (error) {
+    console.error("Error processing fingerprint template:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
- 
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
- 

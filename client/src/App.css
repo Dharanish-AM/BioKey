@@ -203,7 +203,7 @@
   display: flex;
   flex-direction: row;
   padding: 30px;
-  height: 95%;
+  height: 100%;
   align-items: center;
   justify-content: space-between;
   background-color: #242933;
@@ -463,10 +463,10 @@
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  margin-top: 2vh;
+  margin-top: 1vh;
   background-color: rgba(55, 65, 81, 0.5);
-  width: 90%;
-  height: 50%;
+  width: 95%;
+  height: 30%;
   border-radius: 15px;
 }
 
@@ -475,36 +475,38 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 40%;
   background-color: #2a303c;
   border-radius: 15px;
-  height: 100%;
-  background-color: red;
+  height: 96.5%;
+  padding: 20px;
 }
 
 .medias-container {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 20px;
-  width: 100%;
   flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  gap: 20px;
 }
 
 .box {
-  flex: 0 0 calc(50% - 20px);
+  flex: 1 1 calc(50% - 20px);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200%;
+  height: 30%;
   font-size: 1.2rem;
   border-radius: 10px;
-  /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);*/
   transition: transform 0.3s ease;
   cursor: pointer;
-  background-color: rgba(58, 63, 73, 0.3);
   background-color: rgba(55, 65, 81, 0.5);
 }
+
+.box:hover {
+  transform: scale(1.05);
+}
+
 .images-box,
 .videos-box,
 .documents-box,
@@ -513,8 +515,4 @@
 .recently-deleted-box {
   color: #d6daf6;
   opacity: 1;
-}
-
-.box:hover {
-  transform: scale(1.05);
 }

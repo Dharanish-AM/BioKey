@@ -231,7 +231,6 @@ app.post("/fingerprint", async (req, res) => {
   try {
     const templateBase64 = req.body.template;
 
-    // Check if template is provided
     if (!templateBase64) {
       return res
         .status(400)
@@ -254,7 +253,6 @@ app.post("/fingerprint", async (req, res) => {
 
     //console.log("Base64 : " + newBase64);
 
-    // Send a response with the Base64 string
     res.status(200).json({
       message: "Fingerprint template processed",
     });

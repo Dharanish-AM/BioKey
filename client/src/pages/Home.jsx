@@ -5,6 +5,13 @@ import Logo from "../assets/BioKey_Logo.png";
 import axios from "axios";
 import Modal from "../components/Modal";
 import Options from "../components/Options";
+import storageicon from "../assets/cloud-svgrepo-com.svg";
+
+import {
+  CircularProgressbarWithChildren,
+  buildStyles,
+} from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 function Home() {
   const navigate = useNavigate();
@@ -14,6 +21,13 @@ function Home() {
   const [modalFile, setModalFile] = useState({ url: "", name: "" });
   const [user, setUser] = useState(null);
   const [isOptionsOpen, setIsOptionsOpen] = useState(null);
+  const [storage, setStorage] = useState({
+    total_storage: 0,
+    used_storage: 0,
+    used_percent: 0,
+    available_storage: 0,
+    current_plan: "",
+  });
 
   const fetchFiles = async () => {
     try {
@@ -31,24 +45,42 @@ function Home() {
         throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
-      console.error(
-        "Error fetching files:",
-        error.response?.data || error.message
-      );
       sessionStorage.removeItem("token");
       navigate("/login");
+    }
+  };
+
+  const getFingerprintImage = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:3000/fpimage", {
+        params: { user_id: user.user_id },
+      });
+      if (data.fingerprint) {
+        setfpimage("data:image/png;base64," + data.fingerprint);
+      } else {
+        setfpimage(""); // Clear image if none found
+      }
+    } catch (error) {
+      console.error("Error fetching fingerprint image", error);
     }
   };
 
   useEffect(() => {
     const validateToken = async () => {
       const token = sessionStorage.getItem("token");
-      if (!token) return navigate("/login");
+      if (!token) {
+        return navigate("/login");
+      }
 
       try {
         const response = await axios.post("http://localhost:3000/checktoken", {
           token,
         });
+        if (response.data.success == false) {
+          // Corrected to access response data
+          sessionStorage.removeItem("token");
+          return navigate("/login");
+        }
         const { exp } = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
@@ -67,7 +99,7 @@ function Home() {
 
         setUser(userDetailsResponse.data.user);
       } catch (error) {
-        console.error("Token validation failed:", error);
+        console.error("Error validating token:", error);
         sessionStorage.removeItem("token");
         navigate("/login");
       }
@@ -79,6 +111,7 @@ function Home() {
   useEffect(() => {
     if (user && user.user_id) {
       fetchFiles();
+      getFingerprintImage();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -118,7 +151,6 @@ function Home() {
   const handleDelete = async (file) => {
     const fileKey = file.Key;
     if (typeof fileKey !== "string") {
-      console.error("fileKey is not a string", fileKey);
       return;
     }
 
@@ -134,8 +166,6 @@ function Home() {
 
       if (response.status === 200) {
         fetchFiles();
-      } else {
-        console.error(`Error: ${response.data.error}`);
       }
     } catch (error) {
       console.error(`Error deleting file: ${error.message}`);
@@ -200,7 +230,60 @@ function Home() {
             {user && <span className="name-greeting">Hello {user.name}!</span>}
             <button className="addfile-button">Add File</button>
           </div>
-          <div className="left-center-recent"></div>
+          <div className="left-center">
+            <div className="left-center-top">
+              <div className="storage-bar">
+                <CircularProgressbarWithChildren
+                  value={storage.used_percent}
+                  background
+                  backgroundPadding={6}
+                  styles={buildStyles({
+                    backgroundColor: "transparent",
+                    textColor: "#fff",
+                    pathColor: "#6419E6",
+                    trailColor: "#414755",
+                  })}
+                >
+                  <img
+                    style={{ width: 40, marginTop: -5 }}
+                    src={storageicon}
+                    alt="Your Image"
+                  />
+                  <div
+                    style={{
+                      fontSize: 16,
+                      color: "#D6DAF6",
+                    }}
+                  >
+                    <strong>{storage.used_percent}%</strong> used
+                  </div>
+                </CircularProgressbarWithChildren>
+              </div>
+              <div className="storage-info">
+                <span className="storage-title">Storage Breakdown</span>
+                <span className="storage-item">
+                  <span className="storage-label">Total Storage:</span>{" "}
+                  {storage.total_storage}
+                </span>
+                <span className="storage-item">
+                  <span className="storage-label">Used Storage:</span>{" "}
+                  {storage.used_storage}
+                </span>
+                <span className="storage-item">
+                  <span className="storage-label">Available Storage:</span>{" "}
+                  {storage.available_storage}
+                </span>
+                <span className="storage-item">
+                  <span className="storage-label">Current Plan:</span> Basic (10
+                  GB){" - "}
+                  <a href="/upgrade" className="upgrade-link">
+                    {" "}Upgrade Now
+                  </a>
+                </span>
+              </div>
+            </div>
+            <div className="left-center-bottom"></div>
+          </div>
         </div>
         <div className="right">
           <div className="medias-container">

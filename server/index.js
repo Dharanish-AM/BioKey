@@ -23,7 +23,10 @@ const {
 } = require("./controller/userController");
 const { addDevice } = require("./controller/deviceController");
 const { addStock } = require("./controller/productStockController");
-const { addFingerprint } = require("./controller/fingerprintController");
+const {
+  addFingerprint,
+  getFingerprintImage,
+} = require("./controller/fingerprintController");
 const {
   uploadFile,
   listFiles,
@@ -82,12 +85,10 @@ app.post("/signup", async (req, res) => {
 
 app.post("/checktoken", async (req, res) => {
   const { token } = req.body;
-  console.log(token);
 
   const response = await checkToken(token);
 
   if (response && response.success) {
-    console.log(response.decoded);
     return res
       .status(200)
       .json({ message: "Valid Token", user: response.decoded });
@@ -253,12 +254,58 @@ app.post("/fingerprint", async (req, res) => {
 
     //console.log("Base64 : " + newBase64);
 
+    const response = await addFingerprint(1, templateBuffer);
+
     res.status(200).json({
       message: "Fingerprint template processed",
     });
   } catch (error) {
     console.error("Error processing fingerprint template:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/fpimage", async (req, res) => {
+  const userId = req.query.user_id;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing user_id parameter",
+    });
+  }
+
+  try {
+    const result = await getFingerprintImage(userId);
+
+    if (result.success) {
+      // Assuming result.fingerprint is already a Buffer from MongoDB
+      const fingerprintBuffer = result.fingerprint;
+
+      // Convert Buffer to Base64 string to return in the response
+      const fingerprintBase64 = fingerprintBuffer.toString("base64");
+
+      console.log(
+        `Fingerprint image retrieved successfully for user ${userId}`
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Fingerprint image retrieved successfully.",
+        fingerprint: fingerprintBase64, // Send the fingerprint data as Base64
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: result.message,
+      });
+    }
+  } catch (error) {
+    console.error(`Error retrieving fingerprint: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 });
 

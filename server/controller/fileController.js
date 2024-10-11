@@ -20,6 +20,8 @@ const s3Client = new S3Client({
 
 const bucketName = process.env.S3_BUCKET_NAME;
 
+const MAX_STORAGE_LIMIT = 5 * 1024 * 1024 * 1024;
+
 const createUserFolder = async (userId) => {
   const params = {
     Bucket: bucketName,
@@ -39,6 +41,12 @@ const createUserFolder = async (userId) => {
 };
 
 const uploadFile = async (file, userId) => {
+  const currentUsage = await checkStorageUsage(userId);
+
+  if (currentUsage + file.size > MAX_STORAGE_LIMIT) {
+    throw new Error("Storage limit exceeded. Cannot upload the file.");
+  }
+
   const uploadParams = {
     Bucket: bucketName,
     Key: `${userId}/${file.originalname}`,
@@ -109,8 +117,8 @@ const deleteFile = async (fileName, userId) => {
   console.log("Attempting to delete file with key:", fileKey);
 
   const params = {
-    Bucket: bucketName, // Ensure bucketName is correct
-    Key: fileKey, // Ensure fileKey is correct
+    Bucket: bucketName,
+    Key: fileKey,
   };
 
   const command = new DeleteObjectCommand(params);
@@ -131,9 +139,27 @@ const deleteFile = async (fileName, userId) => {
   }
 };
 
+const checkStorageUsage = async (userId) => {
+  const userFolder = `${userId}/`;
+  const params = {
+    Bucket: bucketName,
+    Prefix: userFolder,
+  };
+
+  const objects = await s3.listObjectsV2(params).promise();
+
+  let totalSize = 0;
+  objects.Contents.forEach((obj) => {
+    totalSize += obj.Size;
+  });
+
+  return totalSize;
+};
+
 module.exports = {
   createUserFolder,
   uploadFile,
   listFiles,
   deleteFile,
+  checkStorageUsage,
 };

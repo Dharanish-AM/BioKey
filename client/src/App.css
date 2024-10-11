@@ -152,7 +152,6 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: auto;
   width: 100vw;
 }
 
@@ -242,12 +241,13 @@
 
 .search-button {
   background-color: #6419e6;
-  color: #d6daf6;
+  color: #fff;
   border: none;
   border-radius: 5px;
   padding: 10px 15px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 15px;
   transition: background-color 0.3s ease;
 }
 
@@ -414,8 +414,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  /*border-bottom: 1px solid rgba(166, 173, 186, 0.3);*/
+  height: fit-content;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .name-greeting {
@@ -446,11 +449,10 @@
   padding: 20px;
   padding-top: 0;
   background-color: #2a303c;
-  width: 55%;
+  width: 63%;
   height: 100%;
   border-radius: 15px;
 }
-
 .left .left-top {
   display: flex;
   justify-content: space-between;
@@ -458,7 +460,7 @@
   width: 100%;
 }
 
-.left-center-recent {
+.left-center {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -466,10 +468,31 @@
   margin-top: 1vh;
   background-color: rgba(55, 65, 81, 0.5);
   width: 95%;
-  height: 30%;
+  height: 80%;
+  border-radius: 15px;
+  justify-content: start;
+}
+.left-center-top {
+  display: flex;
+  justify-content: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-left: 0;
+  gap: 10px;
+  width: 97%;
+  height: 40%;
+  border-radius: 15px;
+  border: solid 0.5px rgba(166, 173, 186, 0.3);
+  align-items: center;
+}
+.storage-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 170px;
+  background-color: rgba(55, 65, 81, 0.5);
   border-radius: 15px;
 }
-
 .home-content .right {
   display: flex;
   flex-direction: column;
@@ -477,8 +500,9 @@
   justify-content: center;
   background-color: #2a303c;
   border-radius: 15px;
-  height: 96.5%;
+  height: 96.3%;
   padding: 20px;
+  width: 30%;
 }
 
 .medias-container {
@@ -515,4 +539,42 @@
 .recently-deleted-box {
   color: #d6daf6;
   opacity: 1;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.storage-info {
+  color: #d6daf6;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.storage-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.storage-item {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.storage-label {
+  font-weight: bold;
+}
+
+.storage-info a {
+  color: #6419e6;
+  text-decoration: none;
+  font-weight: 550;
+}
+
+.storage-info a:hover {
+  text-decoration: underline;
 }

@@ -27,7 +27,7 @@ const LandingScreen = ({ navigation }) => {
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              navigation.replace("Signup");
+              navigation.push("Signup");
             }}
           >
             <Text style={styles.buttonText}>Get Started</Text>
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "95%",
     height: "95%",
-    paddingLeft: 3,
-    paddingRight: 3,
+    paddingLeft: 5,
+    paddingRight:5,
     justifyContent: "space-between",
     alignContent: "center",
     alignItems: "center",

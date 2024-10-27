@@ -10,12 +10,12 @@ import { StatusBar } from "expo-status-bar";
 
 const SignupScreen = () => {
   useEffect(() => {
-    //SecureStore.deleteItemAsync("hasLaunched");
+    SecureStore.deleteItemAsync("hasLaunched");
   }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-    <StatusBar style="light" />
+      <StatusBar style="light" />
       <View style={styles.container}>
         <View style={styles.top}>
           <View style={styles.header}>
@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "95%",
     height: "95%",
-    paddingLeft: 3,
-    paddingRight: 3,
+    paddingLeft: 5,
+    paddingRight: 5,
     justifyContent: "space-between",
     alignContent: "center",
     alignItems: "center",

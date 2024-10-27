@@ -5,7 +5,7 @@ const Illustration = (props) => (
     xmlns="http://www.w3.org/2000/svg"
     viewBox="48.171 54.204 413.784 388.498"
     preserveAspectRatio="none"
-    width="97%"
+    width="95%"
     height="95%"
     {...props}
   >

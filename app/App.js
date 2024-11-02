@@ -1,35 +1,29 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import LandingScreen from "./screens/LandingScreen";
-import SignupScreen from "./screens/SignupScreen";
-import * as SecureStore from "expo-secure-store";
+import LandingScreen from "./src/screens/LandingScreen";
+import AuthScreen from "./src/screens/AuthScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { useFonts } from "expo-font";
-import colors from "./constants/Color";
+import colors from "./src/constants/Color";
+import FingerprintRegisterScreen from "./src/screens/FingerprintRegisterScreen";
+import SuccessScreen from "./src/screens/SuccessScreen";
+import FailedScreen from "./src/screens/FailedScreen";
+import FingerprintLoginScanScreen from "./src/screens/FingerprintLoginScanScreen";
+import LoginScreen from "./src/screens/LoginScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [isFirstLaunch, setIsFirstLaunch] = useState(null);
-  const [fontsLoaded] = useFonts({
-    AfacadFluxBlack: require("./assets/fonts/AfacadFlux-Black.ttf"),
-    AfacadFluxBold: require("./assets/fonts/AfacadFlux-Bold.ttf"),
-    AfacadFluxExtraBold: require("./assets/fonts/AfacadFlux-ExtraBold.ttf"),
-    AfacadFluxExtraLight: require("./assets/fonts/AfacadFlux-ExtraLight.ttf"),
-    AfacadFluxLight: require("./assets/fonts/AfacadFlux-Light.ttf"),
-    AfacadFluxMedium: require("./assets/fonts/AfacadFlux-Medium.ttf"),
-    AfacadFluxRegular: require("./assets/fonts/AfacadFlux-Regular.ttf"),
-    AfacadFluxSemiBold: require("./assets/fonts/AfacadFlux-SemiBold.ttf"),
-    AfacadFluxThin: require("./assets/fonts/AfacadFlux-Thin.ttf"),
-  });
+  const [isFirstLaunch, setIsFirstLaunch] = useState(true);
 
   useEffect(() => {
     const checkFirstLaunch = async () => {
       try {
-        const hasLaunched = await SecureStore.getItemAsync("hasLaunched");
+        const hasLaunched = await AsyncStorage.getItem("hasLaunched");
         if (hasLaunched === null) {
-          await SecureStore.setItemAsync("hasLaunched", "true");
+          await AsyncStorage.setItem("hasLaunched", "true");
           setIsFirstLaunch(true);
         } else {
           setIsFirstLaunch(false);
@@ -42,7 +36,7 @@ export default function App() {
     checkFirstLaunch();
   }, []);
 
-  if (isFirstLaunch === null || !fontsLoaded) {
+  if (isFirstLaunch === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color={colors.primaryColor} />
@@ -51,19 +45,48 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName={isFirstLaunch ? "Landing" : "Signup"}>
-        <Stack.Screen
-          name="Landing"
-          component={LandingScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Signup"
-          component={SignupScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={isFirstLaunch ? "Landing" : "Signup"}
+        >
+          <Stack.Screen
+            name="Landing"
+            component={LandingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AuthScreen"
+            component={AuthScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FingerprintRegisterScan"
+            component={FingerprintRegisterScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FingerprintLoginScan"
+            component={FingerprintLoginScanScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Success"
+            component={SuccessScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Failed"
+            component={FailedScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

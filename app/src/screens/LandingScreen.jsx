@@ -1,22 +1,16 @@
-import { useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import * as SecureStore from "expo-secure-store";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import colors from "../constants/Color";
-import BluetoothOff from "../assets/svg/BluetoothOff";
+import Illustration from "../assets/svg/Illustration";
 import Logo from "../assets/svg/Logo";
 import CustomerCare from "../assets/svg/CustomerCare";
-import { StatusBar } from "expo-status-bar";
+import colors from "../constants/Color";
 
-const SignupScreen = () => {
-  useEffect(() => {
-    SecureStore.deleteItemAsync("hasLaunched");
-  }, []);
-
+const LandingScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
       <View style={styles.container}>
+        <StatusBar style="light" />
         <View style={styles.top}>
           <View style={styles.header}>
             <Logo style={styles.logo} />
@@ -24,14 +18,23 @@ const SignupScreen = () => {
           </View>
         </View>
         <View style={styles.center}>
-          <View style={styles.BluetoothOff}>
-            <BluetoothOff />
-          </View>
+          <Illustration style={styles.Illustration} />
         </View>
         <View style={styles.bottom}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Turn on bluetooth</Text>
+          <Text style={styles.quotes}>
+            “Your identity, your access, your security”
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              navigation.push("AuthScreen", {
+                signup: true,
+              });
+            }}
+          >
+            <Text style={styles.buttonText}>Get Started</Text>
           </TouchableOpacity>
+          <Text style={styles.terms}>Terms and Conditions apply</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -47,28 +50,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   container: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    backgroundColor: "",
     width: "100%",
     height: "100%",
-    flexDirection: "column",
   },
   top: {
-    justifyContent: "center",
-    alignItems: "center",
     height: "17%",
+    justifyContent: "start",
+    alignItems: "center",
+    width: "100%",
   },
   header: {
     flexDirection: "row",
-    width: "95%",
-    height: "95%",
-    paddingLeft: 5,
-    paddingRight: 5,
+    width: "100%",
     justifyContent: "space-between",
-    alignContent: "center",
     alignItems: "center",
+    paddingHorizontal: 15,
+    height: "100%",
   },
   logo: {
     flex: 1,
@@ -87,16 +84,22 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   center: {
-    width: "100%",
-    height: "60%",
     justifyContent: "center",
     alignItems: "center",
+    alignContent: "center",
+    height: "60%",
   },
   bottom: {
-    alignItems: "center",
-    justifyContent: "center",
+    height: "27%",
     width: "100%",
-    height: "30%",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+  },
+  quotes: {
+    color: "#E0E3F8",
+    fontFamily: "AfacadFlux-SemiBold",
+    fontSize: 22,
   },
   button: {
     width: 250,
@@ -109,9 +112,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     textAlign: "center",
-    fontFamily: "AfacadFluxBold",
+    fontFamily: "AfacadFlux-Bold",
     fontSize: 22,
+  },
+  terms: {
+    color: "#A6ADBA",
+    fontFamily: "AfacadFlux-Medium",
+    fontSize: 15,
   },
 });
 
-export default SignupScreen;
+export default LandingScreen;

@@ -1,10 +1,12 @@
 import * as React from "react";
 import Svg, { Circle, Path } from "react-native-svg";
+
 const Bluetooth = (props) => (
   <Svg
     xmlns="http://www.w3.org/2000/svg"
-    width={280}
-    height={280}
+    width={230} // Adjusted width
+    height={230} // Adjusted height
+    viewBox="0 0 280 280" // Maintain original aspect ratio
     fill="none"
     {...props}
   >
@@ -22,4 +24,5 @@ const Bluetooth = (props) => (
     />
   </Svg>
 );
+
 export default Bluetooth;

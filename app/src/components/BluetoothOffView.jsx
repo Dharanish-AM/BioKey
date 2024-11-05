@@ -1,38 +1,74 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from "react-native";
+import BleManager from "react-native-ble-manager";
 import colors from "../constants/Color";
 import BluetoothOff from "../assets/svg/BluetoothOff";
-import Logo from "../assets/svg/Logo";
 import CustomerCare from "../assets/svg/CustomerCare.js";
-import { useState } from "react";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const BluetoothOffView = ({ setBle }) => {
-  const [isBleOn, setIsBleOn] = useState(null);
+  const [isBleOn, setIsBleOn] = useState(false);
 
-  function handleBleOn() {
-    console.log("Bluetooth is on");
-    setIsBleOn(true);
-    setBle(true);
-  }
+  const handleBleOn = async () => {
+    try {
+      await BleManager.enableBluetooth();
+      console.log("Bluetooth is enabled");
+      setIsBleOn(true);
+      setBle(true); // Notify AuthScreen that BLE is now enabled
+    } catch (error) {
+      console.log("The user refused to enable Bluetooth: " + error);
+      Alert.alert("Bluetooth", "Please enable Bluetooth to use this feature.");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.top}>
-        <View style={styles.header}>
-          <Logo style={styles.logo} />
-          <CustomerCare style={styles.customerCare} />
+      <View style={styles.header}>
+        <View style={styles.logocontainer}>
+          <Image
+            source={require("../assets/images/BioKey_Logo.png")}
+            style={styles.logo}
+          />
+          <View style={styles.ltextcontainer}>
+            <Text style={styles.logotext}>BioKey</Text>
+          </View>
+        </View>
+        <View style={styles.customerCareContainer}>
+          <Image
+            source={require("../assets/images/support.png")}
+            style={styles.customerCare}
+          />
         </View>
       </View>
 
       <View style={styles.center}>
-        <BluetoothOff />
+        <View style={styles.bleoffcontainer}>
+          <Image
+            source={require("../assets/images/deactivate.png")}
+            style={styles.bleoff}
+          />
+        </View>
+        <Text style={styles.wtforble}>Waiting for bluetooth . . .</Text>
       </View>
 
       <View style={styles.bottom}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText} onPress={handleBleOn}>
-            Turn on Bluetooth
-          </Text>
-        </TouchableOpacity>
+        {!isBleOn ? (
+          <TouchableOpacity style={styles.button} onPress={handleBleOn}>
+            <Text style={styles.buttonText}>Turn on Bluetooth</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.buttonText}>Bluetooth is ON</Text>
+        )}
       </View>
     </View>
   );
@@ -40,49 +76,86 @@ const BluetoothOffView = ({ setBle }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
-    width: "100%",
-    alignItems: "center",
+    flex: 1,
     flexDirection: "column",
-  },
-  top: {
-    height: "12%",
-    justifyContent: "start",
     alignItems: "center",
-    width: "100%",
+    width: wp("100%"),
+    height: hp("100%"),
   },
   header: {
     flexDirection: "row",
-    width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 15,
-    height: "100%",
+    height: hp("10%"),
+    paddingHorizontal: wp("3%"),
+    marginTop: hp("1%"),
+  },
+  logocontainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    width: "50%",
   },
   logo: {
+    width: "40%",
+    height: undefined,
+    aspectRatio: 1,
+  },
+  ltextcontainer: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+    height: "100%",
+    marginLeft: 6,
+  },
+  logotext: {
+    fontSize: 36,
+    fontFamily: "AfacadFlux-Bold",
+    color: "#E0E3F8",
+  },
+  customerCareContainer: {
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
     width: "50%",
-    height: "70%",
+    height: "100%",
+    marginBottom: "1%",
   },
   customerCare: {
-    width: "10%",
-    height: "35%",
-    marginTop: 40,
+    width: "20%",
+    height: undefined,
+    aspectRatio: 1,
   },
   center: {
-    width: "100%",
-    height: "75%",
+    width: wp("100%"),
+    height: hp("70%"),
     justifyContent: "center",
     alignItems: "center",
   },
+  bleoffcontainer: {
+    backgroundColor: "rgba(166, 173, 186, 0.6)",
+    width: wp("35%"),
+    height: wp("35%"),
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: wp("22.5%"),
+  },
+  bleoff: {
+    width: "50%",
+    height: "50%",
+  },
+  wtforble: {
+    color: colors.textColor3,
+    fontSize: 24,
+    fontFamily: "AfacadFlux-Bold",
+    marginTop: "5%",
+  },
   bottom: {
-    width: "100%",
-    height: "10%",
+    width: wp("100%"),
+    height: hp("15%"),
     justifyContent: "center",
     alignItems: "center",
   },
   button: {
-    width: 250,
-    height: 50,
+    width: "60%",
+    height: "45%",
     backgroundColor: colors.primaryColor,
     borderRadius: 30,
     justifyContent: "center",
@@ -90,7 +163,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "AfacadFlux-Bold",
   },
 });

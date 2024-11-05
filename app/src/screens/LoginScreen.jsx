@@ -1,18 +1,39 @@
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Text, Image } from "react-native";
 import colors from "../constants/Color";
 import Logo from "../assets/svg/Logo.js";
 import CustomerCare from "../assets/svg/CustomerCare.js";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LottieView from "lottie-react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
+  function handleloginclick() {
+    navigation.push("AuthScreen", {
+      login: true,
+      signup: false,
+    });
+  }
+
+  function handleregisterclick() {
+    navigation.push("AuthScreen", {
+      login: false,
+      signup: true,
+    });
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.top}>
           <View style={styles.header}>
             <Logo style={styles.logo} />
-            <CustomerCare style={styles.customerCare} />
+            <Image
+              source={require("../assets/images/support.png")}
+              style={styles.customerCare}
+            />
           </View>
         </View>
         <View style={styles.center}>
@@ -33,12 +54,15 @@ const LoginScreen = () => {
           </Text>
         </View>
         <View style={styles.bottom}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={handleloginclick}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
           <View style={styles.registerContainer}>
             <Text style={styles.register}>Not yet registered?</Text>
-            <TouchableOpacity style={styles.route}>
+            <TouchableOpacity
+              style={styles.route}
+              onPress={handleregisterclick}
+            >
               <Text style={styles.routetext}> Click here</Text>
             </TouchableOpacity>
           </View>

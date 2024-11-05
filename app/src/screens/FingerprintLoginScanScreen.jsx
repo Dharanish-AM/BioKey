@@ -1,9 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import colors from "../constants/Color.js";
 import Logo from "../assets/svg/Logo.js";
 import CustomerCare from "../assets/svg/CustomerCare.js";
@@ -28,10 +23,6 @@ const FingerprintLoginScanScreen = ({ navigation }) => {
     }
   });
 
-  function handleback() {
-    navigation.navigate("Login");
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -49,16 +40,17 @@ const FingerprintLoginScanScreen = ({ navigation }) => {
             </Text>
             <FingerprintScan />
             <View style={styles.devicedetails}>
-              <DeviceLogo />
+              <DeviceLogo style={styles.devicelogo} />
               <Text style={styles.devicename}>{deviceDetails.deviceName}</Text>
             </View>
           </View>
         </View>
         <View style={styles.bottom}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText} onPress={handleback}>
-              Back
-            </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => [navigation.goBack()]}
+          >
+            <Text style={styles.buttonText}>Back</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -110,14 +102,18 @@ const styles = StyleSheet.create({
     gap: 80,
   },
   devicedetails: {
-    width: "75%",
-    height: "20%",
+    height: "15%",
     backgroundColor: colors.lightColor2,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
-    gap: 20,
     borderRadius: 30,
+    paddingHorizontal: 30,
+    gap: 10,
+  },
+  devicelogo: {
+    width: "20%",
+    height: "100%",
   },
   devicename: {
     color: colors.textColor1,
@@ -128,17 +124,15 @@ const styles = StyleSheet.create({
     fontSize: 32,
     color: colors.textColor1,
     fontFamily: "AfacadFlux-SemiBold",
-    marginTop: 0,
   },
   scancontainer: {
-    width: "80%",
-    height: "60%",
-    justifyContent: "start",
+    justifyContent: "center",
     alignItems: "center",
     backgroundColor: colors.lightColor1,
     borderRadius: 20,
     gap: 25,
-    paddingTop: 45,
+    paddingHorizontal: 25,
+    paddingVertical: 20,
   },
   instructionText: {
     fontSize: 24,

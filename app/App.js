@@ -12,11 +12,13 @@ import FailedScreen from "./src/screens/FailedScreen";
 import FingerprintLoginScanScreen from "./src/screens/FingerprintLoginScanScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import HomeScreen from "./src/screens/HomeScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkFirstLaunch = async () => {
@@ -30,13 +32,15 @@ export default function App() {
         }
       } catch (error) {
         console.error("Error checking first launch:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkFirstLaunch();
   }, []);
 
-  if (isFirstLaunch === null) {
+  if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color={colors.primaryColor} />
@@ -47,9 +51,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName={isFirstLaunch ? "Landing" : "Signup"}
-        >
+        <Stack.Navigator initialRouteName={isFirstLaunch ? "Landing" : "Landing"}>
           <Stack.Screen
             name="Landing"
             component={LandingScreen}
@@ -83,6 +85,11 @@ export default function App() {
           <Stack.Screen
             name="Login"
             component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

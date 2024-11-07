@@ -1,10 +1,11 @@
 import * as React from "react";
-import Svg, { G, Path, Defs, ClipPath } from "react-native-svg";
+import Svg, { G, Path, Defs, ClipPath, Rect } from "react-native-svg";
 const Logo = (props) => (
   <Svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     {...props}
+    preserveAspectRatio="none"
   >
     <G clipPath="url(#a)">
       <Path

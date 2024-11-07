@@ -3,10 +3,8 @@ import Svg, { Path, Circle } from "react-native-svg";
 const Illustration = (props) => (
   <Svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="48.171 54.204 413.784 388.498"
+    viewBox="45 30 415 400"
     preserveAspectRatio="none"
-    width="95%"
-    height="95%"
     {...props}
   >
     <Path

@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "BioKey",
+    "slug": "biokey",
     "version": "1.0.0",
-    "scheme": "biokey"
+    "scheme": "biokey",
+    "plugins": ["expo-font"]
   }
 }

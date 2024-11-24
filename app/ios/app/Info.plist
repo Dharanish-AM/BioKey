@@ -24,6 +24,8 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -49,16 +51,14 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>AfacadFlux-Black.ttf</string>
-		<string>AfacadFlux-Bold.ttf</string>
-		<string>AfacadFlux-ExtraBold.ttf</string>
-		<string>AfacadFlux-ExtraLight.ttf</string>
-		<string>AfacadFlux-Light.ttf</string>
-		<string>AfacadFlux-Medium.ttf</string>
-		<string>AfacadFlux-Regular.ttf</string>
-		<string>AfacadFlux-SemiBold.ttf</string>
-		<string>AfacadFlux-Thin.ttf</string>
-		<string>AfacadFlux-VariableFont_slnt,wght.ttf</string>
+		<string>Afacad-Bold.ttf</string>
+		<string>Afacad-BoldItalic.ttf</string>
+		<string>Afacad-Italic.ttf</string>
+		<string>Afacad-Medium.ttf</string>
+		<string>Afacad-MediumItalic.ttf</string>
+		<string>Afacad-Regular.ttf</string>
+		<string>Afacad-SemiBold.ttf</string>
+		<string>Afacad-SemiBoldItalic.ttf</string>
 	</array>
 </dict>
 </plist>

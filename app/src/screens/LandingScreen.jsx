@@ -1,194 +1,171 @@
 import React from "react";
 import {
-  View,
   Text,
+  View,
   StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Platform,
   Image,
+  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Illustration from "../assets/svg/Illustration";
-import Logo from "../assets/svg/Logo";
-import CustomerCare from "../assets/svg/CustomerCare";
 import colors from "../constants/Color";
-import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import useCustomFonts from "../hooks/useLoadFonts";
+
+import Logo from "../assets/images/BioKey_Logo.png";
+import CustomerCarePng from "../assets/images/Headset.png";
+import Illustration from "../assets/images/illustration-landing.png";
 
 const LandingScreen = ({ navigation }) => {
-  const handleGetStarted = async () => {
-    try {
-      const permissions = [
-        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      ];
+  const fontsLoaded = useCustomFonts();
 
-      if (Platform.OS === "android" && parseInt(Platform.Version, 10) < 31) {
-        permissions.splice(0, 2);
-      }
-
-      const requestPermission = async (permission) => {
-        const result = await check(permission);
-        if (result !== RESULTS.GRANTED) {
-          const requestResult = await request(permission);
-          return requestResult === RESULTS.GRANTED;
-        }
-        return true;
-      };
-
-      for (const permission of permissions) {
-        const isGranted = await requestPermission(permission);
-        if (!isGranted) {
-          Alert.alert(
-            "Permission Required",
-            `${permission} is needed to continue. Please allow this permission in your settings if denied.`
-          );
-          return;
-        }
-      }
-
-      navigation.push("AuthScreen", { signup: true, login: false });
-    } catch (error) {
-      console.error("Permission error:", error);
-      Alert.alert("Error", "Unable to request Bluetooth permissions.");
-    }
-  };
+  if (!fontsLoaded) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#0000ff"
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      />
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.logocontainer}>
-            <Image
-              source={require("../assets/images/BioKey_Logo.png")}
-              style={styles.logo}
-            />
-            <View style={styles.ltextcontainer}>
-              <Text style={styles.logotext}>BioKey</Text>
-            </View>
-          </View>
-          <View style={styles.customerCareContainer}>
-            <Image
-              source={require("../assets/images/support.png")}
-              style={styles.customerCare}
-            />
-          </View>
+    <View style={styles.container}>
+      <View style={styles.top}>
+        <View style={styles.logoContainer}>
+          <Image style={styles.logo} source={Logo} resizeMode="contain" />
+          <Text style={styles.logotext}>BioKey</Text>
         </View>
-        <View style={styles.center}>
-          <Illustration style={styles.Illustration} />
-        </View>
-        <View style={styles.bottom}>
-          <Text style={styles.quotes}>
+        <TouchableOpacity style={styles.CustomerCarePngContainer}>
+          <Image
+            resizeMode="contain"
+            style={styles.CustomerCarePng}
+            source={CustomerCarePng}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.center}>
+        <Image
+          style={styles.illustration}
+          source={Illustration}
+          resizeMode="stretch"
+        />
+      </View>
+      <View style={styles.bottom}>
+        <View style={styles.quotesContainer}>
+          <Text style={styles.quotesText}>
             “Your identity, your access, your security”
           </Text>
-
-          <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
-            <Text style={styles.buttonText}>Get Started</Text>
-          </TouchableOpacity>
-          <Text style={styles.terms}>Terms and Conditions apply</Text>
         </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("DevicePluginScreen")}
+        >
+          <Text style={styles.buttonText}>Get Started</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tacConatiner}>
+          <Text style={styles.tacText}>Terms and Conditions</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.secondaryColor1,
-  },
   container: {
     flex: 1,
+    backgroundColor: colors.secondaryColor1,
     flexDirection: "column",
+    alignItems: "center",
   },
-  header: {
+  top: {
+    width: wp("100%"),
+    height: hp("13%"),
+    paddingHorizontal: wp("5%"),
+    paddingVertical: hp("2%"),
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: hp("10%"),
-    paddingHorizontal: wp("3%"),
-    marginTop: hp("1%"),
   },
-  logocontainer: {
+  logoContainer: {
+    height: "100%",
+    flex: 1,
     flexDirection: "row",
     alignItems: "flex-end",
-    width: "50%",
   },
   logo: {
-    width: "40%",
-    height: undefined,
-    aspectRatio: 1,
-  },
-  ltextcontainer: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-    height: "100%",
-    marginLeft: 6,
+    height: hp("9%"),
+    width: hp("9%"),
+    marginRight: "2%",
   },
   logotext: {
-    fontSize: 36,
-    fontFamily: "AfacadFlux-Bold",
+    fontSize: hp("4%"),
     color: "#E0E3F8",
+    fontFamily: "Afacad-Bold",
   },
-  customerCareContainer: {
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    width: "50%",
+  CustomerCarePngContainer: {
+    height: hp("4%"),
+    width: hp("4%"),
+  },
+  CustomerCarePng: {
     height: "100%",
-    marginBottom: "1%",
-  },
-  customerCare: {
-    width: "20%",
-    height: undefined,
-    aspectRatio: 1,
+    width: "100%",
+    marginTop: hp("2.5%"),
   },
   center: {
-    justifyContent: "center",
+    flex: 1,
+    width: wp("100%"),
     alignItems: "center",
-    height: hp("59%"),
+    justifyContent: "center",
   },
-  Illustration: {
-    width: "95%",
-    height: "100%",
+  illustration: {
+    width: wp("90%"),
+    height: "90%",
   },
   bottom: {
-    height: hp("25%"),
     width: wp("100%"),
+    height: hp("20%"),
+    flexDirection: "column",
     justifyContent: "space-evenly",
     alignItems: "center",
-    flexDirection: "column",
-    gap: 15,
   },
-  quotes: {
-    color: "#E0E3F8",
-    fontFamily: "AfacadFlux-SemiBold",
-    fontSize: 23,
+  quotesContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: wp("100%"),
+    color: colors.textColor1,
+  },
+  quotesText: {
+    fontSize:hp("2.5%"),
+    color: colors.textColor1,
+    fontFamily: "Afacad-SemiBoldItalic",
   },
   button: {
-    width: "60%",
-    height: "25%",
+    width: wp("65%"),
+    height: hp("7%"),
+    borderRadius: wp("11%"),
     backgroundColor: colors.primaryColor,
-    borderRadius: 30,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
-    color: "#FFFFFF",
-    textAlign: "center",
-    fontFamily: "AfacadFlux-Bold",
-    fontSize: 24,
+    fontSize: hp("3%"),
+    color: colors.textColor1,
+    fontFamily: "Afacad-SemiBold",
   },
-  terms: {
-    color: "#A6ADBA",
-    fontFamily: "AfacadFlux-Medium",
-    fontSize: 16,
+  tacConatiner: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: wp("100%"),
+  },
+  tacText: {
+    fontSize: hp("2%"),
+    color: colors.textColor2,
+    fontFamily: "Afacad-SemiBold",
+    opacity: 0.5,
+    textDecorationLine: "underline",
   },
 });
 

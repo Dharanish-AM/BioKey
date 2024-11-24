@@ -2,44 +2,36 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "src/assets/fonts/AfacadFlux-Black.ttf",
-      "sha1": "cc8da61cd60accc3a429e9eb2b409e6e2826ef5c"
+      "path": "src/assets/fonts/Afacad-Bold.ttf",
+      "sha1": "c1f61e01953bee234bd74c3a2bf01a8b7da79bc4"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-Bold.ttf",
-      "sha1": "4abb38205aa9d3463317f50dfa9b4f39692eb598"
+      "path": "src/assets/fonts/Afacad-BoldItalic.ttf",
+      "sha1": "610235bdad4e3806b2cc7dc3b7dd403d98e48b17"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-ExtraBold.ttf",
-      "sha1": "580f5d21260debe93e26459bcd781ac22e1ee2ae"
+      "path": "src/assets/fonts/Afacad-Italic.ttf",
+      "sha1": "9c9308d5f0580cfb7207b5ba1db13b877c55d645"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-ExtraLight.ttf",
-      "sha1": "e0183a4532c612eee547508416cfca0ad67e5bcb"
+      "path": "src/assets/fonts/Afacad-Medium.ttf",
+      "sha1": "778e1a8162c85552929ea59a6a0d1358502eb1d7"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-Light.ttf",
-      "sha1": "7fbfe7b2edbf3acde9b99204e91b68db60079847"
+      "path": "src/assets/fonts/Afacad-MediumItalic.ttf",
+      "sha1": "59c1a20358a9a027aeea65609c8cbdd34a8b1a33"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-Medium.ttf",
-      "sha1": "e11f72d1fb718e754a0e9b380bab87c8a2afb3c8"
+      "path": "src/assets/fonts/Afacad-Regular.ttf",
+      "sha1": "3dd29afd23f5171addf5a2d8c3d633c51a9ac765"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-Regular.ttf",
-      "sha1": "933d10004d7177c546168d871edabb30ccd4c520"
+      "path": "src/assets/fonts/Afacad-SemiBold.ttf",
+      "sha1": "d0665680af7c7f7e1740118dc9847c77b8455198"
     },
     {
-      "path": "src/assets/fonts/AfacadFlux-SemiBold.ttf",
-      "sha1": "4cdce17fb28ba175c764f31bd9fdb1d7358e2cb9"
-    },
-    {
-      "path": "src/assets/fonts/AfacadFlux-Thin.ttf",
-      "sha1": "5691288c42191ef8724ea51a32b21aeed7e186c0"
-    },
-    {
-      "path": "src/assets/fonts/AfacadFlux-VariableFont_slnt,wght.ttf",
-      "sha1": "a23c2f4aab929b5c79b906b7d7f3aa2fdc2ca157"
+      "path": "src/assets/fonts/Afacad-SemiBoldItalic.ttf",
+      "sha1": "92bbb36800d93007f84eb28fd30bb5a47058fe63"
     }
   ]
 }

@@ -14,16 +14,14 @@
 		96905EF65AED1B983A6B3ABC /* libPods-app.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-app.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		A696039DAF3B4599BD69FCB2 /* AfacadFlux-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 09D8C5C2EC394681A2D55CCE /* AfacadFlux-Black.ttf */; };
-		A4C2D802CB50404E9180883F /* AfacadFlux-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1086CA54E9F741F099069E7C /* AfacadFlux-Bold.ttf */; };
-		96D1788F593547868E4D70CF /* AfacadFlux-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A581574A19844C1A82458271 /* AfacadFlux-ExtraBold.ttf */; };
-		837D296BBD4C47F1827EA3E1 /* AfacadFlux-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 42B3B5BFFE7E4C3AADCC73B0 /* AfacadFlux-ExtraLight.ttf */; };
-		D646DB42371C44A188ABBD30 /* AfacadFlux-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 096409A4BACF445B9B166EC0 /* AfacadFlux-Light.ttf */; };
-		EB8C7DA2363641709779010D /* AfacadFlux-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8DE2890B180C45DF8F83884F /* AfacadFlux-Medium.ttf */; };
-		F2CAE03B95DC4318862D413D /* AfacadFlux-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 533E000402DC4208B5A0D7AE /* AfacadFlux-Regular.ttf */; };
-		FE0B026C630B43A3AEBDB60F /* AfacadFlux-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2BE7B49294B94B93837E86A4 /* AfacadFlux-SemiBold.ttf */; };
-		EBF9F0D535C249AF813D2B4F /* AfacadFlux-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1832726F99B8435391CB2BDF /* AfacadFlux-Thin.ttf */; };
-		D8274A284459488EA316A479 /* AfacadFlux-VariableFont_slnt,wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 769D55A143AE4C3EAB8FFD27 /* AfacadFlux-VariableFont_slnt,wght.ttf */; };
+		F67F6C319AA9489FB0B06525 /* Afacad-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7FF1DC1EEEEA41CBB7C6C390 /* Afacad-Bold.ttf */; };
+		CAFC12AC827D400795F51336 /* Afacad-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A871AE51C7E7469991568B13 /* Afacad-BoldItalic.ttf */; };
+		537CD2DA6C1C46EB8A981CD9 /* Afacad-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BB44F391E47A4BFC8C3065F3 /* Afacad-Italic.ttf */; };
+		5307C49E0236460B97D64A4E /* Afacad-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 61A7C628A6904E6C9A497496 /* Afacad-Medium.ttf */; };
+		FDE8BE2FEAEC42A8B2B5FE67 /* Afacad-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A4580236354E44FF95F6DDF3 /* Afacad-MediumItalic.ttf */; };
+		60AC8B5335B94CBD848A40C7 /* Afacad-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 489DAE17E375465C8E65603F /* Afacad-Regular.ttf */; };
+		427A101E7DBC49F0A538AAE3 /* Afacad-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B9A44E34738C4DC99E1DC8D5 /* Afacad-SemiBold.ttf */; };
+		D060BE460B7643229F90B2D7 /* Afacad-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9F1AACA00C7642D1B44FDD38 /* Afacad-SemiBoldItalic.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,16 +38,14 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-app/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		09D8C5C2EC394681A2D55CCE /* AfacadFlux-Black.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Black.ttf"; path = "../src/assets/fonts/AfacadFlux-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1086CA54E9F741F099069E7C /* AfacadFlux-Bold.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Bold.ttf"; path = "../src/assets/fonts/AfacadFlux-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		A581574A19844C1A82458271 /* AfacadFlux-ExtraBold.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-ExtraBold.ttf"; path = "../src/assets/fonts/AfacadFlux-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		42B3B5BFFE7E4C3AADCC73B0 /* AfacadFlux-ExtraLight.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-ExtraLight.ttf"; path = "../src/assets/fonts/AfacadFlux-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		096409A4BACF445B9B166EC0 /* AfacadFlux-Light.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Light.ttf"; path = "../src/assets/fonts/AfacadFlux-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		8DE2890B180C45DF8F83884F /* AfacadFlux-Medium.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Medium.ttf"; path = "../src/assets/fonts/AfacadFlux-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		533E000402DC4208B5A0D7AE /* AfacadFlux-Regular.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Regular.ttf"; path = "../src/assets/fonts/AfacadFlux-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		2BE7B49294B94B93837E86A4 /* AfacadFlux-SemiBold.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-SemiBold.ttf"; path = "../src/assets/fonts/AfacadFlux-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1832726F99B8435391CB2BDF /* AfacadFlux-Thin.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-Thin.ttf"; path = "../src/assets/fonts/AfacadFlux-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		769D55A143AE4C3EAB8FFD27 /* AfacadFlux-VariableFont_slnt,wght.ttf */ = {isa = PBXFileReference; name = "AfacadFlux-VariableFont_slnt,wght.ttf"; path = "../src/assets/fonts/AfacadFlux-VariableFont_slnt,wght.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7FF1DC1EEEEA41CBB7C6C390 /* Afacad-Bold.ttf */ = {isa = PBXFileReference; name = "Afacad-Bold.ttf"; path = "../src/assets/fonts/Afacad-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A871AE51C7E7469991568B13 /* Afacad-BoldItalic.ttf */ = {isa = PBXFileReference; name = "Afacad-BoldItalic.ttf"; path = "../src/assets/fonts/Afacad-BoldItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		BB44F391E47A4BFC8C3065F3 /* Afacad-Italic.ttf */ = {isa = PBXFileReference; name = "Afacad-Italic.ttf"; path = "../src/assets/fonts/Afacad-Italic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		61A7C628A6904E6C9A497496 /* Afacad-Medium.ttf */ = {isa = PBXFileReference; name = "Afacad-Medium.ttf"; path = "../src/assets/fonts/Afacad-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A4580236354E44FF95F6DDF3 /* Afacad-MediumItalic.ttf */ = {isa = PBXFileReference; name = "Afacad-MediumItalic.ttf"; path = "../src/assets/fonts/Afacad-MediumItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		489DAE17E375465C8E65603F /* Afacad-Regular.ttf */ = {isa = PBXFileReference; name = "Afacad-Regular.ttf"; path = "../src/assets/fonts/Afacad-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		B9A44E34738C4DC99E1DC8D5 /* Afacad-SemiBold.ttf */ = {isa = PBXFileReference; name = "Afacad-SemiBold.ttf"; path = "../src/assets/fonts/Afacad-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9F1AACA00C7642D1B44FDD38 /* Afacad-SemiBoldItalic.ttf */ = {isa = PBXFileReference; name = "Afacad-SemiBoldItalic.ttf"; path = "../src/assets/fonts/Afacad-SemiBoldItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,7 +99,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				D65327D7A22EEC0BE12398D9 /* Pods */,
 				D7E4C46ADA2E9064B798F356 /* ExpoModulesProviders */,
-				832666AA9B5440AEA82D1965 /* Resources */,
+				28756771E2044592961EDB15 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -152,19 +148,17 @@
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
-		832666AA9B5440AEA82D1965 /* Resources */ = {
+		28756771E2044592961EDB15 /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
-				09D8C5C2EC394681A2D55CCE /* AfacadFlux-Black.ttf */,
-				1086CA54E9F741F099069E7C /* AfacadFlux-Bold.ttf */,
-				A581574A19844C1A82458271 /* AfacadFlux-ExtraBold.ttf */,
-				42B3B5BFFE7E4C3AADCC73B0 /* AfacadFlux-ExtraLight.ttf */,
-				096409A4BACF445B9B166EC0 /* AfacadFlux-Light.ttf */,
-				8DE2890B180C45DF8F83884F /* AfacadFlux-Medium.ttf */,
-				533E000402DC4208B5A0D7AE /* AfacadFlux-Regular.ttf */,
-				2BE7B49294B94B93837E86A4 /* AfacadFlux-SemiBold.ttf */,
-				1832726F99B8435391CB2BDF /* AfacadFlux-Thin.ttf */,
-				769D55A143AE4C3EAB8FFD27 /* AfacadFlux-VariableFont_slnt,wght.ttf */,
+				7FF1DC1EEEEA41CBB7C6C390 /* Afacad-Bold.ttf */,
+				A871AE51C7E7469991568B13 /* Afacad-BoldItalic.ttf */,
+				BB44F391E47A4BFC8C3065F3 /* Afacad-Italic.ttf */,
+				61A7C628A6904E6C9A497496 /* Afacad-Medium.ttf */,
+				A4580236354E44FF95F6DDF3 /* Afacad-MediumItalic.ttf */,
+				489DAE17E375465C8E65603F /* Afacad-Regular.ttf */,
+				B9A44E34738C4DC99E1DC8D5 /* Afacad-SemiBold.ttf */,
+				9F1AACA00C7642D1B44FDD38 /* Afacad-SemiBoldItalic.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -232,16 +226,14 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				A696039DAF3B4599BD69FCB2 /* AfacadFlux-Black.ttf in Resources */,
-				A4C2D802CB50404E9180883F /* AfacadFlux-Bold.ttf in Resources */,
-				96D1788F593547868E4D70CF /* AfacadFlux-ExtraBold.ttf in Resources */,
-				837D296BBD4C47F1827EA3E1 /* AfacadFlux-ExtraLight.ttf in Resources */,
-				D646DB42371C44A188ABBD30 /* AfacadFlux-Light.ttf in Resources */,
-				EB8C7DA2363641709779010D /* AfacadFlux-Medium.ttf in Resources */,
-				F2CAE03B95DC4318862D413D /* AfacadFlux-Regular.ttf in Resources */,
-				FE0B026C630B43A3AEBDB60F /* AfacadFlux-SemiBold.ttf in Resources */,
-				EBF9F0D535C249AF813D2B4F /* AfacadFlux-Thin.ttf in Resources */,
-				D8274A284459488EA316A479 /* AfacadFlux-VariableFont_slnt,wght.ttf in Resources */,
+				F67F6C319AA9489FB0B06525 /* Afacad-Bold.ttf in Resources */,
+				CAFC12AC827D400795F51336 /* Afacad-BoldItalic.ttf in Resources */,
+				537CD2DA6C1C46EB8A981CD9 /* Afacad-Italic.ttf in Resources */,
+				5307C49E0236460B97D64A4E /* Afacad-Medium.ttf in Resources */,
+				FDE8BE2FEAEC42A8B2B5FE67 /* Afacad-MediumItalic.ttf in Resources */,
+				60AC8B5335B94CBD848A40C7 /* Afacad-Regular.ttf in Resources */,
+				427A101E7DBC49F0A538AAE3 /* Afacad-SemiBold.ttf in Resources */,
+				D060BE460B7643229F90B2D7 /* Afacad-SemiBoldItalic.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,7 +328,7 @@
 					"FB_SONARKIT_ENABLED=1",
 				);
 				INFOPLIST_FILE = app/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
@@ -360,7 +352,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = app/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
@@ -422,7 +414,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
 				LIBRARY_SEARCH_PATHS = "\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -471,7 +463,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
 				LIBRARY_SEARCH_PATHS = "\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;

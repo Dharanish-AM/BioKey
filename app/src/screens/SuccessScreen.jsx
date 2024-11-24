@@ -1,119 +1,160 @@
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import React from "react";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import colors from "../constants/Color";
-import Logo from "../assets/svg/Logo.js";
-import CustomerCare from "../assets/svg/CustomerCare.js";
-import Success from "../assets/svg/Success.js";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import useCustomFonts from "../hooks/useLoadFonts";
+
+import Logo from "../assets/images/BioKey_Logo.png";
+import CustomerCarePng from "../assets/images/Headset.png";
+import LottieView from "lottie-react-native";
+import SuccessAnimation from "../assets/animations/Success.json";
 
 const SuccessScreen = ({ navigation }) => {
-  function handleContinue() {
-    navigation.replace("Login");
+  const fontsLoaded = useCustomFonts();
+
+  if (!fontsLoaded) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#0000ff"
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      />
+    );
   }
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.top}>
-          <View style={styles.header}>
-            <Logo style={styles.logo} />
-            <CustomerCare style={styles.customerCare} />
-          </View>
+    <View style={styles.container}>
+      <View style={styles.top}>
+        <View style={styles.logoContainer}>
+          <Image style={styles.logo} source={Logo} resizeMode="contain" />
+          <Text style={styles.logotext}>BioKey</Text>
         </View>
-        <View style={styles.center}>
-          <View style={styles.resultcontainer}>
-            <Success />
-            <Text style={styles.resulttext}>
-              Fingerprint Registered Successfully!
-            </Text>
-          </View>
-        </View>
-        <View style={styles.bottom}>
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
-            <Text style={styles.buttonText}>Continue</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.CustomerCarePngContainer}>
+          <Image
+            resizeMode="contain"
+            style={styles.CustomerCarePng}
+            source={CustomerCarePng}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.center}>
+        <View style={styles.contentConatiner}>
+          <LottieView
+            style={styles.successAnimation}
+            source={SuccessAnimation}
+            autoPlay={true}
+            loop={false}
+          />
+          <Text style={styles.text}>Fingerprint Registered Successfully!</Text>
         </View>
       </View>
-    </SafeAreaView>
+      <View style={styles.bottom}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("FailureScreen")}
+        >
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
+export default SuccessScreen;
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-  },
-  container: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: colors.secondaryColor1,
   },
   top: {
-    width: "100%",
-    height: "13%",
-    justifyContent: "flex-start",
-    alignItems: "center",
-  },
-  header: {
+    width: wp("100%"),
+    height: hp("13%"),
+    paddingHorizontal: wp("5%"),
+    paddingVertical: hp("2%"),
     flexDirection: "row",
-    width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  logoContainer: {
     height: "100%",
-    paddingHorizontal: 15,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   logo: {
-    width: "50%",
-    height: "70%",
+    height: hp("9%"),
+    width: hp("9%"),
+    marginRight: "2%",
   },
-  customerCare: {
-    width: "10%",
-    height: "35%",
-    marginTop: 40,
+  logotext: {
+    fontSize: hp("4%"),
+    color: "#E0E3F8",
+    fontFamily: "Afacad-Bold",
+  },
+  CustomerCarePngContainer: {
+    height: hp("4%"),
+    width: hp("4%"),
+  },
+  CustomerCarePng: {
+    height: "100%",
+    width: "100%",
+    marginTop: hp("2.5%"),
   },
   center: {
-    height: "70%",
-    width: "100%",
+    flex: 1,
+    width: wp("100%"),
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-    gap: 80,
   },
-  resultcontainer: {
-    width: "85%",
-    height: "80%",
-    justifyContent: "space-between",
-    borderRadius: 25,
+  contentConatiner: {
+    width: wp("80%"),
+    height: hp("45%"),
     backgroundColor: colors.lightColor1,
+    borderRadius: hp("3%"),
+    flexDirection: "column",
     alignItems: "center",
-    paddingVertical: 70,
-    paddingHorizontal: 50,
+    justifyContent: "space-evenly",
   },
-  resulttext: {
-    fontSize: 24,
+  successAnimation: {
+    width: "75%",
+    aspectRatio: 1,
+  },
+  text: {
+    fontSize: hp("3%"),
     color: colors.textColor1,
-    fontFamily: "AfacadFlux-Medium",
+    fontFamily: "Afacad-SemiBold",
     textAlign: "center",
   },
   bottom: {
-    width: "100%",
-    height: "17%",
-    justifyContent: "center",
+    width: wp("100%"),
+    height: hp("20%"),
+    flexDirection: "column",
+    justifyContent: "space-evenly",
     alignItems: "center",
   },
   button: {
-    width: 250,
-    height: 50,
+    width: wp("65%"),
+    height: hp("7%"),
+    borderRadius: wp("11%"),
     backgroundColor: colors.primaryColor,
-    borderRadius: 30,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    fontFamily: "AfacadFlux-Bold",
+    fontSize: hp("3%"),
+    color: colors.textColor1,
+    fontFamily: "Afacad-SemiBold",
   },
 });
-
-export default SuccessScreen;

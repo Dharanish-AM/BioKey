@@ -1,82 +1,188 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, StatusBar, ActivityIndicator } from "react-native";
-import BluetoothOffView from "../components/BluetoothOffView";
-import BluetoothScan from "../components/BluetoothScan";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import colors from "../constants/Color";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRoute } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BleManager from "react-native-ble-manager";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import useCustomFonts from "../hooks/useLoadFonts";
+import LottieView from "lottie-react-native";
+
+import Logo from "../assets/images/BioKey_Logo.png";
+import CustomerCarePng from "../assets/images/Headset.png";
+import Fingy from "../assets/images/FINGY.png";
+import LoginAnimation from "../assets/animations/LoginAnimations.json";
 
 const AuthScreen = ({ navigation }) => {
-  const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const route = useRoute();
+  const fontsLoaded = useCustomFonts();
 
-  const { login = false, signup = true } = route.params || {};
-
-  useEffect(() => {
-    if (signup === true && login === false) {
-      setIsSignup(true);
-    } else if (login === true && signup === false) {
-      setIsSignup(false);
-    } else if (login == null && signup == null) {
-      setIsSignup(true);
-    }
-
-    const clearFirstSetup = async () => {
-      await AsyncStorage.removeItem("hasLaunched");
-    };
-
-    const checkBluetooth = async () => {
-      await BleManager.start({ showAlert: false });
-
-      const state = await BleManager.checkState();
-      if (state === "on") {
-        setIsBluetoothEnabled(true);
-      } else {
-        setIsBluetoothEnabled(false);
-      }
-      setIsLoading(false);
-    };
-
-    checkBluetooth();
-
-    //clearFirstSetup();
-  }, [signup, login]);
-
-  if (isLoading) {
+  if (!fontsLoaded) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar style="light" />
-        <ActivityIndicator size="large" color={colors.primaryColor} />
-      </SafeAreaView>
+      <ActivityIndicator
+        size="large"
+        color="#0000ff"
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      />
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
-      {isBluetoothEnabled ? (
-        <BluetoothScan signup={signup} navigation={navigation} />
-      ) : (
-        <BluetoothOffView
-          setBle={(x) => {
-            setIsBluetoothEnabled(x);
-          }}
-        />
-      )}
-    </SafeAreaView>
+    <View style={styles.container}>
+      <View style={styles.top}>
+        <View style={styles.logoContainer}>
+          <Image style={styles.logo} source={Logo} resizeMode="contain" />
+          <Text style={styles.logotext}>BioKey</Text>
+        </View>
+        <TouchableOpacity style={styles.CustomerCarePngContainer}>
+          <Image
+            resizeMode="contain"
+            style={styles.CustomerCarePng}
+            source={CustomerCarePng}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.center}>
+        <View style={styles.mainTexts}>
+          <Text style={styles.title}>Welcome to BioKey</Text>
+          <Text style={styles.subTitle}>
+            Secure access with your fingerprint
+          </Text>
+        </View>
+        <View style={styles.animationContainer}>
+          <LottieView
+            style={styles.loginAnimation}
+            source={LoginAnimation}
+            autoPlay
+            loop
+          />
+        </View>
+      </View>
+      <View style={styles.bottom}>
+        <Text style={styles.tacText}>
+          *By using the BioKey app, you agree to our Terms and Conditions and
+          Privacy Policy.
+        </Text>
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <Text style={styles.signUpText}>
+          Not yet registered? <Text style={styles.clickHere}>Click here</Text>
+        </Text>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: colors.secondaryColor1,
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  top: {
+    width: wp("100%"),
+    height: hp("13%"),
+    paddingHorizontal: wp("5%"),
+    paddingVertical: hp("2%"),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  logoContainer: {
+    height: "100%",
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+  logo: {
+    height: hp("9%"),
+    width: hp("9%"),
+    marginRight: "2%",
+  },
+  logotext: {
+    fontSize: hp("4%"),
+    color: "#E0E3F8",
+    fontFamily: "Afacad-Bold",
+  },
+  CustomerCarePngContainer: {
+    height: hp("4%"),
+    width: hp("4%"),
+  },
+  CustomerCarePng: {
+    height: "100%",
+    width: "100%",
+    marginTop: hp("2.5%"),
+  },
+  center: {
+    width: wp("100%"),
+    flex: 1,
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  mainTexts: {
+    marginTop: hp("2%"),
+    alignItems: "center",
+  },
+  title: {
+    fontSize: hp("5%"),
+    fontFamily: "Afacad-Bold",
+    color: colors.textColor3,
+  },
+  subTitle: {
+    fontSize: hp("3%"),
+    fontFamily: "Afacad-Medium",
+    color: colors.textColor2,
+  },
+  animationContainer: {
+    width: wp("100%"),
+    flex: 1,
+  },
+  loginAnimation: {
+    width: "100%",
+    height: "100%",
+  },
+  bottom: {
+    width: wp("100%"),
+    height: hp("25%"),
+    alignItems: "center",
+    justifyContent: "space-evenly",
+  },
+  tacText: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+    width: wp("100%"),
+    textAlign: "center",
+    fontFamily: "Afacad-Medium",
+  },
+  button: {
+    width: wp("65%"),
+    height: hp("7%"),
+    borderRadius: wp("11%"),
+    backgroundColor: colors.primaryColor,
     alignItems: "center",
     justifyContent: "center",
+  },
+  buttonText: {
+    fontSize: hp("3%"),
+    color: colors.textColor1,
+    fontFamily: "Afacad-SemiBold",
+  },
+  signUpText: {
+    fontSize: hp("2.4%"),
+    color: colors.textColor3,
+    textAlign: "center",
+    fontFamily: "Afacad-SemiBold",
+  },
+  clickHere: {
+    color: "#7E4CD6",
+    textDecorationLine: "underline",
   },
 });
 

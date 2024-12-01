@@ -13,14 +13,16 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import useCustomFonts from "../hooks/useLoadFonts";
+import { useNavigation } from "@react-navigation/native";
 
 import Logo from "../assets/images/BioKey_Logo.png";
 import CustomerCarePng from "../assets/images/Headset.png";
 import LottieView from "lottie-react-native";
 import FailureAnimation from "../assets/animations/Failure.json";
 
-const FailureScreen = ({ navigation }) => {
+const FailureScreen = () => {
   const fontsLoaded = useCustomFonts();
+  const navigation = useNavigation();
 
   if (!fontsLoaded) {
     return (
@@ -31,6 +33,10 @@ const FailureScreen = ({ navigation }) => {
       />
     );
   }
+
+  const handleTryAgain = () => {
+    navigation.navigate("AuthNavigator");
+  };
 
   return (
     <View style={styles.container}>
@@ -60,11 +66,10 @@ const FailureScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={styles.bottom}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("AuthScreen")}
-        >
-          <Text style={styles.buttonText}>Try again</Text>
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText} onPress={handleTryAgain}>
+            Try again
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

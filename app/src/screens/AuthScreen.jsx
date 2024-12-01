@@ -13,14 +13,17 @@ import {
 } from "react-native-responsive-screen";
 import useCustomFonts from "../hooks/useLoadFonts";
 import LottieView from "lottie-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Logo from "../assets/images/BioKey_Logo.png";
 import CustomerCarePng from "../assets/images/Headset.png";
 import Fingy from "../assets/images/FINGY.png";
 import LoginAnimation from "../assets/animations/LoginAnimations.json";
+import { useNavigation } from "@react-navigation/native";
 
 const AuthScreen = ({ navigation }) => {
   const fontsLoaded = useCustomFonts();
+  const navi = useNavigation();
 
   if (!fontsLoaded) {
     return (
@@ -31,6 +34,12 @@ const AuthScreen = ({ navigation }) => {
       />
     );
   }
+
+  const handleLoginPress = () => {
+    AsyncStorage.setItem("isLoggedIn", "true");
+
+    navi.navigate("TabNavigator");
+  };
 
   return (
     <View style={styles.container}>
@@ -69,7 +78,9 @@ const AuthScreen = ({ navigation }) => {
           Privacy Policy.
         </Text>
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Login</Text>
+          <TouchableOpacity style={styles.button} onPress={handleLoginPress}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
         </TouchableOpacity>
         <Text style={styles.signUpText}>
           Not yet registered? <Text style={styles.clickHere}>Click here</Text>

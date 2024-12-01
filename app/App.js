@@ -1,73 +1,61 @@
-import React from "react";
-import { StyleSheet, Text, View, StatusBar } from "react-native";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View, StatusBar, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { enableScreens } from "react-native-screens";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import LandingScreen from "./src/screens/LandingScreen";
 import colors from "./src/constants/Color";
-import DevicePlugin from "./src/screens/DevicePlugin";
-import AuthScreen from "./src/screens/AuthScreen";
-import FPScanningScreen from "./src/screens/FpScanningScreen";
-import SuccessScreen from "./src/screens/SuccessScreen";
-import FailureScreen from "./src/screens/FailureScreen";
-
-enableScreens();
-const Stack = createStackNavigator();
+import AppNavigator from "./navigation/AppNavigator";
 
 export default function App() {
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(null);
+  const [isNewUser, setIsNewUser] = useState(null);
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      try {
+        const isNew = await AsyncStorage.getItem("isNew");
+
+        if (isNew === null) {
+          setIsNewUser(true);
+          setIsUserLoggedIn(false);
+          await AsyncStorage.setItem("isNew", "false");
+        } else {
+          const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
+          setIsUserLoggedIn(isLoggedIn === "true");
+          setIsNewUser(false);
+        }
+      } catch (error) {
+        console.error("Error retrieving user status:", error);
+      }
+    };
+
+    checkUserStatus();
+    // AsyncStorage.removeItem("isLoggedIn")
+    // AsyncStorage.removeItem("isNew")
+  }, []);
+
+  if (isUserLoggedIn === null || isNewUser === null) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primaryColor} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
-      <View style={styles.OuterContainer}>
-        <SafeAreaView style={styles.InnerContainer}>
+      <StatusBar
+        backgroundColor={colors.secondaryColor1}
+        barStyle="light-content"
+      />
+      <View style={styles.container}>
+        <SafeAreaView style={styles.innerContainer}>
           <NavigationContainer>
-            <Stack.Navigator initialRouteName="LandingScreen">
-              <Stack.Screen
-                name="LandingScreen"
-                component={LandingScreen}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="DevicePluginScreen"
-                component={DevicePlugin}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="AuthScreen"
-                component={AuthScreen}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="FPScanningScreen"
-                component={FPScanningScreen}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="SuccessScreen"
-                component={SuccessScreen}
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="FailureScreen"
-                component={FailureScreen}
-                options={{
-                  headerShown: false,
-                }}
-              />
-            </Stack.Navigator>
+            <AppNavigator
+              isNewUser={isNewUser}
+              isUserLoggedIn={isUserLoggedIn}
+            />
           </NavigationContainer>
         </SafeAreaView>
       </View>
@@ -76,11 +64,17 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  OuterContainer: {
+  container: {
     flex: 1,
-    backgroundColor: colors.secondaryColor2,
+    backgroundColor: colors.secondaryColor1,
   },
-  InnerContainer: {
+  innerContainer: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.secondaryColor1,
   },
 });

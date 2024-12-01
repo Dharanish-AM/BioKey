@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   illustration: {
     width: wp("90%"),
-    height: "90%",
+    height: hp("55%"),
   },
   bottom: {
     width: wp("100%"),
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     color: colors.textColor1,
   },
   quotesText: {
-    fontSize:hp("2.5%"),
+    fontSize: hp("2.5%"),
     color: colors.textColor1,
     fontFamily: "Afacad-SemiBoldItalic",
   },

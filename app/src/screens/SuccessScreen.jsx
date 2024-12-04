@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   logo: {
     height: hp("9%"),
     width: hp("9%"),
-    marginRight: "2%",
+    marginRight: wp("1.5%"),
   },
   logotext: {
     fontSize: hp("4%"),
@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   contentConatiner: {
-    width: wp("80%"),
-    height: hp("45%"),
+    width: "80%",
+    height: "80%",
     backgroundColor: colors.lightColor1,
     borderRadius: hp("3%"),
     flexDirection: "column",
@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
   },
   successAnimation: {
     width: "75%",
-    aspectRatio: 1,
+    aspectRatio:1
   },
   text: {
     fontSize: hp("3%"),
-    color: colors.textColor1,
+    color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
     textAlign: "center",
   },

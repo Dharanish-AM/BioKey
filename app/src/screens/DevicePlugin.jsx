@@ -47,7 +47,7 @@ const DevicePlugin = ({ navigation }) => {
       </View>
       <View style={styles.center}>
         <View style={styles.fingyPngContainer}>
-          <Image style={styles.fingyPng} source={Fingy} />
+          <Image style={styles.fingyPng} source={Fingy} resizeMode="contain" />
         </View>
         <View style={styles.instructionTextContainer}>
           <Text style={styles.instructionText}>Waiting for FINGY!</Text>
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   logo: {
     height: hp("9%"),
     width: hp("9%"),
-    marginRight: "2%",
+    marginRight: wp("1.5%"),
   },
   logotext: {
     fontSize: hp("4%"),
@@ -111,11 +111,10 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     alignItems: "center",
     justifyContent: "center",
-    gap: hp("2%"),
   },
   fingyPngContainer: {
-    height: hp("30%"),
-    width: hp("30%"),
+    height: "60%",
+    width: "60%",
   },
   fingyPng: {
     height: "100%",
@@ -123,7 +122,7 @@ const styles = StyleSheet.create({
   },
   instructionTextContainer: {
     alignItems: "center",
-    width: wp("100%"),
+    width: "100%",
   },
   instructionText: {
     fontSize: hp("3%"),

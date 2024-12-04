@@ -17,6 +17,7 @@ import useCustomFonts from "../hooks/useLoadFonts";
 import Logo from "../assets/images/BioKey_Logo.png";
 import CustomerCarePng from "../assets/images/Headset.png";
 import Illustration from "../assets/images/illustration-landing.png";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LandingScreen = ({ navigation }) => {
   const fontsLoaded = useCustomFonts();
@@ -61,7 +62,10 @@ const LandingScreen = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("DevicePluginScreen")}
+          onPress={async () => {
+            await AsyncStorage.setItem("isNew", "false");
+            
+          }}
         >
           <Text style={styles.buttonText}>Get Started</Text>
         </TouchableOpacity>
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
   logo: {
     height: hp("9%"),
     width: hp("9%"),
-    marginRight: "2%",
+    marginRight: wp("1.5%"),
   },
   logotext: {
     fontSize: hp("4%"),
@@ -121,8 +125,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   illustration: {
-    width: wp("90%"),
-    height: hp("55%"),
+    width: "90%",
+    height: "100%",
   },
   bottom: {
     width: wp("100%"),
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
   quotesContainer: {
     alignItems: "center",
     justifyContent: "center",
-    width: wp("100%"),
+    width: "100%",
     color: colors.textColor1,
   },
   quotesText: {
@@ -158,7 +162,7 @@ const styles = StyleSheet.create({
   tacConatiner: {
     alignItems: "center",
     justifyContent: "center",
-    width: wp("100%"),
+    width: "100%",
   },
   tacText: {
     fontSize: hp("2%"),

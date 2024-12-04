@@ -1,26 +1,23 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { HomeDrawer, FolderDrawer, SettingsDrawer } from "./DrawerNavigator";
+import { View, Animated } from "react-native";
+
 import colors from "../src/constants/Color";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { Image, View, Animated } from "react-native";
 
 import HomeIcon from "../src/assets/images/home.png";
 import FolderIcon from "../src/assets/images/folder.png";
 import SettingsIcon from "../src/assets/images/settings.png";
 
+import { HomeStack, FolderStack, SettingsStack } from "./StackNavigators";
+
 const Tab = createBottomTabNavigator();
 
-const TabNavigator = () => {
-  const [hideTabBar, setHideTabBar] = useState(false);
-
-  const handleDrawerShow = (i) => {
-    setHideTabBar(i);
-  };
+const MainTabNavigator = () => {
+  const [isTabBarVisible, setIsTabBarVisible] = useState(true);
 
   return (
     <Tab.Navigator
@@ -30,12 +27,9 @@ const TabNavigator = () => {
           backgroundColor: colors.lightColor2,
           height: hp("8%"),
           borderTopWidth: 0,
-          elevation: 0,
-          alignItems: "center",
-          flexDirection: "row",
-          display: hideTabBar ? "none" : "flex",
+          paddingTop: hp("1.6%"),
+          display: isTabBarVisible ? "flex" : "none",
         },
-
         tabBarIcon: ({ focused }) => {
           let iconSource;
           const scale = new Animated.Value(focused ? 1.1 : 1);
@@ -83,11 +77,11 @@ const TabNavigator = () => {
         tabBarInactiveTintColor: "#A8A8A8",
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeDrawer} />
-      <Tab.Screen name="FolderTab" component={FolderDrawer} />
-      <Tab.Screen name="SettingsTab" component={SettingsDrawer} />
+      <Tab.Screen name="HomeTab" component={HomeStack} />
+      <Tab.Screen name="FolderTab" component={FolderStack} />
+      <Tab.Screen name="SettingsTab" component={SettingsStack} />
     </Tab.Navigator>
   );
 };
 
-export default TabNavigator;
+export default MainTabNavigator;

@@ -1,42 +1,17 @@
 import React from "react";
-import { NewUserStack } from "./StackNavigators";
-import AuthNavigator from "./AuthNavigator";
-import TabNavigator from "./TabNavigator";
-
-import { createStackNavigator } from "@react-navigation/stack";
-
-const Stack = createStackNavigator();
+import { NewUserStack, AuthStack } from "./StackNavigators";
+import MainAppDrawer from "./DrawerNavigator";
 
 const AppNavigator = ({ isNewUser, isUserLoggedIn }) => {
-  return (
-    <Stack.Navigator>
-      {isNewUser ? (
-        <Stack.Screen
-          name="NewUserStack"
-          options={{
-            headerShown: false,
-          }}
-          component={NewUserStack}
-        />
-      ) : isUserLoggedIn ? (
-        <Stack.Screen
-          name="TabNavigator"
-          options={{
-            headerShown: false,
-          }}
-          component={TabNavigator}
-        />
-      ) : (
-        <Stack.Screen
-          name="AuthNavigator"
-          options={{
-            headerShown: false,
-          }}
-          component={AuthNavigator}
-        />
-      )}
-    </Stack.Navigator>
-  );
+  if (isUserLoggedIn) {
+    return <MainAppDrawer />;
+  }
+
+  if (isNewUser) {
+    return <NewUserStack />;
+  } else {
+    return <AuthStack />;
+  }
 };
 
 export default AppNavigator;

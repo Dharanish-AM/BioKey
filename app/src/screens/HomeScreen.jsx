@@ -33,9 +33,10 @@ import BinIcon from "../assets/images/bin.png";
 import PlusIcon from "../assets/images/plus.png";
 import FavouriteIcon from "../assets/images/favourite.png";
 import CloudIcon from "../assets/images/cloud.png";
+import BrushIcon from "../assets/images/brush.png";
 import CrownIcon from "../assets/images/crown.png";
 
-const { width, height } = Dimensions.get("screen");
+const { width } = Dimensions.get("screen");
 
 const HomeScreen = ({ navigation }) => {
   const fontsLoaded = useCustomFonts();
@@ -84,7 +85,7 @@ const HomeScreen = ({ navigation }) => {
     { id: "2", type: "second" },
   ];
 
-  const renderItem = ({ item }) => (
+  const renderRecentItem = ({ item }) => (
     <View style={styles.eachFile}>
       <View style={styles.fileIcon}></View>
       <View style={styles.fileDetails}>
@@ -107,7 +108,7 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.top}>
         <TouchableOpacity
-          style={styles.profileIcon}
+          style={styles.profileContainer}
           onPress={() => {
             navigation.openDrawer();
           }}
@@ -123,7 +124,7 @@ const HomeScreen = ({ navigation }) => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <View style={styles.searchBar}>
+        <View style={styles.searchBarContainer}>
           <Image
             source={SearchIcon}
             style={styles.searchIcon}
@@ -137,235 +138,217 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={styles.center}>
-        <View style={styles.topParentContainer}>
-          <View style={styles.topView}>
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={toplistdata}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
-                if (item.type === "first") {
-                  return (
-                    <View style={styles.fBoxContainer}>
-                      <View style={styles.firstBox}>
-                        <View style={styles.storageViewLeft}>
-                          <CircularProgress
-                            value={usedPercentage}
-                            radius={hp("7.5%")}
-                            duration={1000}
-                            textColor={"#E1E1E1"}
-                            textStyle={{
-                              fontFamily: "Afacad-SemiBold",
-                            }}
-                            valueSuffix={"%"}
-                            activeStrokeColor={"#5f39ce"}
-                            inActiveStrokeColor={colors.lightColor2}
-                            progressValueColor={colors.textColor3}
-                            progressValueStyle={{
-                              fontFamily: "Afacad-SemiBold",
-                              fontSize: hp(
-                                usedPercentage.toString().length === 1
-                                  ? "3.5%"
-                                  : usedPercentage.toString().length === 2
-                                  ? "3.5%"
-                                  : "2.5%"
-                              ),
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                            }}
-                            inActiveStrokeOpacity={0.5}
-                            activeStrokeWidth={12}
-                            inActiveStrokeWidth={12}
-                          />
-                        </View>
-                        <View style={styles.storageViewRight}>
-                          <View style={styles.topStorageRightTop}>
-                            <View style={styles.storageItem}>
-                              <Text style={styles.labelText}>
-                                Total Storage:{" "}
-                              </Text>
-                              <Text style={styles.valueText}>
-                                {totalStorage}GB
-                              </Text>
-                            </View>
-
-                            <View style={styles.storageItem}>
-                              <Text style={styles.labelText}>Used: </Text>
-                              <Text style={styles.valueText}>
-                                {usedStorage}GB
-                              </Text>
-                            </View>
-
-                            <View style={styles.storageItem}>
-                              <Text style={styles.labelText}>Available: </Text>
-                              <Text style={styles.valueText}>
-                                {totalStorage - usedStorage}GB
-                              </Text>
-                            </View>
-                          </View>
-                          {/* <View style={styles.topStorageRightBottom}>
-                            <View style={styles.premiumContainer}>
-                              <TouchableOpacity>
-                                <Text style={styles.premiumText}>
-                                  Upgrade to Premium
-                                </Text>
-                              </TouchableOpacity>
+        <View style={styles.storageCard}>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={toplistdata}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              if (item.type === "first") {
+                return (
+                  <View style={styles.firstBoxContainer}>
+                    <View style={styles.firstBox}>
+                      <View style={styles.storageViewLeft}>
+                        <Text style={styles.usedText}>Used</Text>
+                        <CircularProgress
+                          value={usedPercentage}
+                          radius={hp("7.2%")}
+                          duration={1000}
+                          textColor={"#E1E1E1"}
+                          textStyle={{
+                            fontFamily: "Afacad-SemiBold",
+                          }}
+                          valueSuffix={"%"}
+                          activeStrokeColor={"#5f39ce"}
+                          inActiveStrokeColor={colors.lightColor2}
+                          progressValueColor={colors.textColor3}
+                          progressValueStyle={{
+                            fontFamily: "Afacad-SemiBold",
+                            fontSize: hp("2.5%"),
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                            marginBottom: hp("1.5%"),
+                          }}
+                          inActiveStrokeOpacity={0.5}
+                          activeStrokeWidth={12}
+                          inActiveStrokeWidth={12}
+                        />
+                      </View>
+                      <View style={styles.storageViewRight}>
+                        <View style={styles.storageRightTop}>
+                          <View style={styles.storageItem}>
+                            <View style={styles.storageTitle}>
+                              <Text style={styles.titleText}>Used Space</Text>
                               <Image
-                                source={CrownIcon}
-                                style={styles.crownIcon}
-                                resizeMode="contain"
+                                source={CloudIcon}
+                                style={styles.cloudIcon}
+                                resizeMethod="contain"
                               />
                             </View>
-                          </View> */}
+                            <Text style={styles.valueText}>
+                              {usedPercentage} GB/{totalStorage} GB
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.storageRightBottom}>
+                          <TouchableOpacity style={styles.premiumContainer}>
+                            <Text style={styles.premiumText}>Get Premium</Text>
+                            <Image
+                              source={CrownIcon}
+                              style={styles.crownIcon}
+                            />
+                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>
-                  );
-                } else {
-                  return (
-                    <View style={styles.sBoxContainer}>
-                      <View style={styles.secondBox}></View>
-                    </View>
-                  );
-                }
-              }}
-              pagingEnabled
-              contentContainerStyle={styles.flatListContent}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                { useNativeDriver: false }
-              )}
-            />
-          </View>
-
-          <View style={styles.topMiddleView}>
-            <View style={styles.paginationDotContainer}>
-              {toplistdata.map((_, index) => {
-                const inputRange = [
-                  (index - 1) * width,
-                  index * width,
-                  (index + 1) * width,
-                ];
-
-                const dotWidth = scrollX.interpolate({
-                  inputRange,
-                  outputRange: ["15%", "25%", "15%"],
-                  extrapolate: "clamp",
-                });
-
-                const dotColor = scrollX.interpolate({
-                  inputRange,
-                  outputRange: [
-                    colors.textColor1,
-                    "#5f39ce",
-                    colors.textColor1,
-                  ],
-                  extrapolate: "clamp",
-                });
-
-                return (
-                  <Animated.View
-                    key={index}
-                    style={[
-                      styles.dot,
-                      {
-                        width: dotWidth,
-                        backgroundColor: dotColor,
-                      },
-                    ]}
-                  />
+                  </View>
                 );
-              })}
-            </View>
-          </View>
+              } else {
+                return (
+                  <View style={styles.secondBoxContainer}>
+                    <View style={styles.secondBox}></View>
+                  </View>
+                );
+              }
+            }}
+            pagingEnabled
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
+          />
+        </View>
+        <View style={styles.paginationView}>
+          <View style={styles.paginationDotContainer}>
+            {toplistdata.map((_, index) => {
+              const inputRange = [
+                (index - 1) * width,
+                index * width,
+                (index + 1) * width,
+              ];
 
-          <View style={styles.centerMediaView}>
-            <View style={styles.firstRowContainer}>
-              <TouchableOpacity style={styles.mediaIcon}>
-                <Image
-                  source={ImagesIcon}
-                  style={styles.mediaIconImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.mediaIcon}>
-                <Image
-                  source={VideosIcon}
-                  style={styles.mediaIconImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.mediaIcon}>
-                <Image
-                  source={AudiosIcon}
-                  style={styles.mediaIconImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.mediaIcon}>
-                <Image
-                  source={DocumentsIcon}
-                  style={styles.mediaIconImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.mediaIcon}>
-                <Image
-                  source={PasswordsIcon}
-                  style={styles.mediaIconImage}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.secondRowButtons}>
-              <TouchableOpacity style={styles.favouriteContainer}>
-                <Image
-                  source={FavouriteIcon}
-                  style={styles.favouriteIcon}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.binButtonContainer}>
-                <Image
-                  source={BinIcon}
-                  style={styles.binIcon}
-                  resizeMode="contain"
-                />
-                <Text style={styles.binText}>Bin</Text>
-              </TouchableOpacity>
+              const dotWidth = scrollX.interpolate({
+                inputRange,
+                outputRange: ["15%", "25%", "15%"],
+                extrapolate: "clamp",
+              });
 
-              <TouchableOpacity
-                style={styles.addButtonContainer}
-                onPress={() => {
-                  navigation.push("Dummy");
-                }}
-              >
-                <Image
-                  source={PlusIcon}
-                  style={styles.plusIcon}
-                  resizeMode="contain"
+              const dotColor = scrollX.interpolate({
+                inputRange,
+                outputRange: [colors.textColor1, "#5f39ce", colors.textColor1],
+                extrapolate: "clamp",
+              });
+
+              return (
+                <Animated.View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    {
+                      width: dotWidth,
+                      backgroundColor: dotColor,
+                    },
+                  ]}
                 />
-                <View style={styles.sepText}></View>
-                <Text style={styles.addText}>Add</Text>
-              </TouchableOpacity>
-            </View>
+              );
+            })}
           </View>
         </View>
-        <View style={styles.bottomRecentView}>
-          <View style={styles.recentHeader}>
-            <Text style={styles.recentText}>Recent Files</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}> See All</Text>
+        <View style={styles.utilityContainer}>
+          <View style={styles.firstRowButtons}>
+            <TouchableOpacity style={styles.mediaIcon}>
+              <Image
+                source={ImagesIcon}
+                style={styles.mediaIconImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mediaIcon}>
+              <Image
+                source={VideosIcon}
+                style={styles.mediaIconImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mediaIcon}>
+              <Image
+                source={AudiosIcon}
+                style={styles.mediaIconImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mediaIcon}>
+              <Image
+                source={DocumentsIcon}
+                style={styles.mediaIconImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mediaIcon}>
+              <Image
+                source={PasswordsIcon}
+                style={styles.mediaIconImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
-          <View style={styles.recentBottom}>
-            <FlatList
-              data={files}
-              renderItem={renderItem}
-              keyExtractor={(item) => item.id}
-            />
+          <View style={styles.secondRowButtons}>
+            <TouchableOpacity style={styles.favouriteContainer}>
+              <Image
+                source={FavouriteIcon}
+                style={styles.favouriteIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cleanContainer}>
+              <Image
+                source={BrushIcon}
+                style={styles.brushIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.binButtonContainer}>
+              <Image
+                source={BinIcon}
+                style={styles.binIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.binText}>Bin</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addButtonContainer}
+              onPress={() => {
+                navigation.push("Dummy");
+              }}
+            >
+              <Image
+                source={PlusIcon}
+                style={styles.plusIcon}
+                resizeMode="contain"
+              />
+              <View style={styles.sepText}></View>
+              <Text style={styles.addText}>Add</Text>
+            </TouchableOpacity>
           </View>
+        </View>
+      </View>
+      <View style={styles.bottom}>
+        <View style={styles.recentHeader}>
+          <Text style={styles.recentText}>Recent Files</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}> See All</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.recentBottom}>
+          <FlatList
+            data={files}
+            renderItem={renderRecentItem}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={true}
+          />
         </View>
       </View>
     </View>
@@ -378,88 +361,97 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondaryColor1,
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   top: {
-    flexDirection: "row",
+    flex: 0.2,
+    width: "100%",
     alignItems: "center",
-    width: wp("100%"),
-    height: hp("10%"),
-    gap: wp("3%"),
     justifyContent: "space-between",
+    flexDirection: "row",
     paddingHorizontal: wp("3.5%"),
   },
-  profileIcon: {
+  profileContainer: {
     width: "30%",
-    height: "65%",
-    alignItems: "center",
-    flexDirection: "row",
+    height: "85%",
     backgroundColor: colors.darkColor,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: hp("1.5%"),
     borderRadius: hp("2%"),
-    justifyContent: "space-around",
   },
   profileIconImage: {
-    width: "38%",
+    width: "45%",
     aspectRatio: 1,
-    marginLeft: wp("1%"),
   },
   arrowIconImage: {
-    width: "22%",
+    width: "25%",
     aspectRatio: 1,
   },
-  searchBar: {
-    flex: 1,
-    height: "65%",
+  searchBarContainer: {
+    width: "65%",
+    height: "85%",
     backgroundColor: colors.darkColor,
-    borderRadius: hp("2%"),
-    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "flex-start",
+    flexDirection: "row",
     gap: wp("3%"),
-    paddingLeft: wp("5%"),
+    paddingHorizontal: wp("3%"),
+    borderRadius: hp("2%"),
   },
   searchIcon: {
-    width: "11%",
+    width: "12%",
     aspectRatio: 1,
   },
   searchTextInput: {
     flex: 1,
+    height: "100%",
+    fontFamily: "Afacad-Regular",
     fontSize: hp("2.2%"),
     color: colors.textColor2,
-    fontFamily: "Afacad-Regular",
-    paddingVertical: 0,
   },
   center: {
-    width: wp("100%"),
-    flex: 1,
-    alignItems: "center",
-    flexDirection: "column",
-  },
-  topParentContainer: {
-    width: wp("100%"),
-    flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  topView: {
     width: "100%",
-    height: "45%",
+    paddingHorizontal: wp("3.5%"),
     alignItems: "center",
-    justifyContent: "center",
+    flexDirection: "column",
+    justifyContent: "flex-start",
   },
-  flatListContent: {
+  storageCard: {
+    width: wp("100%"),
+    height: hp("20%"),
+  },
+  firstBoxContainer: {
+    width: wp("100%"),
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
-  topMiddleView: {
+  firstBox: {
+    width: "93%",
+    height: "100%",
+    backgroundColor: colors.lightColor1,
+    borderRadius: hp("3.5%"),
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  secondBoxContainer: {
+    width: wp("100%"),
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  paginationView: {
     width: "100%",
-    height: "5%",
+    height: hp("2.5%"),
     justifyContent: "center",
     alignItems: "center",
     marginTop: hp("1%"),
   },
   paginationDotContainer: {
-    width: "13%",
+    width: "14%",
     height: "93%",
     backgroundColor: colors.darkColor,
     alignItems: "center",
@@ -475,32 +467,11 @@ const styles = StyleSheet.create({
     borderRadius: hp("15%"),
     backgroundColor: colors.lightColor1,
   },
-  fBoxContainer: {
-    width: wp("100%"),
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  firstBox: {
+  secondBox: {
     width: "93%",
     height: "100%",
     backgroundColor: colors.lightColor1,
-    borderRadius: hp("3%"),
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  sBoxContainer: {
-    width: wp("100%"),
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  secondBox: {
-    width: wp("93%"),
-    height: "100%",
-    backgroundColor: colors.lightColor1,
-    borderRadius: hp("3%"),
+    borderRadius: hp("3.5%"),
   },
   storageViewLeft: {
     width: "40%",
@@ -508,126 +479,168 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  usedText: {
+    fontSize: hp("2%"),
+    color: colors.textColor2,
+    fontFamily: "Afacad-SemiBold",
+    position: "absolute",
+    top: "52.5%",
+  },
   storageViewRight: {
     width: "50%",
-    height: "100%",
+    height: "90%",
     alignItems: "center",
     flexDirection: "column",
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
   },
-  topStorageRightTop: {
+  storageRightTop: {
     width: "100%",
-    height: "100%",
+    height: "60%",
+    alignItems: "center",
     justifyContent: "center",
-    gap: hp("1%"),
   },
   storageItem: {
-    flexDirection: "row",
+    flexDirection: "column",
+    height: "auto",
+    width: "100%",
+    gap: hp("1%"),
+    alignItems: "flex-start",
   },
-  labelText: {
-    fontSize: hp("2.2%"),
+  storageTitle: {
+    flexDirection: "row",
+    gap: wp("2%"),
+    height: "auto",
+    width: "100%",
+    alignItems: "center",
+  },
+  titleText: {
+    fontSize: hp("2.5%"),
+    color: colors.textColor2,
+    fontFamily: "Afacad-Medium",
+  },
+  cloudIcon: {
+    width: "12%",
+    aspectRatio: 1,
+  },
+  valueText: {
+    fontSize: hp("2%"),
     color: colors.textColor3,
     fontFamily: "Afacad-Medium",
   },
-  valueText: {
-    fontSize: hp("2.2%"),
-    color: colors.textColor3,
-    fontFamily: "Afacad-Regular",
-  },
-  topStorageRightBottom: {
-    width: "100%",
-    height: "30%",
-    alignItems: "center",
-    justifyContent: "center",
-    display: "none",
+  storageRightBottom: {
+    width: "90%",
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    flexDirection: "row",
+    paddingBottom: "4%",
   },
   premiumContainer: {
-    width: "100%",
-    height: "100%",
+    width: "auto",
+    height: "auto",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#333",
+    borderRadius: hp("1%"),
+    padding: hp("0.5%"),
     gap: wp("1%"),
   },
   premiumText: {
-    fontSize: hp("2.1%"),
-    color: colors.textColor3,
+    fontSize: hp("1.8%"),
+    color: "#FFE47C",
     fontFamily: "Afacad-Regular",
-    textDecorationLine: "underline",
+    opacity: 0.7,
   },
   crownIcon: {
-    width: wp("5%"),
-    height: hp("5%"),
+    width: "15%",
+    aspectRatio: 1,
   },
-  centerMediaView: {
-    width: "93%",
-    flex: 1,
-    flexDirection: "column",
-    flexWrap: "wrap",
-    justifyContent: "space-evenly",
+  utilityContainer: {
+    width: "100%",
+    height: hp("16%"),
+    marginTop: hp("1.5%"),
+    alignItems: "center",
+    gap: hp("1.5%"),
   },
-  firstRowContainer: {
+  firstRowButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "100%",
+    height: "auto",
+    alignItems: "center",
   },
   mediaIcon: {
-    width: "17%",
+    width: "18%",
     aspectRatio: 1,
     backgroundColor: colors.darkColor,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: hp("1.2%"),
-    flexDirection: "row",
+    borderRadius: hp("2%"),
   },
   mediaIconImage: {
+    height: "50%",
+    width: "50%",
+  },
+  secondRowButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    height: "auto",
+    alignItems: "center",
+  },
+  favouriteContainer: {
+    width: "18%",
+    aspectRatio: 1,
+    backgroundColor: colors.lightColor1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: hp("2%"),
+    flexDirection: "row",
+  },
+  cleanContainer: {
+    width: "18%",
+    aspectRatio: 1,
+    backgroundColor: colors.lightColor1,
+    alignItems: "center",
+    borderRadius: hp("2%"),
+    justifyContent: "center",
+  },
+  brushIcon: {
+    width: "45%",
+    height: "45%",
+  },
+  favouriteIcon: {
     width: "50%",
     height: "50%",
   },
-  secondRowButtons: {
-    width: "100%",
-    height: "35%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  favouriteContainer: {
-    width: "17.5%",
-    height: "100%",
-    backgroundColor: colors.darkColor,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: hp("1.2%"),
-    flexDirection: "row",
-  },
-  favouriteIcon: {
-    width: "55%",
-    height: "55%",
-  },
   binButtonContainer: {
-    width: "38%",
-    height: "100%",
-    backgroundColor: colors.darkColor,
+    width: "18%",
+    aspectRatio: 1,
+    backgroundColor: colors.lightColor1,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: hp("1.2%"),
+    borderRadius: hp("2%"),
     flexDirection: "row",
-    gap: wp("2%"),
+    gap: wp("2.5%"),
   },
   binIcon: {
-    width: "23%",
-    height: "50%",
+    width: "45%",
+    height: "45%",
   },
   binText: {
     fontSize: hp("2.5%"),
     color: colors.textColor3,
     fontFamily: "Afacad-Medium",
+    display: "none",
   },
   addButtonContainer: {
-    width: "38%",
+    width: "38.5%",
     height: "100%",
     backgroundColor: "#5F2ABD",
     alignItems: "center",
     justifyContent: "space-evenly",
-    borderRadius: hp("1.2%"),
+    borderRadius: hp("2%"),
     flexDirection: "row",
   },
   plusIcon: {
@@ -645,13 +658,13 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Medium",
   },
-  bottomRecentView: {
-    width: wp("100%"),
-    height: "40%",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: hp("1.5%"),
+  bottom: {
+    flex: 0.69,
+    width: "100%",
     paddingHorizontal: wp("3.5%"),
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: hp("1.4%"),
   },
   recentHeader: {
     width: "100%",
@@ -666,17 +679,17 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Medium",
   },
   seeAllText: {
-    fontSize: hp("2%"),
+    fontSize: hp("2.2%"),
     color: colors.textColor2,
     fontFamily: "Afacad-Regular",
   },
   recentBottom: {
     width: "100%",
-    flex: 0.9,
+    flex: 1,
   },
   eachFile: {
     width: "100%",
-    height: 60,
+    height: hp("8%"),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -690,7 +703,7 @@ const styles = StyleSheet.create({
   },
   fileDetails: {
     height: "100%",
-    width: "80%",
+    width: "75%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -698,6 +711,9 @@ const styles = StyleSheet.create({
   aboutFile: {
     flexDirection: "column",
     alignItems: "center",
+    height: "100%",
+    flex: 1,
+    justifyContent: "center",
   },
   fileName: {
     fontSize: hp("1.9%"),
@@ -714,7 +730,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   moreIconContainer: {
-    width: "auto",
+    width: "15%",
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",

@@ -1,39 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, StatusBar, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import colors from "./src/constants/Color";
+import { checkUserStatus } from "./utils/userStatus";
 import AppNavigator from "./navigation/AppNavigator";
+import colors from "./src/constants/Color";
 
 export default function App() {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(null);
   const [isNewUser, setIsNewUser] = useState(null);
 
   useEffect(() => {
-    const checkUserStatus = async () => {
-      try {
-        const isNew = await AsyncStorage.getItem("isNew");
-
-        if (isNew === null) {
-          setIsNewUser(true);
-          setIsUserLoggedIn(false);
-          await AsyncStorage.setItem("isNew", "false");
-        } else {
-          const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-          setIsUserLoggedIn(isLoggedIn === "true");
-          setIsNewUser(false);
-        }
-      } catch (error) {
-        console.error("Error retrieving user status:", error);
-      }
+    const getUserStatus = async () => {
+      const { isUserLoggedIn, isNewUser } = await checkUserStatus();
+      setIsUserLoggedIn(isUserLoggedIn);
+      setIsNewUser(isNewUser);
     };
 
-    checkUserStatus();
-    // AsyncStorage.removeItem("isLoggedIn")
-    // AsyncStorage.removeItem("isNew")
-  }, []);
+    getUserStatus();
+  }, [isUserLoggedIn, isNewUser]);
 
   if (isUserLoggedIn === null || isNewUser === null) {
     return (

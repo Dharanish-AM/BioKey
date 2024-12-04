@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   logo: {
     height: hp("9%"),
     width: hp("9%"),
-    marginRight: "2%",
+    marginRight: wp("1.5%"),
   },
   logotext: {
     fontSize: hp("4%"),
@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold",
   },
   contentContainer: {
-    width: wp("80%"),
-    height: hp("35%"),
+    width: "80%",
+    height: "70%",
     backgroundColor: colors.lightColor1,
     borderRadius: wp("5%"),
     justifyContent: "center",
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold",
   },
   scanContainer: {
-    width: wp("40%"),
-    height: hp("20%"),
+    width: "50%",
+    height: "50%",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   },
   bottomText: {
     fontSize: hp("2%"),
-    width: wp("90%"),
+    width: "90%",
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
     textAlign: "center",

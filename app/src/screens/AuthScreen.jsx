@@ -17,13 +17,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Logo from "../assets/images/BioKey_Logo.png";
 import CustomerCarePng from "../assets/images/Headset.png";
-import Fingy from "../assets/images/FINGY.png";
 import LoginAnimation from "../assets/animations/LoginAnimations.json";
-import { useNavigation } from "@react-navigation/native";
 
 const AuthScreen = ({ navigation }) => {
   const fontsLoaded = useCustomFonts();
-  const navi = useNavigation();
 
   if (!fontsLoaded) {
     return (
@@ -35,11 +32,7 @@ const AuthScreen = ({ navigation }) => {
     );
   }
 
-  const handleLoginPress = () => {
-    AsyncStorage.setItem("isLoggedIn", "true");
-
-    navi.navigate("TabNavigator");
-  };
+  const handleLoginPress = () => {};
 
   return (
     <View style={styles.container}>

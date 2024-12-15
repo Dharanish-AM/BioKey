@@ -1,7 +1,15 @@
 {
-  "expo": {
-    "name": "app",
-    "slug": "app",
-    "version": "1.0.0"
-  }
+  "name": "BioKey",
+  "displayName": "BioKey",
+  "slug": "bio-key",
+  "scheme": "biokey",
+  "version": "1.0.0",
+  "platforms": ["ios", "android"],
+  "android": {
+    "package": "com.bioKey"  
+  },
+  "ios": {
+    "bundleIdentifier": "com.bioKey" 
+  },
+  "newArchEnabled": true
 }

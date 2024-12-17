@@ -7,10 +7,10 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import AntDesign from "react-native-vector-icons/AntDesign";
 
 import Logo from "../../assets/images/BioKey_Logo.png";
 import illustration from "../../assets/images/landing-illustration.png";
+import SupportIcon from "../../assets/images/support_icon.png";
 
 export default function LandingScreen() {
   return (
@@ -22,11 +22,7 @@ export default function LandingScreen() {
             <Text style={styles.logoText}>BioKey</Text>
           </View>
           <TouchableOpacity style={styles.supportContainer}>
-            <AntDesign
-              name="customerservice"
-              size={moderateScale(33)}
-              color={colors.textColor2}
-            />
+            <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>
         <View style={styles.center}>
@@ -86,6 +82,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginBottom: "1%",
   },
+  SupportIcon: {
+    height: "40%",
+    width: "20%",
+    opacity: 0.7,
+    resizeMode: "contain",
+  },
   center: {
     width: wp("100%"),
     flex: 1,
@@ -95,26 +97,27 @@ const styles = StyleSheet.create({
   },
   illustration: {
     width: "98%",
-    height: "90%",
+    height: "95%",
     resizeMode: "stretch",
   },
   bottom: {
     width: wp("100%"),
     height: hp("20%"),
-    paddingHorizontal: wp("2%"),
+    justifyContent: "space-evenly",
     flexDirection: "column",
     alignItems: "center",
   },
   quoteText: {
-    fontSize: moderateScale(21.5),
+    fontSize: moderateScale(22),
     textAlign: "center",
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBoldItalic",
+    width: "100%",
   },
   button: {
     width: "60%",
     height: "35%",
-    marginTop: "6%",
+    //marginTop: "6%",
     backgroundColor: colors.primaryColor,
     justifyContent: "center",
     alignItems: "center",
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
   },
   tcText: {
     fontSize: moderateScale(15),
-    marginTop: "7%",
+    //marginTop: "7%",
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
   },

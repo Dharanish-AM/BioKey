@@ -9,7 +9,6 @@ const colors = {
   lightColor2: "#242933",
   textColor3: "#E1E1E1",
   borderColorLight: "#E5E7EB",
-  borderColorDark: "#A6ADBA",
 };
 
 export default colors;

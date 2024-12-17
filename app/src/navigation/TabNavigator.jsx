@@ -1,4 +1,4 @@
-import { View, Image } from "react-native";
+import { View, Image, Platform } from "react-native";
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { moderateScale } from "react-native-size-matters";
@@ -26,8 +26,9 @@ export default function TabNavigator() {
         tabBarStyle: {
           backgroundColor: colors.lightColor2,
           borderTopColor: "transparent",
-          height: hp("10.5%"),
-          paddingTop: hp("2%"),
+          borderWidth: 0,
+          height: Platform.OS === "android" ? hp("7.5%") : hp("10.5%"),
+          paddingTop: Platform.OS === "android" ? hp("1.7%") : hp("2.2%"),
         },
         tabBarIcon: ({ focused, color, size }) => {
           let icon;

@@ -8,6 +8,10 @@
     },
     "ios": {
       "bundleIdentifier": "com.app.biokey"
-    }
+    },
+    "updates": {
+      "enabled": true
+    },
+    "platforms": ["ios", "android"]
   }
 }

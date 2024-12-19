@@ -5,7 +5,7 @@ import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppNavigator from "./src/navigation/AppNavigator";
 
-import { useLoadFonts } from "./src/hooks/useLoadFonts";
+import useLoadFonts from "./src/hooks/useLoadFonts";
 import colors from "./src/constants/colors";
 
 export default function App() {

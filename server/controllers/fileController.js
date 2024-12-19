@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 const ffmpeg = require("fluent-ffmpeg");
-const ffmpegPath = require("ffmpeg-static");
+const ffmpegPath = "D:/ffmpeg-7.1-essentials_build/bin/ffmpeg.exe";
 const pdf = require("pdf-poppler");
 const os = require("os");
 
@@ -167,25 +167,24 @@ const generateVideoThumbnail = (file) => {
             console.error("Error reading thumbnail file:", err);
             cleanUp(tempThumbnailPath);
             reject(err);
-          } else {
-            sharp(data)
-              .resize(200, 200)
-              .toBuffer()
-              .then((buffer) => {
-                cleanUp(tempThumbnailPath);
-                resolve({
-                  ...file,
-                  thumbnail: `data:image/png;base64,${buffer.toString(
-                    "base64"
-                  )}`,
-                });
-              })
-              .catch((sharpErr) => {
-                console.error("Error resizing image with sharp:", sharpErr);
-                cleanUp(tempThumbnailPath);
-                resolve({ ...file, thumbnail: null });
-              });
+            return;
           }
+
+          sharp(data)
+            .resize(200, 200)
+            .toBuffer()
+            .then((buffer) => {
+              cleanUp(tempThumbnailPath);
+              resolve({
+                ...file,
+                thumbnail: `data:image/png;base64,${buffer.toString("base64")}`,
+              });
+            })
+            .catch((sharpErr) => {
+              console.error("Error resizing image with sharp:", sharpErr);
+              cleanUp(tempThumbnailPath);
+              reject(sharpErr);
+            });
         });
       })
       .on("error", (err) => {

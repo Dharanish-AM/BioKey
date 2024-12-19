@@ -49,5 +49,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Afacad-Bold.ttf</string>
+		<string>Afacad-BoldItalic.ttf</string>
+		<string>Afacad-Italic.ttf</string>
+		<string>Afacad-Medium.ttf</string>
+		<string>Afacad-MediumItalic.ttf</string>
+		<string>Afacad-Regular.ttf</string>
+		<string>Afacad-SemiBold.ttf</string>
+		<string>Afacad-SemiBoldItalic.ttf</string>
+	</array>
 </dict>
 </plist>

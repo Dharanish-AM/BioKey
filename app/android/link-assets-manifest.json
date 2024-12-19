@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Afacad-Bold.ttf",
+      "sha1": "c1f61e01953bee234bd74c3a2bf01a8b7da79bc4"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-BoldItalic.ttf",
+      "sha1": "610235bdad4e3806b2cc7dc3b7dd403d98e48b17"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-Italic.ttf",
+      "sha1": "9c9308d5f0580cfb7207b5ba1db13b877c55d645"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-Medium.ttf",
+      "sha1": "778e1a8162c85552929ea59a6a0d1358502eb1d7"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-MediumItalic.ttf",
+      "sha1": "59c1a20358a9a027aeea65609c8cbdd34a8b1a33"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-Regular.ttf",
+      "sha1": "3dd29afd23f5171addf5a2d8c3d633c51a9ac765"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-SemiBold.ttf",
+      "sha1": "d0665680af7c7f7e1740118dc9847c77b8455198"
+    },
+    {
+      "path": "src/assets/fonts/Afacad-SemiBoldItalic.ttf",
+      "sha1": "92bbb36800d93007f84eb28fd30bb5a47058fe63"
+    }
+  ]
+}

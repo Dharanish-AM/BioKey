@@ -15,17 +15,9 @@ export const pickMedia = async (type) => {
     }
 
     switch (type) {
-      case "image":
+      case "image_video":
         pickerResult = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["images"],
-          allowsMultipleSelection: true,
-          quality: 1,
-        });
-        break;
-
-      case "video":
-        pickerResult = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["videos"],
+          mediaTypes: ["images", "videos"],
           allowsMultipleSelection: true,
           quality: 1,
         });
@@ -45,7 +37,7 @@ export const pickMedia = async (type) => {
 
     if (pickerResult.canceled) {
       console.log("Picker was cancelled");
-      return null;
+      return "cancelled";
     }
 
     if (type === "image" || type === "video") {

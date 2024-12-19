@@ -21,9 +21,63 @@ const TARGET_DIR = path.join(
 const getFileCategory = (fileName) => {
   const ext = path.extname(fileName).toLowerCase();
 
-  const imageExts = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
-  const videoExts = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm"];
-  const audioExts = [".mp3", ".wav", ".aac", ".flac", ".ogg", ".wma"];
+  const imageExts = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".webp",
+    ".tiff",
+    ".svg",
+    ".heif",
+    ".heic",
+    ".raw",
+    ".ico",
+    ".apng",
+    ".avif",
+  ];
+
+  const videoExts = [
+    ".mp4",
+    ".avi",
+    ".mov",
+    ".wmv",
+    ".flv",
+    ".mkv",
+    ".webm",
+    ".mpeg",
+    ".mpg",
+    ".3gp",
+    ".m4v",
+    ".ogg",
+    ".rm",
+    ".rmvb",
+    ".ts",
+    ".divx",
+    ".vob",
+    ".f4v",
+    ".swf",
+  ];
+
+  const audioExts = [
+    ".mp3",
+    ".wav",
+    ".aac",
+    ".flac",
+    ".ogg",
+    ".wma",
+    ".m4a",
+    ".alac",
+    ".opus",
+    ".aiff",
+    ".ape",
+    ".mka",
+    ".mid",
+    ".midi",
+    ".spx",
+  ];
+
   const docExts = [
     ".pdf",
     ".doc",
@@ -33,12 +87,26 @@ const getFileCategory = (fileName) => {
     ".xlsx",
     ".ppt",
     ".pptx",
+    ".rtf",
+    ".odt",
+    ".ods",
+    ".odp",
+    ".epub",
+    ".md",
+    ".tex",
+    ".csv",
+    ".xml",
+    ".json",
+    ".yaml",
+    ".html",
+    ".chm",
   ];
 
   if (imageExts.includes(ext)) return "images";
   if (videoExts.includes(ext)) return "videos";
   if (audioExts.includes(ext)) return "audios";
   if (docExts.includes(ext)) return "documents";
+
   return "documents";
 };
 
@@ -188,7 +256,6 @@ const generateVideoThumbnail = (file) => {
       .screenshots({
         count: 1,
         timemarks: ["0"],
-        size: "200x200",
         folder: path.dirname(tempThumbnailPath),
         filename: path.basename(tempThumbnailPath),
       })
@@ -202,10 +269,7 @@ const generateVideoThumbnail = (file) => {
           }
 
           sharp(data)
-            .resize(200, 200, {
-              fit: sharp.fit.fill,
-              position: sharp.strategy.entropy,
-            })
+            .resize(200, 200, {})
             .toBuffer()
             .then((buffer) => {
               cleanUp(tempThumbnailPath);

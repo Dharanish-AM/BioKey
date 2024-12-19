@@ -6,6 +6,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = "D:/ffmpeg-7.1-essentials_build/bin/ffmpeg.exe";
 const pdf = require("pdf-poppler");
 const os = require("os");
+const jsmediatags = require("jsmediatags");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -45,26 +46,43 @@ const uploadFile = (req, res) => {
   const form = new IncomingForm();
   form.multiples = true;
 
+  console.log("Starting file upload process...");
+
   form.parse(req, (err, fields, files) => {
     if (err) {
       console.error("Error parsing form:", err.message);
       return res.status(500).json({ message: "Error processing file upload" });
     }
 
+    console.log("Form parsed successfully.");
+
     const userId = fields.userId?.[0] || fields.userId;
-    if (!userId) return res.status(400).json({ message: "Missing userId" });
+    if (!userId) {
+      console.error("Missing userId in the request.");
+      return res.status(400).json({ message: "Missing userId" });
+    }
+    console.log("UserId obtained:", userId);
 
     const uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
+    console.log("Files received for upload:", uploadedFiles);
+
     if (!uploadedFiles || uploadedFiles.length === 0) {
+      console.error("No files uploaded.");
       return res.status(400).json({ message: "No files uploaded" });
     }
+
+    console.log("Proceeding with file upload...");
 
     const uploadPromises = uploadedFiles.map((file) => {
       return new Promise((resolve, reject) => {
         const fileName = file.originalFilename;
         const fileCategory = getFileCategory(fileName);
 
+        console.log("Processing file:", fileName);
+        console.log("File category:", fileCategory);
+
         const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+        console.log("Target directory:", targetDir);
 
         fs.mkdir(targetDir, { recursive: true }, (mkdirErr) => {
           if (mkdirErr) {
@@ -72,7 +90,13 @@ const uploadFile = (req, res) => {
             return reject({ fileName, error: "Error creating directory" });
           }
 
+          console.log(
+            "Directory created successfully or already exists:",
+            targetDir
+          );
+
           const targetPath = getUniqueFilePath(targetDir, fileName);
+          console.log("Target file path for saving:", targetPath);
 
           const sourcePath = file.filepath;
           const readStream = fs.createReadStream(sourcePath);
@@ -81,9 +105,12 @@ const uploadFile = (req, res) => {
           readStream.pipe(writeStream);
 
           writeStream.on("finish", () => {
+            console.log("File write completed:", targetPath);
             fs.unlink(sourcePath, (unlinkErr) => {
               if (unlinkErr) {
                 console.error("Error deleting temp file:", unlinkErr.message);
+              } else {
+                console.log("Temporary file deleted:", sourcePath);
               }
               resolve({
                 fileName,
@@ -103,6 +130,7 @@ const uploadFile = (req, res) => {
 
     Promise.all(uploadPromises)
       .then((results) => {
+        console.log("All files uploaded successfully.");
         res.status(200).json({
           message: "Files uploaded successfully",
           files: results,
@@ -125,7 +153,7 @@ const getUniqueFilePath = (dir, fileName) => {
   let counter = 1;
 
   while (fs.existsSync(targetPath)) {
-    targetPath = path.join(dir, `${fileBaseName}(${counter})${fileExt}`);
+    targetPath = path.join(dir, `${fileBaseName} (${counter})${fileExt}`);
     counter++;
   }
 
@@ -171,7 +199,10 @@ const generateVideoThumbnail = (file) => {
           }
 
           sharp(data)
-            .resize(200, 200)
+            .resize(200, 200, {
+              fit: sharp.fit.fill,
+              position: sharp.strategy.entropy,
+            })
             .toBuffer()
             .then((buffer) => {
               cleanUp(tempThumbnailPath);
@@ -207,6 +238,52 @@ const generateVideoThumbnail = (file) => {
         }
       });
     };
+  });
+};
+
+const generateAudioThumbnail = (file) => {
+  const filePath = file.filePath;
+  return new Promise((resolve, reject) => {
+    jsmediatags.read(filePath, {
+      onSuccess: function (tag) {
+        const albumArt = tag.tags["APIC"];
+
+        if (albumArt) {
+          const imageData = albumArt.data;
+
+          if (imageData && imageData.data) {
+            const imageBuffer = Buffer.from(imageData.data);
+
+            sharp(imageBuffer)
+              .resize(200, 200)
+              .toBuffer()
+              .then((resizedBuffer) => {
+                const imageBase64 = resizedBuffer.toString("base64");
+                file.thumbnail = `data:image/jpeg;base64,${imageBase64}`;
+                resolve(file);
+              })
+              .catch((error) => {
+                console.log("Error resizing image:", error);
+                file.thumbnail = null;
+                resolve(file);
+              });
+          } else {
+            console.log("Album artwork data is not in the expected format");
+            file.thumbnail = null;
+            resolve(file);
+          }
+        } else {
+          console.log("No album artwork found");
+          file.thumbnail = null;
+          resolve(file);
+        }
+      },
+      onError: function (error) {
+        console.log("Error reading metadata:", error);
+        file.thumbnail = null;
+        reject(error);
+      },
+    });
   });
 };
 
@@ -262,6 +339,8 @@ const getRecentFiles = (req, res) => {
             return generateImageThumbnail(file);
           } else if (file.category === "videos") {
             return generateVideoThumbnail(file);
+          } else if (file.category === "audios") {
+            return generateAudioThumbnail(file);
           } else if (
             file.category === "documents" &&
             file.name.endsWith(".pdf")
@@ -336,6 +415,31 @@ const getUsedSpace = (req, res) => {
         usedSpace,
       });
     }
+  });
+};
+
+const readMetadata = (filePath) => {
+  jsmediatags.read(filePath, {
+    onSuccess: function (tag) {
+      console.log("Metadata:", tag);
+      const albumArt = tag.tags["APIC"];
+      if (albumArt) {
+        const imageData = albumArt.data;
+
+        if (imageData && imageData.data) {
+          const imageBuffer = Buffer.from(imageData.data);
+          const imageBase64 = imageBuffer.toString("base64");
+          console.log("Album Artwork (Base64):", imageBase64);
+        } else {
+          console.log("Album artwork data is not in expected format");
+        }
+      } else {
+        console.log("No album artwork found");
+      }
+    },
+    onError: function (error) {
+      console.log("Error reading metadata:", error);
+    },
   });
 };
 

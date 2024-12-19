@@ -3,6 +3,7 @@
     "name": "BioKey",
     "slug": "app",
     "version": "1.0.0",
+    "scheme": "biokey",
     "android": {
       "package": "com.app.biokey"
     },
@@ -12,6 +13,7 @@
     "updates": {
       "enabled": true
     },
-    "platforms": ["ios", "android"]
+    "platforms": ["ios", "android"],
+    "newArchEnabled": true
   }
 }

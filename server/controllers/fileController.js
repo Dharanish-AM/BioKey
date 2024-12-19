@@ -75,7 +75,10 @@ const uploadFile = (req, res) => {
 
     const uploadPromises = uploadedFiles.map((file) => {
       return new Promise((resolve, reject) => {
-        const fileName = file.originalFilename;
+        const fileName =
+          file.originalFilename ||
+          `default_filename_${String(Date.now()).slice(-5)}`;
+
         const fileCategory = getFileCategory(fileName);
 
         console.log("Processing file:", fileName);
@@ -415,31 +418,6 @@ const getUsedSpace = (req, res) => {
         usedSpace,
       });
     }
-  });
-};
-
-const readMetadata = (filePath) => {
-  jsmediatags.read(filePath, {
-    onSuccess: function (tag) {
-      console.log("Metadata:", tag);
-      const albumArt = tag.tags["APIC"];
-      if (albumArt) {
-        const imageData = albumArt.data;
-
-        if (imageData && imageData.data) {
-          const imageBuffer = Buffer.from(imageData.data);
-          const imageBase64 = imageBuffer.toString("base64");
-          console.log("Album Artwork (Base64):", imageBase64);
-        } else {
-          console.log("Album artwork data is not in expected format");
-        }
-      } else {
-        console.log("No album artwork found");
-      }
-    },
-    onError: function (error) {
-      console.log("Error reading metadata:", error);
-    },
   });
 };
 

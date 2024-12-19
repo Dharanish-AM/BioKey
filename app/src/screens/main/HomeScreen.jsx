@@ -122,11 +122,10 @@ export default function HomeScreen({ navigation }) {
               let successCount = 0;
               for (const file of files) {
                 const fileUri = file.uri;
-                const fileType = "image";
                 const fileName = file.fileName;
                 const uploadResponse = await uploadMedia(
                   fileUri,
-                  fileType,
+
                   fileName
                 );
                 if (uploadResponse.success) {
@@ -183,13 +182,8 @@ export default function HomeScreen({ navigation }) {
               let successCount = 0;
               for (const video of files) {
                 const fileUri = video.uri;
-                const fileType = "video";
                 const fileName = video.fileName;
-                const uploadResponse = await uploadMedia(
-                  fileUri,
-                  fileType,
-                  fileName
-                );
+                const uploadResponse = await uploadMedia(fileUri, fileName);
                 if (uploadResponse.success) {
                   successCount++;
                   console.log(`Video ${fileName} uploaded successfully`);
@@ -225,14 +219,17 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const handlePickAudio = async () => {
-    const result = await pickMedia("audio");
-    if (result && (Array.isArray(result) ? result.length > 0 : result.uri)) {
-      const files = Array.isArray(result) ? result : [result];
+  const handleOthersPick = async () => {
+    const result = await pickMedia("others");
+    console.log(result);
+    const type = "other";
+
+    if (result && result.assets && result.assets.length > 0) {
+      const files = result.assets;
 
       Alert.alert(
         "Confirm Upload",
-        `You have selected ${files.length} audio file(s). Do you want to upload them?`,
+        `You have selected ${files.length} ${type}(s). Do you want to upload them?`,
         [
           { text: "Cancel", onPress: () => console.log("Upload cancelled") },
           {
@@ -240,23 +237,33 @@ export default function HomeScreen({ navigation }) {
             onPress: async () => {
               let successCount = 0;
 
-              for (const audio of files) {
-                const fileUri = audio.uri;
-                const fileType = "audio";
-                const fileName = audio.name || "Unknown File";
+              for (const file of files) {
+                const fileUri = file.uri;
+                const fileName = file.name;
+
+                if (!fileUri) {
+                  console.error("File URI is invalid or missing for", fileName);
+                  continue;
+                }
 
                 const uploadResponse = await uploadMedia(
                   fileUri,
-                  fileType,
+
                   fileName
                 );
 
                 if (uploadResponse?.success) {
                   successCount++;
-                  console.log(`Audio ${fileName} uploaded successfully`);
+                  console.log(
+                    `${
+                      type.charAt(0).toUpperCase() + type.slice(1)
+                    } ${fileName} uploaded successfully`
+                  );
                 } else {
                   console.error(
-                    `Audio ${fileName} upload failed:`,
+                    `${
+                      type.charAt(0).toUpperCase() + type.slice(1)
+                    } ${fileName} upload failed:`,
                     uploadResponse?.message || "Unknown error"
                   );
                 }
@@ -265,13 +272,13 @@ export default function HomeScreen({ navigation }) {
               if (successCount > 0) {
                 Alert.alert(
                   "Upload Success",
-                  `${successCount} audio file(s) uploaded successfully!`,
+                  `${successCount} ${type}(s) uploaded successfully!`,
                   [{ text: "OK" }]
                 );
               } else {
                 Alert.alert(
                   "Upload Failed",
-                  "No files were uploaded successfully.",
+                  `No ${type}(s) were uploaded successfully.`,
                   [{ text: "OK" }]
                 );
               }
@@ -284,72 +291,9 @@ export default function HomeScreen({ navigation }) {
       );
     } else {
       console.log("No files selected or invalid data");
-      Alert.alert(
-        "No Selection",
-        "Please select valid audio files to upload.",
-        [{ text: "OK" }]
-      );
-    }
-  };
-
-  const handlePickDocument = async () => {
-    const result = await pickMedia("document");
-
-    if (
-      result &&
-      ((Array.isArray(result) && result.length > 0) || result.uri)
-    ) {
-      const files = Array.isArray(result) ? result : [result];
-      Alert.alert(
-        "Confirm Upload",
-        `You have selected ${files.length} document(s). Do you want to upload them?`,
-        [
-          { text: "Cancel", onPress: () => console.log("Upload cancelled") },
-          {
-            text: "OK",
-            onPress: async () => {
-              let successCount = 0;
-              for (const doc of files) {
-                const fileUri = doc.uri;
-                const fileType = "document";
-                const fileName = doc.fileName;
-                const uploadResponse = await uploadMedia(
-                  fileUri,
-                  fileType,
-                  fileName
-                );
-                if (uploadResponse.success) {
-                  successCount++;
-                  console.log(`Document ${fileName} uploaded successfully`);
-                } else {
-                  console.error(
-                    `Document ${fileName} upload failed:`,
-                    uploadResponse.message
-                  );
-                }
-              }
-
-              if (successCount > 0) {
-                Alert.alert(
-                  "Upload Success",
-                  `${successCount} document(s) uploaded successfully!`,
-                  [{ text: "OK" }]
-                );
-              } else {
-                Alert.alert(
-                  "Upload Failed",
-                  "No files were uploaded successfully.",
-                  [{ text: "OK" }]
-                );
-              }
-              refRBSheet.current.close();
-              onRefresh();
-            },
-          },
-        ]
-      );
-    } else {
-      console.log("No files selected or invalid data");
+      Alert.alert("No Selection", `Please select valid ${type}(s) to upload.`, [
+        { text: "OK" },
+      ]);
     }
   };
 
@@ -646,14 +590,7 @@ export default function HomeScreen({ navigation }) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.optionButton}
-                onPress={handlePickAudio}
-              >
-                <Image source={AudiosIcon} style={styles.bottomIcon} />
-                <Text style={styles.optionText}>Audio</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.optionButton}
-                onPress={handlePickDocument}
+                onPress={handleOthersPick}
               >
                 <Image source={DocsIcon} style={styles.bottomIcon} />
                 <Text style={styles.optionText}>Others</Text>

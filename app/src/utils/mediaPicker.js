@@ -6,10 +6,12 @@ export const pickMedia = async (type) => {
   try {
     let pickerResult;
 
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Permission to access media library is required!");
-      return null;
+    if (type === "image" || type === "video") {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permission to access media library is required!");
+        return null;
+      }
     }
 
     switch (type) {
@@ -29,26 +31,11 @@ export const pickMedia = async (type) => {
         });
         break;
 
-      case "audio":
-        pickerResult = await DocumentPicker.getDocumentAsync({
-          type: "audio/*",
-          multiple: true,
-        });
-        if (pickerResult.type !== "success") {
-          console.log("No audio files selected");
-          return null;
-        }
-        break;
-
-      case "document":
+      case "others":
         pickerResult = await DocumentPicker.getDocumentAsync({
           type: "*/*",
           multiple: true,
         });
-        if (pickerResult.type !== "success") {
-          console.log("No documents selected");
-          return null;
-        }
         break;
 
       default:
@@ -68,8 +55,8 @@ export const pickMedia = async (type) => {
         : pickerResult.assets;
     }
 
-    console.log("Picked files:", pickerResult.files || [pickerResult]);
-    return pickerResult.files || [pickerResult];
+    console.log("Picked files:", pickerResult);
+    return pickerResult;
   } catch (error) {
     console.error("Error picking media:", error);
     return null;

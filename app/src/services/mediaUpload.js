@@ -2,11 +2,10 @@ import axios from "axios";
 
 const API_URL = "http://192.168.1.3:8000/api/files/upload";
 
-export const uploadMedia = async (fileUri, fileType, fileName) => {
+export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();
   const file = {
     uri: fileUri,
-    type: fileType,
     name: fileName,
   };
 

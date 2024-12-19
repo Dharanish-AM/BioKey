@@ -4,7 +4,7 @@ const path = require("path");
 const sharp = require("sharp");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("ffmpeg-static");
-const { fromPath } = require("pdf2pic");
+const pdf = require("pdf-poppler");
 const os = require("os");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -36,7 +36,7 @@ const getFileCategory = (fileName) => {
 
   if (imageExts.includes(ext)) return "images";
   if (videoExts.includes(ext)) return "videos";
-  if (audioExts.includes(ext)) return "audio";
+  if (audioExts.includes(ext)) return "audios";
   if (docExts.includes(ext)) return "documents";
   return "documents";
 };
@@ -132,33 +132,6 @@ const getUniqueFilePath = (dir, fileName) => {
   return targetPath;
 };
 
-const generatePDFThumbnail = (file) => {
-  const outputImage = path.join(
-    path.dirname(file.filePath),
-    `${path.basename(file.name, ".pdf")}.png`
-  );
-
-  const converter = fromPath(file.filePath, {
-    density: 100,
-    saveFilename: path.basename(file.name, ".pdf"),
-    savePath: path.dirname(file.filePath),
-    format: "png",
-    width: 100,
-    height: 100,
-  });
-
-  return converter(1)
-    .then(() => sharp(outputImage).resize(100, 100).toBuffer())
-    .then((buffer) => ({
-      ...file,
-      thumbnail: `data:image/png;base64,${buffer.toString("base64")}`,
-    }))
-    .catch(() => ({
-      ...file,
-      thumbnail: null,
-    }));
-};
-
 const generateImageThumbnail = (file) => {
   return sharp(file.filePath)
     .resize(200, 200)
@@ -222,9 +195,16 @@ const generateVideoThumbnail = (file) => {
       });
 
     const cleanUp = (filePath) => {
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error("Error deleting temporary thumbnail file:", err);
+      fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (!err) {
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error(
+                "Error deleting temporary thumbnail file:",
+                unlinkErr
+              );
+            }
+          });
         }
       });
     };
@@ -287,7 +267,8 @@ const getRecentFiles = (req, res) => {
             file.category === "documents" &&
             file.name.endsWith(".pdf")
           ) {
-            return generatePDFThumbnail(file);
+            file.thumbnail = null;
+            return Promise.resolve(file);
           } else {
             return Promise.resolve(file);
           }

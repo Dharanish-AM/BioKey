@@ -26,7 +26,7 @@ export default function TabNavigator() {
         tabBarStyle: {
           backgroundColor: colors.lightColor2,
           borderTopColor: "transparent",
-          borderWidth: 0,
+          borderTopWidth: 0,
           height: Platform.OS === "android" ? hp("7.5%") : hp("10.5%"),
           paddingTop: Platform.OS === "android" ? hp("1.7%") : hp("2.2%"),
         },

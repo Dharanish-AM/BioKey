@@ -21,9 +21,11 @@ import CircularProgress from "react-native-circular-progress-indicator";
 import SpinnerOverlay from "../../components/SpinnerOverlay";
 import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";
+import { useDispatch, useSelector } from "react-redux";
 
 import { uploadMedia } from "../../services/fileOperations";
 import { pickMedia } from "../../utils/mediaPicker";
+import PhotoScreen from "./media/PhotosScreen";
 
 import ProfileIcon from "../../assets/images/profile_icon.png";
 import SearchIcon from "../../assets/images/search_icon.png";
@@ -57,6 +59,7 @@ export default function HomeScreen({ navigation }) {
   const refRBSheet = useRef();
   const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   const TOTAL_SPACE_UNIT = "5 GB";
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (fetchOnceRef.current) return;
@@ -65,6 +68,8 @@ export default function HomeScreen({ navigation }) {
     fetchRecentFiles();
     fetchUsedSpace();
   }, []);
+
+  const filesState = useSelector((state) => state.files);
 
   const fetchRecentFiles = async () => {
     console.log("Fetching recent files");
@@ -399,6 +404,9 @@ export default function HomeScreen({ navigation }) {
       )}
 
       <View style={styles.innerContainer}>
+        {/* {
+        filesState && console.log(JSON.stringify(filesState, null, 2))
+      } */}
         <View style={styles.top}>
           <TouchableOpacity
             style={styles.profileContainer}
@@ -431,11 +439,11 @@ export default function HomeScreen({ navigation }) {
                 value={usedSpace}
                 radius={hp("8%")}
                 duration={2000}
-                progressValueColor={"#ecf0f1"}
+                progressValueColor={colors.textColor3}
                 maxValue={100}
                 title={"Used"}
                 valueSuffix="%"
-                titleColor={"#ecf0f1"}
+                titleColor={colors.textColor3}
                 titleStyle={{
                   fontWeight: "bold",
                   fontSize: hp("1.8%"),
@@ -444,11 +452,9 @@ export default function HomeScreen({ navigation }) {
                 activeStrokeColor="rgba(100, 25, 230, 0.8)"
                 progressValueStyle={{
                   fontSize: hp("2.5%"),
-                  color: colors.textColor3,
                 }}
                 valueSuffixStyle={{
                   fontSize: hp("2.2%"),
-                  color: colors.textColor3,
                 }}
               />
             </View>
@@ -468,34 +474,54 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.utitlityContainer}>
             <View style={styles.firstRowIcons}>
-              <TouchableOpacity style={styles.iconContainer}>
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={() => {
+                  navigation.navigate("PhotosScreen");
+                }}
+              >
                 <Image
                   style={styles.utilIcons}
                   source={ImagesIcon}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconContainer}>
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={() => {
+                  navigation.navigate("VideosScreen");
+                }}
+              >
                 <Image
                   style={styles.utilIcons}
                   source={VideosIcon}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconContainer}>
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={() => {
+                  navigation.navigate("AudiosScreen");
+                }}
+              >
                 <Image
                   style={styles.utilIcons}
                   source={AudiosIcon}
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <View style={styles.iconContainer}>
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={() => {
+                  navigation.navigate("DocumentsScreen");
+                }}
+              >
                 <Image
                   style={styles.utilIcons}
                   source={DocsIcon}
                   resizeMode="contain"
                 />
-              </View>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.iconContainer}>
                 <Image
                   style={styles.utilIcons}
@@ -730,8 +756,8 @@ const styles = StyleSheet.create({
   },
   premiumText: {
     fontSize: hp("1.75%"),
-    color: "rgba(158, 136, 46, 1)",
-    fontFamily: "Afacad-MediumItalic",
+    color: "rgb(144, 123, 40)",
+    fontFamily: "Afacad-Medium",
   },
   cloudIcon: {
     height: "60%",
@@ -913,7 +939,6 @@ const styles = StyleSheet.create({
     width: "90%",
     height: "90%",
     tintColor: "#B2BEB5",
-    opacity: 0.9,
     zIndex: 10,
   },
   overlay: {

@@ -3,10 +3,12 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
 import AppNavigator from "./src/navigation/AppNavigator";
 
 import useLoadFonts from "./src/hooks/useLoadFonts";
 import colors from "./src/constants/colors";
+import store from "./src/redux/store";
 
 export default function App() {
   const fontsLoaded = useLoadFonts();
@@ -25,12 +27,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <StatusBar style="light" backgroundColor={colors.secondaryColor1} />
-        <View style={styles.container}>
-          <AppNavigator />
-        </View>
-      </NavigationContainer>
+      <Provider store={store}>
+        <NavigationContainer>
+          <StatusBar style="light" backgroundColor={colors.secondaryColor1} />
+          <View style={styles.container}>
+            <AppNavigator />
+          </View>
+        </NavigationContainer>
+      </Provider>
     </SafeAreaProvider>
   );
 }

@@ -231,13 +231,22 @@ const getUniqueFilePath = (dir, fileName) => {
   return targetPath;
 };
 
-const generateImageThumbnail = (file) => {
+const resizeThumbnail = (buffer, size) => {
+  const dimensions =
+    size === "recent"
+      ? { width: 150, height: 150 }
+      : { width: 500, height: 500 };
+
+  return sharp(buffer).resize(dimensions.width, dimensions.height).toBuffer();
+};
+
+const generateImageThumbnail = (file, method) => {
   return sharp(file.filePath)
-    .resize(200, 200)
     .toBuffer()
-    .then((buffer) => ({
+    .then((buffer) => resizeThumbnail(buffer, method))
+    .then((finalBuffer) => ({
       ...file,
-      thumbnail: `data:image/png;base64,${buffer.toString("base64")}`,
+      thumbnail: `data:image/png;base64,${finalBuffer.toString("base64")}`,
     }))
     .catch(() => ({
       ...file,
@@ -245,7 +254,7 @@ const generateImageThumbnail = (file) => {
     }));
 };
 
-const generateVideoThumbnail = (file) => {
+const generateVideoThumbnail = (file, method) => {
   return new Promise((resolve, reject) => {
     const tempThumbnailPath = path.join(
       os.tmpdir(),
@@ -268,14 +277,14 @@ const generateVideoThumbnail = (file) => {
             return;
           }
 
-          sharp(data)
-            .resize(200, 200, {})
-            .toBuffer()
-            .then((buffer) => {
+          resizeThumbnail(data, method)
+            .then((finalBuffer) => {
               cleanUp(tempThumbnailPath);
               resolve({
                 ...file,
-                thumbnail: `data:image/png;base64,${buffer.toString("base64")}`,
+                thumbnail: `data:image/png;base64,${finalBuffer.toString(
+                  "base64"
+                )}`,
               });
             })
             .catch((sharpErr) => {
@@ -308,7 +317,7 @@ const generateVideoThumbnail = (file) => {
   });
 };
 
-const generateAudioThumbnail = (file) => {
+const generateAudioThumbnail = (file, method) => {
   const filePath = file.filePath;
   return new Promise((resolve, reject) => {
     jsmediatags.read(filePath, {
@@ -321,9 +330,7 @@ const generateAudioThumbnail = (file) => {
           if (imageData && imageData.data) {
             const imageBuffer = Buffer.from(imageData.data);
 
-            sharp(imageBuffer)
-              .resize(200, 200)
-              .toBuffer()
+            resizeThumbnail(imageBuffer, method)
               .then((resizedBuffer) => {
                 const imageBase64 = resizedBuffer.toString("base64");
                 file.thumbnail = `data:image/jpeg;base64,${imageBase64}`;
@@ -403,11 +410,11 @@ const getRecentFiles = (req, res) => {
       Promise.all(
         recentFiles.map((file) => {
           if (file.category === "images") {
-            return generateImageThumbnail(file);
+            return generateImageThumbnail(file, "recent");
           } else if (file.category === "videos") {
-            return generateVideoThumbnail(file);
+            return generateVideoThumbnail(file, "recent");
           } else if (file.category === "audios") {
-            return generateAudioThumbnail(file);
+            return generateAudioThumbnail(file, "recent");
           } else if (
             file.category === "documents" &&
             file.name.endsWith(".pdf")
@@ -485,4 +492,97 @@ const getUsedSpace = (req, res) => {
   });
 };
 
-module.exports = { uploadFile, getRecentFiles, getUsedSpace };
+const getFilesByCategory = async (req, res) => {
+  const { userId, category } = req.query;
+
+  if (!userId || !category) {
+    return res.status(400).json({
+      error: "userId and category are required parameters.",
+    });
+  }
+
+  const folderPath = path.join(TARGET_DIR, userId, category);
+
+  try {
+    const files = [];
+
+    if (fs.existsSync(folderPath)) {
+      const fileNames = fs.readdirSync(folderPath);
+
+      for (const fileName of fileNames) {
+        const filePath = path.join(folderPath, fileName);
+        if (fs.statSync(filePath).isFile()) {
+          const stats = fs.statSync(filePath);
+          const file = {
+            name: fileName,
+            filePath,
+            size: stats.size,
+            createdAt: stats.birthtime,
+            modifiedAt: stats.mtime,
+            thumbnail: null,
+            category: category,
+          };
+
+          let fileWithThumbnail = { ...file };
+
+          try {
+            if (category === "images") {
+              fileWithThumbnail =
+                (await generateImageThumbnail(fileWithThumbnail)) ||
+                fileWithThumbnail;
+            } else if (category === "videos") {
+              fileWithThumbnail =
+                (await generateVideoThumbnail(fileWithThumbnail)) ||
+                fileWithThumbnail;
+            } else if (category === "audios") {
+              fileWithThumbnail =
+                (await generateAudioThumbnail(fileWithThumbnail)) ||
+                fileWithThumbnail;
+            } else if (category === "documents") {
+              fileWithThumbnail.thumbnail = null;
+            }
+          } catch (thumbnailError) {
+            console.error("Error generating thumbnail:", thumbnailError);
+
+            fileWithThumbnail.thumbnail = null;
+          }
+
+          if (!fileWithThumbnail.thumbnail) {
+            fileWithThumbnail.thumbnail = null;
+          }
+
+          files.push({
+            fileName: fileWithThumbnail.name,
+            size: fileWithThumbnail.size,
+            createdAt: fileWithThumbnail.createdAt,
+            modifiedAt: fileWithThumbnail.modifiedAt,
+            thumbnail: fileWithThumbnail.thumbnail,
+            category: fileWithThumbnail.category,
+          });
+        }
+      }
+
+      return res.json({
+        success: true,
+        files,
+      });
+    } else {
+      return res.status(404).json({
+        error: `Folder not found for userId: ${userId}, category: ${category}`,
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    return res.status(500).json({
+      error: "An error occurred while fetching files.",
+      details: error.message,
+    });
+  }
+};
+
+module.exports = {
+  uploadFile,
+  getRecentFiles,
+  getUsedSpace,
+  getFilesByCategory,
+};

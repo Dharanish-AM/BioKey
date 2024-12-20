@@ -1,6 +1,7 @@
 import axios from "axios";
+import { fetchFiles } from "../redux/actions";
 
-const API_URL = "http://192.168.1.3:8000/api/files/upload";
+const API_URL = "http://192.168.1.3:8000/api/files";
 
 export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();
@@ -14,7 +15,7 @@ export const uploadMedia = async (fileUri, fileName) => {
   formData.append("file", file);
 
   try {
-    const response = await axios.post(API_URL, formData, {
+    const response = await axios.post(`${API_URL}/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -39,5 +40,30 @@ export const uploadMedia = async (fileUri, fileName) => {
       console.error("Request error:", error.message);
     }
     return { success: false, message: "Upload failed. Please try again." };
+  }
+};
+
+export const fetchFilesByCategory = async (userId, category, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/list`, {
+      params: {
+        userId,
+        category,
+      },
+    });
+
+    if (response.data.success) {
+      const files = response.data.files;
+      console.log("Fetched Files of category " + category);
+
+      dispatch(fetchFiles(category, files));
+      return files;
+    } else {
+      console.error("Error fetching files:", response.data.error);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    return [];
   }
 };

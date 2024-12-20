@@ -1,5 +1,6 @@
 import axios from "axios";
-import { fetchFiles } from "../redux/actions";
+import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
+import { formatFileSize } from "../utils/formatFileSize";
 
 const API_URL = "http://192.168.1.3:8000/api/files";
 
@@ -56,14 +57,56 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
       const files = response.data.files;
       console.log("Fetched Files of category " + category);
 
-      dispatch(fetchFiles(category, files));
-      return files;
+      dispatch(fetchFilesAction(category, files));
     } else {
       console.error("Error fetching files:", response.data.error);
-      return [];
     }
   } catch (error) {
     console.error("Error fetching files:", error);
-    return [];
+  }
+};
+
+export const fetchRecentFiles = async (dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/recent`, {
+      params: {
+        userId: "user123",
+      },
+    });
+    if (response.status === 200) {
+      dispatch(fetchFilesAction("recents", response.data.files || []));
+    } else {
+      console.error("Error fetching recent files:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error fetching recent files:", error);
+  }
+};
+
+export const fetchUsedSpace = async (dispatch) => {
+  const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
+  try {
+    const response = await axios.get(`${API_URL}/usedspace?userId=user123`);
+
+    if (response.status === 200) {
+      const usedSpaceBytes = response.data.usedSpace || 0;
+      const usedSpacePercentage = (
+        (usedSpaceBytes / TOTAL_SPACE) *
+        100
+      ).toFixed(2);
+      const usedSpaceWithUnit = formatFileSize(usedSpaceBytes);
+
+      dispatch(
+        fetchUsedSpaceAction(
+          usedSpaceBytes,
+          usedSpacePercentage,
+          usedSpaceWithUnit
+        )
+      );
+    } else {
+      console.error("Error fetching used space:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Error fetching used space:", error);
   }
 };

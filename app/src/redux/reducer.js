@@ -1,4 +1,4 @@
-import { FETCH_FILES_REQUEST } from "./types";
+import { FETCH_FILES_REQUEST, FETCH_USED_SPACE } from "./types";
 
 const initialState = {
   images: [],
@@ -6,6 +6,14 @@ const initialState = {
   audios: [],
   documents: [],
   recents: [],
+  loading: false,
+  usedSpace: {
+    usedSpace: {
+      usedSpaceBytes: 0,
+      usedSpacePercentage: 0,
+      usedSpaceWithUnit: "",
+    },
+  },
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -40,6 +48,16 @@ const fileReducer = (state = initialState, action) => {
         default:
           return state;
       }
+    case FETCH_USED_SPACE:
+      return {
+        ...state,
+        usedSpace: {
+          usedSpaceBytes: action.payload.usedSpaceBytes,
+          usedSpacePercentage: action.payload.usedSpacePercentage,
+          usedSpaceWithUnit: action.payload.usedSpaceWithUnit,
+        },
+      };
+
     default:
       return state;
   }

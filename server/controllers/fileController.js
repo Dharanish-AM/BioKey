@@ -580,9 +580,139 @@ const getFilesByCategory = async (req, res) => {
   }
 };
 
+const deleteFile = (req, res) => {
+  const { userId, filename } = req.body;
+
+  const fileCategory = getFileCategory(filename);
+  const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+  const targetPath = path.join(targetDir, filename);
+
+  fs.access(targetPath, fs.constants.F_OK, (err) => {
+    if (err) {
+      console.error("File not found:", targetPath);
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    fs.unlink(targetPath, (deleteErr) => {
+      if (deleteErr) {
+        console.error("Error deleting file:", deleteErr.message);
+        return res
+          .status(500)
+          .json({ message: "Error deleting file", error: deleteErr });
+      }
+
+      console.log("File deleted successfully:", targetPath);
+      return res.status(200).json({ message: "File deleted successfully" });
+    });
+  });
+};
+
+const createSaveFolder = (req, res) => {
+  const form = new IncomingForm();
+  form.multiples = true;
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      console.error("Error parsing form:", err.message);
+      return res.status(500).json({ message: "Error processing file upload" });
+    }
+
+    const userId = fields.userId?.[0] || fields.userId;
+    const folderName = fields.folderName?.[0] || fields.folderName;
+
+    if (!userId) {
+      console.error("Missing userId in the request.");
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    if (!folderName) {
+      console.error("Missing folderName in the request.");
+      return res.status(400).json({ message: "Missing folderName" });
+    }
+
+    const userDir = path.join(TARGET_DIR, userId);
+    const folderPath = path.join(userDir, folderName);
+
+    fs.mkdir(folderPath, { recursive: true }, (mkdirErr) => {
+      if (mkdirErr) {
+        console.error("Error creating directory:", mkdirErr.message);
+        return res
+          .status(500)
+          .json({ message: "Error creating folder", error: mkdirErr.message });
+      }
+
+      console.log("Folder created successfully or already exists:", folderPath);
+
+      if (!files.file || files.file.length === 0) {
+        return res.status(200).json({
+          message: "Folder created successfully, no files uploaded",
+          folderPath,
+        });
+      }
+
+      const uploadedFiles = Array.isArray(files.file)
+        ? files.file
+        : [files.file];
+      const uploadPromises = uploadedFiles.map((file) => {
+        return new Promise((resolve, reject) => {
+          const fileName =
+            file.originalFilename ||
+            `default_filename_${String(Date.now()).slice(-5)}`;
+
+          const targetPath = path.join(folderPath, fileName);
+          const sourcePath = file.filepath;
+
+          const readStream = fs.createReadStream(sourcePath);
+          const writeStream = fs.createWriteStream(targetPath);
+
+          readStream.pipe(writeStream);
+
+          writeStream.on("finish", () => {
+            fs.unlink(sourcePath, (unlinkErr) => {
+              if (unlinkErr) {
+                console.error("Error deleting temp file:", unlinkErr.message);
+              } else {
+                console.log("Temporary file deleted:", sourcePath);
+              }
+            });
+
+            resolve({
+              fileName,
+              filePath: targetPath,
+            });
+          });
+
+          writeStream.on("error", (copyErr) => {
+            console.error("Error copying file:", copyErr.message);
+            reject({ error: "Error saving file", detail: copyErr.message });
+          });
+        });
+      });
+
+      Promise.all(uploadPromises)
+        .then((results) => {
+          console.log("All files uploaded successfully.");
+          res.status(200).json({
+            message: "Files uploaded successfully",
+            files: results,
+          });
+        })
+        .catch((error) => {
+          console.error("Error uploading files:", error);
+          res.status(500).json({
+            message: "Some files failed to upload",
+            errors: error,
+          });
+        });
+    });
+  });
+};
+
 module.exports = {
   uploadFile,
+  deleteFile,
   getRecentFiles,
   getUsedSpace,
   getFilesByCategory,
+  createSaveFolder,
 };

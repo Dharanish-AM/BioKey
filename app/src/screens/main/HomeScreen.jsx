@@ -23,9 +23,13 @@ import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 
-import { uploadMedia } from "../../services/fileOperations";
+import {
+  fetchRecentFiles,
+  fetchUsedSpace,
+  uploadMedia,
+} from "../../services/fileOperations";
 import { pickMedia } from "../../utils/mediaPicker";
-import PhotoScreen from "./media/PhotosScreen";
+import { shallowEqual } from "react-redux";
 
 import ProfileIcon from "../../assets/images/profile_icon.png";
 import SearchIcon from "../../assets/images/search_icon.png";
@@ -46,69 +50,44 @@ import PlayIcon from "../../assets/images/play_icon.png";
 import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
+import { fetchUsedSpaceAction } from "../../redux/actions";
+import { formatFileSize } from "../../utils/formatFileSize";
 
 export default function HomeScreen({ navigation }) {
   const ip = "192.168.1.3:8000";
-  const [recentFiles, setRecentFiles] = useState([]);
-  const [usedSpace, setUsedSpace] = useState(0);
-  const [usedSpaceWithUnit, setUsedSpaceWithUnit] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fetchOnceRef = useRef(false);
   const refRBSheet = useRef();
-  const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
+
+  const recentFilesFromRedux = useSelector(
+    (state) => state.files.recents,
+    shallowEqual
+  );
+
+  const usedSpace = useSelector((state) => state.files.usedSpace, shallowEqual);
 
   useEffect(() => {
     if (fetchOnceRef.current) return;
     fetchOnceRef.current = true;
     setIsLoading(true);
-    fetchRecentFiles();
-    fetchUsedSpace();
-  }, []);
 
-  const filesState = useSelector((state) => state.files);
-
-  const fetchRecentFiles = async () => {
-    console.log("Fetching recent files");
-    try {
-      const response = await axios.get(
-        `http://${ip}/api/files/recent?userId=user123`
-      );
-      if (response.status === 200) {
-        setRecentFiles(response.data.files || []);
-      } else {
-        console.error("Error fetching recent files:", response.statusText);
+    const fetchData = async () => {
+      try {
+        await fetchRecentFiles(dispatch);
+        fetchUsedSpace(dispatch);
+      } catch (error) {
+        console.error("Error in useEffect:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching recent files:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  const fetchUsedSpace = async () => {
-    try {
-      const response = await axios.get(
-        `http://${ip}/api/files/usedspace?userId=user123`
-      );
-
-      if (response.status === 200) {
-        const usedSpaceBytes = response.data.usedSpace || 0;
-        const usedSpacePercentage = (usedSpaceBytes / TOTAL_SPACE) * 100;
-        const usedSpaceWithUnit = formatFileSize(usedSpaceBytes);
-
-        setUsedSpaceWithUnit(usedSpaceWithUnit);
-        setUsedSpace(usedSpacePercentage.toFixed(2));
-      } else {
-        console.error("Error fetching used space:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching used space:", error);
-    }
-  };
+    fetchData();
+  }, [dispatch]);
 
   const handleImageVideoPick = async () => {
     if (isUploading) return;
@@ -292,20 +271,9 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRecentFiles();
-    await fetchUsedSpace();
+    await fetchRecentFiles(dispatch);
+    await fetchUsedSpace(dispatch);
     setRefreshing(false);
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 B";
-    const sizes = ["B", "KB", "MB", "GB", "TB"];
-    let i = 0;
-    while (bytes >= 1024 && i < sizes.length - 1) {
-      bytes /= 1024;
-      i++;
-    }
-    return `${bytes.toFixed(2)} ${sizes[i]}`;
   };
 
   const renderItem = ({ item }) => {
@@ -404,9 +372,6 @@ export default function HomeScreen({ navigation }) {
       )}
 
       <View style={styles.innerContainer}>
-        {/* {
-        filesState && console.log(JSON.stringify(filesState, null, 2))
-      } */}
         <View style={styles.top}>
           <TouchableOpacity
             style={styles.profileContainer}
@@ -436,7 +401,11 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.storageView}>
             <View style={styles.storageViewLeft}>
               <CircularProgress
-                value={usedSpace}
+                value={
+                  usedSpace && usedSpace.usedSpacePercentage
+                    ? usedSpace.usedSpacePercentage
+                    : 0
+                }
                 radius={hp("8%")}
                 duration={2000}
                 progressValueColor={colors.textColor3}
@@ -464,7 +433,9 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.storageDetailsContainer}>
                 <Text style={styles.storageTitle}>Used Space</Text>
                 <Text style={styles.storageValue}>
-                  {usedSpaceWithUnit} / {TOTAL_SPACE_UNIT}
+                  {usedSpace && usedSpace.usedSpaceWithUnit
+                    ? `${usedSpace.usedSpaceWithUnit} / ${TOTAL_SPACE_UNIT}`
+                    : `0 / ${TOTAL_SPACE_UNIT}`}
                 </Text>
               </View>
               <TouchableOpacity style={styles.premiumContainer}>
@@ -558,21 +529,22 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.seeAllText}>See All</Text>
             </View>
             <View style={styles.recentBottom}>
-              {recentFiles.length === 0 ? (
-                <Text style={styles.nothingText}>
-                  Nothing here, upload now!
-                </Text>
-              ) : (
+              {recentFilesFromRedux && recentFilesFromRedux.length > 0 ? (
                 <FlatList
-                  data={recentFiles}
+                  data={recentFilesFromRedux}
                   renderItem={renderItem}
                   keyExtractor={(item) => item.name}
                   refreshing={refreshing}
                   onRefresh={onRefresh}
                   contentContainerStyle={{
                     gap: hp("0.6%"),
+                    paddingHorizontal: wp("3%"),
                   }}
                 />
+              ) : (
+                <Text style={styles.nothingText}>
+                  Nothing here, upload now!
+                </Text>
               )}
             </View>
           </View>
@@ -858,6 +830,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
     gap: "2%",
+    alignItems: "center",
   },
   recentTop: {
     height: "12%",
@@ -878,7 +851,7 @@ const styles = StyleSheet.create({
   },
   recentBottom: {
     flex: 1,
-    width: "100%",
+    width: wp("100%"),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -938,7 +911,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "90%",
     height: "90%",
-    tintColor: "#B2BEB5",
+    tintColor: colors.textColor3,
+    opacity: 0.8,
     zIndex: 10,
   },
   overlay: {
@@ -969,7 +943,7 @@ const styles = StyleSheet.create({
     gap: "10%",
   },
   recentFileName: {
-    fontSize: hp("2%"),
+    fontSize: hp("1.8%"),
     fontFamily: "Afacad-Regular",
     color: colors.textColor3,
     width: "100%",

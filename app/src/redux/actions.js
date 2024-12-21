@@ -1,7 +1,7 @@
 import { FETCH_FILES_REQUEST, FETCH_USED_SPACE } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
-  console.log("Dispatching action to fetch files");
+  console.log("Dispatching action to fetch files - " + type);
   return {
     type: FETCH_FILES_REQUEST,
     payload: { type, files },

@@ -8,11 +8,9 @@ const initialState = {
   recents: [],
   loading: false,
   usedSpace: {
-    usedSpace: {
-      usedSpaceBytes: 0,
-      usedSpacePercentage: 0,
-      usedSpaceWithUnit: "",
-    },
+    usedSpaceBytes: 0,
+    usedSpacePercentage: 0,
+    usedSpaceWithUnit: "",
   },
 };
 
@@ -23,31 +21,32 @@ const fileReducer = (state = initialState, action) => {
         case "images":
           return {
             ...state,
-            images: action.payload.files,
+            images: [...action.payload.files], // Replace the array with new files
           };
         case "videos":
           return {
             ...state,
-            videos: action.payload.files,
+            videos: [...action.payload.files], // Replace the array with new files
           };
         case "audios":
           return {
             ...state,
-            audios: action.payload.files,
+            audios: [...action.payload.files], // Replace the array with new files
           };
         case "documents":
           return {
             ...state,
-            documents: action.payload.files,
+            documents: [...action.payload.files], // Replace the array with new files
           };
         case "recents":
           return {
             ...state,
-            recents: action.payload.files,
+            recents: [...action.payload.files], // Replace the array with new files
           };
         default:
           return state;
       }
+
     case FETCH_USED_SPACE:
       return {
         ...state,

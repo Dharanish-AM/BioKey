@@ -4,7 +4,7 @@ import { formatFileSize } from "../utils/formatFileSize";
 
 const API_URL = "http://192.168.1.3:8000/api/files";
 
-export const uploadMedia = async (fileUri, fileName) => {
+export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
   const formData = new FormData();
   const file = {
     uri: fileUri,
@@ -24,7 +24,10 @@ export const uploadMedia = async (fileUri, fileName) => {
 
     if (response.status >= 200 && response.status < 300) {
       console.log("Upload successful", response.data);
-      return { success: true, message: "Upload successful" };
+
+      await fetchFilesByCategory(userId, category, dispatch);
+
+      return { success: true, message: "Upload successful and files updated" };
     } else {
       console.error("Upload failed with status code:", response.status);
       return {
@@ -44,19 +47,27 @@ export const uploadMedia = async (fileUri, fileName) => {
   }
 };
 
-export const fetchFilesByCategory = async (userId, category, dispatch) => {
+export const fetchFilesByCategory = async (
+  userId,
+  category,
+  dispatch,
+  page = 1,
+  limit = 0
+) => {
   try {
     const response = await axios.get(`${API_URL}/list`, {
       params: {
         userId,
         category,
+        page,
+        limit,
       },
     });
 
     if (response.data.success) {
       const files = response.data.files;
-      console.log("Fetched Files of category " + category);
-
+      console.log(`Fetched Files of category ${category} - Page ${page}`);
+      console.log("Fetched files:", files.length);
       dispatch(fetchFilesAction(category, files));
     } else {
       console.error("Error fetching files:", response.data.error);
@@ -75,6 +86,7 @@ export const fetchRecentFiles = async (dispatch) => {
     });
     if (response.status === 200) {
       dispatch(fetchFilesAction("recents", response.data.files || []));
+      console.log("Fetched Files of category - recents");
     } else {
       console.error("Error fetching recent files:", response.statusText);
     }

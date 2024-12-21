@@ -261,59 +261,67 @@ const generateVideoThumbnail = (file, method) => {
       `${path.basename(file.name, path.extname(file.name))}_thumbnail.png`
     );
 
-    ffmpeg(file.filePath)
-      .screenshots({
-        count: 1,
-        timemarks: ["0"],
-        folder: path.dirname(tempThumbnailPath),
-        filename: path.basename(tempThumbnailPath),
-      })
-      .on("end", () => {
-        fs.readFile(tempThumbnailPath, (err, data) => {
-          if (err) {
-            console.error("Error reading thumbnail file:", err);
-            cleanUp(tempThumbnailPath);
-            reject(err);
-            return;
-          }
-
-          resizeThumbnail(data, method)
-            .then((finalBuffer) => {
-              cleanUp(tempThumbnailPath);
-              resolve({
-                ...file,
-                thumbnail: `data:image/png;base64,${finalBuffer.toString(
-                  "base64"
-                )}`,
-              });
-            })
-            .catch((sharpErr) => {
-              console.error("Error resizing image with sharp:", sharpErr);
-              cleanUp(tempThumbnailPath);
-              reject(sharpErr);
-            });
-        });
-      })
-      .on("error", (err) => {
-        console.error("Error generating video thumbnail:", err);
-        cleanUp(tempThumbnailPath);
+    fs.access(path.dirname(tempThumbnailPath), fs.constants.W_OK, (err) => {
+      if (err) {
+        console.error("Temp directory is not writable:", err);
         reject(err);
-      });
+        return;
+      }
 
-    const cleanUp = (filePath) => {
-      fs.access(filePath, fs.constants.F_OK, (err) => {
-        if (!err) {
-          fs.unlink(filePath, (unlinkErr) => {
-            if (unlinkErr) {
-              console.error(
-                "Error deleting temporary thumbnail file:",
-                unlinkErr
-              );
+      ffmpeg(file.filePath)
+        .screenshots({
+          count: 1,
+          timemarks: ["0"],
+          folder: path.dirname(tempThumbnailPath),
+          filename: path.basename(tempThumbnailPath),
+        })
+        .on("end", () => {
+          fs.readFile(tempThumbnailPath, (err, data) => {
+            if (err) {
+              console.error("Error reading thumbnail file:", err);
+              cleanUp(tempThumbnailPath);
+              reject(err);
+              return;
             }
+
+            resizeThumbnail(data, method)
+              .then((finalBuffer) => {
+                cleanUp(tempThumbnailPath);
+                resolve({
+                  ...file,
+                  thumbnail: `data:image/png;base64,${finalBuffer.toString(
+                    "base64"
+                  )}`,
+                });
+              })
+              .catch((sharpErr) => {
+                console.error("Error resizing image with sharp:", sharpErr);
+                cleanUp(tempThumbnailPath);
+                reject(sharpErr);
+              });
           });
-        }
-      });
-    };
+        })
+        .on("error", (err) => {
+          console.error("Error generating video thumbnail:", err);
+          cleanUp(tempThumbnailPath);
+          reject(err);
+        });
+
+      const cleanUp = (filePath) => {
+        fs.access(filePath, fs.constants.F_OK, (err) => {
+          if (!err) {
+            fs.unlink(filePath, (unlinkErr) => {
+              if (unlinkErr) {
+                console.error(
+                  "Error deleting temporary thumbnail file:",
+                  unlinkErr
+                );
+              }
+            });
+          }
+        });
+      };
+    });
   });
 };
 
@@ -493,7 +501,8 @@ const getUsedSpace = (req, res) => {
 };
 
 const getFilesByCategory = async (req, res) => {
-  const { userId, category } = req.query;
+  const { userId, category, page = 1, limit } = req.query;
+  console.log("Fetching files of category - " + category);
 
   if (!userId || !category) {
     return res.status(400).json({
@@ -509,7 +518,12 @@ const getFilesByCategory = async (req, res) => {
     if (fs.existsSync(folderPath)) {
       const fileNames = fs.readdirSync(folderPath);
 
-      for (const fileName of fileNames) {
+      const filesToReturn =
+        limit == 0 || !limit
+          ? fileNames
+          : fileNames.slice((page - 1) * limit, page * limit);
+
+      for (const fileName of filesToReturn) {
         const filePath = path.join(folderPath, fileName);
         if (fs.statSync(filePath).isFile()) {
           const stats = fs.statSync(filePath);
@@ -543,7 +557,6 @@ const getFilesByCategory = async (req, res) => {
             }
           } catch (thumbnailError) {
             console.error("Error generating thumbnail:", thumbnailError);
-
             fileWithThumbnail.thumbnail = null;
           }
 
@@ -565,6 +578,9 @@ const getFilesByCategory = async (req, res) => {
       return res.json({
         success: true,
         files,
+        page: parseInt(page),
+        limit: limit == 0 || !limit ? "All" : parseInt(limit),
+        totalFiles: fileNames.length,
       });
     } else {
       return res.status(404).json({

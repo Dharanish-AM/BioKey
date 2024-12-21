@@ -100,11 +100,24 @@ export default function HomeScreen({ navigation }) {
     }
     if (result && Array.isArray(result.assets) && result.assets.length > 0) {
       const files = result.assets;
+
+      // Determine file category based on MIME type
       const mediaType = files[0].type;
+      let category = "";
+
+      if (mediaType.includes("image")) {
+        category = "images";
+      } else if (mediaType.includes("video")) {
+        category = "videos";
+      } else if (mediaType.includes("audio")) {
+        category = "audio";
+      } else {
+        category = "documents"; // Default category for non-media files
+      }
 
       Alert.alert(
         "Confirm Upload",
-        `You have selected ${files.length} ${mediaType}(s). Do you want to upload them?`,
+        `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
         [
           {
             text: "Cancel",
@@ -124,24 +137,29 @@ export default function HomeScreen({ navigation }) {
                 if (!fileUri) {
                   console.error(
                     `${
-                      mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
+                      category.charAt(0).toUpperCase() + category.slice(1)
                     } ${fileName} missing URI.`
                   );
                   continue;
                 }
 
-                const uploadResponse = await uploadMedia(fileUri, fileName);
+                const uploadResponse = await uploadMedia(
+                  fileUri,
+                  fileName,
+                  category,
+                  dispatch
+                );
                 if (uploadResponse.success) {
                   successCount++;
                   console.log(
                     `${
-                      mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
+                      category.charAt(0).toUpperCase() + category.slice(1)
                     } ${fileName} uploaded successfully`
                   );
                 } else {
                   console.error(
                     `${
-                      mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
+                      category.charAt(0).toUpperCase() + category.slice(1)
                     } ${fileName} upload failed:`,
                     uploadResponse.message
                   );
@@ -151,7 +169,7 @@ export default function HomeScreen({ navigation }) {
               if (successCount > 0) {
                 Alert.alert(
                   "Upload Success",
-                  `${successCount} ${mediaType}(s) uploaded successfully!`,
+                  `${successCount} ${category}(s) uploaded successfully!`,
                   [{ text: "OK" }]
                 );
               } else {
@@ -195,71 +213,100 @@ export default function HomeScreen({ navigation }) {
     if (result && result.assets && result.assets.length > 0) {
       const files = result.assets;
 
-      Alert.alert(
-        "Confirm Upload",
-        `You have selected ${files.length} ${type}(s). Do you want to upload them?`,
-        [
-          {
-            text: "Cancel",
-            onPress: () => {
-              console.log("Upload cancelled");
-              setIsUploading(false);
+      // Determine file category for "others" based on MIME type or extension
+      let category = "";
+
+      files.forEach((file) => {
+        const fileName = file.name || "";
+        const fileType = file.type || "";
+
+        if (fileType.includes("image")) {
+          category = "images";
+        } else if (fileType.includes("video")) {
+          category = "videos";
+        } else if (fileType.includes("audio")) {
+          category = "audio";
+        } else if (fileName.endsWith(".pdf") || fileName.endsWith(".docx")) {
+          category = "documents"; // Identify document files
+        } else {
+          category = "others"; // Default category
+        }
+
+        // Proceed with uploading
+        Alert.alert(
+          "Confirm Upload",
+          `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
+          [
+            {
+              text: "Cancel",
+              onPress: () => {
+                console.log("Upload cancelled");
+                setIsUploading(false);
+              },
             },
-          },
-          {
-            text: "OK",
-            onPress: async () => {
-              let successCount = 0;
+            {
+              text: "OK",
+              onPress: async () => {
+                let successCount = 0;
 
-              for (const file of files) {
-                const fileUri = file.uri;
-                const fileName = file.name;
+                for (const file of files) {
+                  const fileUri = file.uri;
+                  const fileName = file.name;
 
-                if (!fileUri) {
-                  console.error("File URI is invalid or missing for", fileName);
-                  continue;
+                  if (!fileUri) {
+                    console.error(
+                      "File URI is invalid or missing for",
+                      fileName
+                    );
+                    continue;
+                  }
+
+                  const uploadResponse = await uploadMedia(
+                    fileUri,
+                    fileName,
+                    category,
+                    dispatch
+                  );
+
+                  if (uploadResponse?.success) {
+                    successCount++;
+                    console.log(
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} uploaded successfully`
+                    );
+                  } else {
+                    console.error(
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} upload failed:`,
+                      uploadResponse?.message || "Unknown error"
+                    );
+                  }
                 }
 
-                const uploadResponse = await uploadMedia(fileUri, fileName);
-
-                if (uploadResponse?.success) {
-                  successCount++;
-                  console.log(
-                    `${
-                      type.charAt(0).toUpperCase() + type.slice(1)
-                    } ${fileName} uploaded successfully`
+                if (successCount > 0) {
+                  Alert.alert(
+                    "Upload Success",
+                    `${successCount} ${category}(s) uploaded successfully!`,
+                    [{ text: "OK" }]
                   );
                 } else {
-                  console.error(
-                    `${
-                      type.charAt(0).toUpperCase() + type.slice(1)
-                    } ${fileName} upload failed:`,
-                    uploadResponse?.message || "Unknown error"
+                  Alert.alert(
+                    "Upload Failed",
+                    `No ${category}(s) were uploaded successfully.`,
+                    [{ text: "OK" }]
                   );
                 }
-              }
 
-              if (successCount > 0) {
-                Alert.alert(
-                  "Upload Success",
-                  `${successCount} ${type}(s) uploaded successfully!`,
-                  [{ text: "OK" }]
-                );
-              } else {
-                Alert.alert(
-                  "Upload Failed",
-                  `No ${type}(s) were uploaded successfully.`,
-                  [{ text: "OK" }]
-                );
-              }
-
-              refRBSheet.current.close();
-              onRefresh();
-              setIsUploading(false);
+                refRBSheet.current.close();
+                onRefresh();
+                setIsUploading(false);
+              },
             },
-          },
-        ]
-      );
+          ]
+        );
+      });
     } else {
       console.log("No files selected or invalid data");
       Alert.alert("No Selection", `Please select valid ${type}(s) to upload.`, [
@@ -829,11 +876,10 @@ const styles = StyleSheet.create({
     marginTop: hp("1.5%"),
     flexDirection: "column",
     justifyContent: "space-between",
-    gap: "2%",
     alignItems: "center",
+    gap: hp("0.5%"),
   },
   recentTop: {
-    height: "12%",
     width: "100%",
     flexDirection: "row",
     alignItems: "flex-end",

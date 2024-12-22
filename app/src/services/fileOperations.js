@@ -122,3 +122,22 @@ export const fetchUsedSpace = async (dispatch) => {
     console.error("Error fetching used space:", error);
   }
 };
+
+export const previewFile = async (fileName, category, folder = null) => {
+  try {
+    const response = await axios.get(`${API_URL}/preview`, {
+      params: {
+        userId: "user123",
+        category: category,
+        fileName: fileName,
+        folder: folder || undefined,
+      },
+    });
+
+    console.log("File preview success");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching file preview:", error);
+    return null;
+  }
+};

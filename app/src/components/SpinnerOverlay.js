@@ -7,7 +7,7 @@ import LoadingAnimtion from "../assets/animations/loading.json";
 
 const SpinnerOverlay = ({ visible }) => {
   return (
-    <Spinner visible={visible} overlayColor="rgba(0, 0, 0, 0.7)">
+    <Spinner visible={visible} overlayColor="rgba(0, 0, 0, 0.7)" cancelable>
       <View style={styles.spinnerContainer}>
         <LottieView
           source={LoadingAnimtion}

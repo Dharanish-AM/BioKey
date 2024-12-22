@@ -1,11 +1,12 @@
 import { View, Image, Platform } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { moderateScale } from "react-native-size-matters";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useSelector } from "react-redux";
 
 import { FoldersStack, HomeStack, SettingsStack } from "./StackNavigator";
 import colors from "../constants/colors";
@@ -17,6 +18,12 @@ import SettingsIcon from "../assets/images/settings_icon.png";
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const isTabBarVisible = useSelector((state) => state.appConfig.tabBarVisible);
+
+  useEffect(() => {
+    console.log(isTabBarVisible);
+  }, [isTabBarVisible]);
+
   return (
     <Tab.Navigator
       initialRouteName="HomeStack"
@@ -24,6 +31,7 @@ export default function TabNavigator() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
+          display: isTabBarVisible ? "flex" : "none",
           backgroundColor: colors.lightColor2,
           borderTopColor: "transparent",
           borderTopWidth: 0,

@@ -16,6 +16,7 @@ import PhotosScreen from "../screens/main/media/PhotosScreen";
 import VideosScreen from "../screens/main/media/VideosScreen";
 import AudiosScreen from "../screens/main/media/AudiosScreen";
 import DocumentsScreen from "../screens/main/media/DocumentsScreen";
+import FilePreviewScreen from "../components/FilePreview";
 
 const Stack = createStackNavigator();
 
@@ -93,6 +94,7 @@ function HomeStack() {
     >
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen name="PhotosScreen" component={PhotosScreen} />
+      <Stack.Screen name="FilePreviewScreen" component={FilePreviewScreen} />
       <Stack.Screen name="VideosScreen" component={VideosScreen} />
       <Stack.Screen name="AudiosScreen" component={AudiosScreen} />
       <Stack.Screen name="DocumentsScreen" component={DocumentsScreen} />

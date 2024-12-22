@@ -1,4 +1,10 @@
-import { FETCH_FILES_REQUEST, FETCH_USED_SPACE } from "./types";
+import {
+  FETCH_FILES_REQUEST,
+  FETCH_USED_SPACE,
+  SET_FIRST_RENDER,
+  SET_SEARCH_QUERY,
+  SET_TAB_BAR_VISIBLE,
+} from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
   console.log("Dispatching action to fetch files - " + type);
@@ -22,3 +28,21 @@ export const fetchUsedSpaceAction = (
     },
   };
 };
+
+export const setSearchQuery = (query) => {
+  console.log("Dispatching action to set search query - " + query);
+  return {
+    type: SET_SEARCH_QUERY,
+    payload: query,
+  };
+};
+
+export const setTabBarVisible = (isVisible) => ({
+  type: SET_TAB_BAR_VISIBLE,
+  payload: isVisible,
+});
+
+export const setFirstRender = (screen) => ({
+  type: SET_FIRST_RENDER,
+  screen, 
+});

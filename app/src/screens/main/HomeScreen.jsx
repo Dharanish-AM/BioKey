@@ -8,8 +8,16 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Animated,
+  RefreshControl
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import {
@@ -24,6 +32,7 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  fetchFilesByCategory,
   fetchRecentFiles,
   fetchUsedSpace,
   uploadMedia,
@@ -50,7 +59,6 @@ import PlayIcon from "../../assets/images/play_icon.png";
 import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
-import { fetchUsedSpaceAction } from "../../redux/actions";
 import { formatFileSize } from "../../utils/formatFileSize";
 
 export default function HomeScreen({ navigation }) {
@@ -101,7 +109,6 @@ export default function HomeScreen({ navigation }) {
     if (result && Array.isArray(result.assets) && result.assets.length > 0) {
       const files = result.assets;
 
-      // Determine file category based on MIME type
       const mediaType = files[0].type;
       let category = "";
 
@@ -112,7 +119,7 @@ export default function HomeScreen({ navigation }) {
       } else if (mediaType.includes("audio")) {
         category = "audio";
       } else {
-        category = "documents"; // Default category for non-media files
+        category = "documents";
       }
 
       Alert.alert(
@@ -323,6 +330,35 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity value
+
+  useEffect(() => {
+    // Trigger the fade-in animation when the component mounts
+    Animated.timing(fadeAnim, {
+      toValue: 1, // Fully visible
+      duration: 500, // Duration of animation in ms
+      useNativeDriver: true,
+    }).start();
+  }, [recentFilesFromRedux]);
+
+  const animatedRenderItem = ({ item, index }) => {
+    const translateY = fadeAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [10, 0], // Items slide up slightly
+    });
+
+    return (
+      <Animated.View
+        style={{
+          transform: [{ translateY }],
+          opacity: fadeAnim,
+        }}
+      >
+        {renderItem({ item, index })}
+      </Animated.View>
+    );
+  };
+
   const renderItem = ({ item }) => {
     const isPdf = item.name.toLowerCase().endsWith(".pdf");
 
@@ -332,7 +368,7 @@ export default function HomeScreen({ navigation }) {
       ? DocsFileIcon
       : item.category === "audio" && !item.thumbnail
       ? AudioFileIcon
-      : { uri: item.thumbnail } || "https://placehold.jp/150x150.png";
+      : { uri: item.thumbnail };
 
     return (
       <TouchableOpacity style={styles.recentItem} key={item.id || item.name}>
@@ -579,19 +615,42 @@ export default function HomeScreen({ navigation }) {
               {recentFilesFromRedux && recentFilesFromRedux.length > 0 ? (
                 <FlatList
                   data={recentFilesFromRedux}
-                  renderItem={renderItem}
+                  renderItem={animatedRenderItem}
                   keyExtractor={(item) => item.name}
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }
                   contentContainerStyle={{
-                    gap: hp("0.6%"),
-                    paddingHorizontal: wp("3%"),
+                    gap: 10,
+                    paddingHorizontal: 15,
                   }}
                 />
               ) : (
-                <Text style={styles.nothingText}>
-                  Nothing here, upload now!
-                </Text>
+                <FlatList
+                  data={[]}
+                  ListEmptyComponent={
+                    <Animated.View style={{ opacity: fadeAnim }}>
+                      <Text style={styles.nothingText}>
+                        Nothing here, upload now!
+                      </Text>
+                    </Animated.View>
+                  }
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={onRefresh}
+                    />
+                  }
+                  contentContainerStyle={{
+                    flexGrow: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingHorizontal: 15,
+                  }}
+                />
               )}
             </View>
           </View>
@@ -989,8 +1048,8 @@ const styles = StyleSheet.create({
     gap: "10%",
   },
   recentFileName: {
-    fontSize: hp("1.8%"),
-    fontFamily: "Afacad-Regular",
+    fontSize: hp("1.5%"),
+    fontFamily: "Montserrat-Medium",
     color: colors.textColor3,
     width: "100%",
   },
@@ -1002,13 +1061,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   recentFileSize: {
-    fontSize: hp("1.7%"),
-    fontFamily: "Afacad-Regular",
+    fontSize: hp("1.4%"),
+    fontFamily: "Montserrat-Medium",
     color: colors.textColor2,
   },
   modifiedTime: {
-    fontSize: hp("1.7%"),
-    fontFamily: "Afacad-Regular",
+    fontSize: hp("1.4%"),
+    fontFamily: "Montserrat-Medium",
     color: colors.textColor2,
   },
   moreIconContainer: {

@@ -110,6 +110,50 @@ const getFileCategory = (fileName) => {
   return "documents";
 };
 
+const loadFile = (req, res) => {
+  const { userId, category, fileName, folder } =
+    req.query || req.body || req.params;
+
+  if (!userId || !category || !fileName) {
+    return res.status(400).json({ message: "Missing required parameters." });
+  }
+
+  const folderPath = folder
+    ? path.join(TARGET_DIR, userId, folder)
+    : path.join(TARGET_DIR, userId, category);
+
+  const filePath = path.join(folderPath, fileName);
+
+  fs.exists(filePath, (exists) => {
+    if (!exists) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "Error retrieving file metadata" });
+      }
+
+      fs.readFile(filePath, "base64", (err, data) => {
+        if (err) {
+          return res.status(500).json({ message: "Error reading the file" });
+        }
+
+        res.status(200).json({
+          fileName,
+          fileSize: stats.size,
+          fileType: path.extname(fileName),
+          base64Data: data,
+          createdAt: stats.birthtime,
+          modifiedAt: stats.mtime,
+        });
+      });
+    });
+  });
+};
+
 const uploadFile = (req, res) => {
   const form = new IncomingForm();
   form.multiples = true;
@@ -510,83 +554,93 @@ const getFilesByCategory = async (req, res) => {
     });
   }
 
-  const folderPath = path.join(TARGET_DIR, userId, category);
+  const categories =
+    category === "all"
+      ? ["images", "videos", "audios", "documents"]
+      : [category];
 
   try {
-    const files = [];
+    const allFiles = [];
 
-    if (fs.existsSync(folderPath)) {
-      const fileNames = fs.readdirSync(folderPath);
+    for (let cat of categories) {
+      const folderPath = path.join(TARGET_DIR, userId, cat);
 
-      const filesToReturn =
-        limit == 0 || !limit
-          ? fileNames
-          : fileNames.slice((page - 1) * limit, page * limit);
+      if (fs.existsSync(folderPath)) {
+        const fileNames = fs.readdirSync(folderPath);
+        const filesToReturn =
+          limit == 0 || !limit
+            ? fileNames
+            : fileNames.slice((page - 1) * limit, page * limit);
 
-      for (const fileName of filesToReturn) {
-        const filePath = path.join(folderPath, fileName);
-        if (fs.statSync(filePath).isFile()) {
-          const stats = fs.statSync(filePath);
-          const file = {
-            name: fileName,
-            filePath,
-            size: stats.size,
-            createdAt: stats.birthtime,
-            modifiedAt: stats.mtime,
-            thumbnail: null,
-            category: category,
-          };
+        for (const fileName of filesToReturn) {
+          const filePath = path.join(folderPath, fileName);
+          if (fs.statSync(filePath).isFile()) {
+            const stats = fs.statSync(filePath);
+            const file = {
+              name: fileName,
+              filePath,
+              size: stats.size,
+              createdAt: stats.birthtime,
+              modifiedAt: stats.mtime,
+              thumbnail: null,
+              category: cat,
+            };
 
-          let fileWithThumbnail = { ...file };
+            let fileWithThumbnail = { ...file };
 
-          try {
-            if (category === "images") {
-              fileWithThumbnail =
-                (await generateImageThumbnail(fileWithThumbnail)) ||
-                fileWithThumbnail;
-            } else if (category === "videos") {
-              fileWithThumbnail =
-                (await generateVideoThumbnail(fileWithThumbnail)) ||
-                fileWithThumbnail;
-            } else if (category === "audios") {
-              fileWithThumbnail =
-                (await generateAudioThumbnail(fileWithThumbnail)) ||
-                fileWithThumbnail;
-            } else if (category === "documents") {
+            try {
+              if (cat === "images") {
+                fileWithThumbnail =
+                  (await generateImageThumbnail(fileWithThumbnail)) ||
+                  fileWithThumbnail;
+              } else if (cat === "videos") {
+                fileWithThumbnail =
+                  (await generateVideoThumbnail(fileWithThumbnail)) ||
+                  fileWithThumbnail;
+              } else if (cat === "audios") {
+                fileWithThumbnail =
+                  (await generateAudioThumbnail(fileWithThumbnail)) ||
+                  fileWithThumbnail;
+              } else if (cat === "documents") {
+                fileWithThumbnail.thumbnail = null;
+              }
+            } catch (thumbnailError) {
+              console.error("Error generating thumbnail:", thumbnailError);
               fileWithThumbnail.thumbnail = null;
             }
-          } catch (thumbnailError) {
-            console.error("Error generating thumbnail:", thumbnailError);
-            fileWithThumbnail.thumbnail = null;
-          }
 
-          if (!fileWithThumbnail.thumbnail) {
-            fileWithThumbnail.thumbnail = null;
-          }
+            if (!fileWithThumbnail.thumbnail) {
+              fileWithThumbnail.thumbnail = null;
+            }
 
-          files.push({
-            fileName: fileWithThumbnail.name,
-            size: fileWithThumbnail.size,
-            createdAt: fileWithThumbnail.createdAt,
-            modifiedAt: fileWithThumbnail.modifiedAt,
-            thumbnail: fileWithThumbnail.thumbnail,
-            category: fileWithThumbnail.category,
-          });
+            allFiles.push({
+              fileName: fileWithThumbnail.name,
+              size: fileWithThumbnail.size,
+              createdAt: fileWithThumbnail.createdAt,
+              modifiedAt: fileWithThumbnail.modifiedAt,
+              thumbnail: fileWithThumbnail.thumbnail,
+              category: fileWithThumbnail.category,
+            });
+          }
         }
+      } else {
+        console.warn(
+          `Folder not found for userId: ${userId}, category: ${cat}`
+        );
       }
-
-      return res.json({
-        success: true,
-        files,
-        page: parseInt(page),
-        limit: limit == 0 || !limit ? "All" : parseInt(limit),
-        totalFiles: fileNames.length,
-      });
-    } else {
-      return res.status(404).json({
-        error: `Folder not found for userId: ${userId}, category: ${category}`,
-      });
     }
+
+    console.log(
+      `Successfully fetched ${allFiles.length} files for userId: ${userId}, category: ${category}`
+    );
+
+    return res.json({
+      success: true,
+      files: allFiles,
+      page: parseInt(page),
+      limit: limit == 0 || !limit ? "All" : parseInt(limit),
+      totalFiles: allFiles.length,
+    });
   } catch (error) {
     console.error("Error fetching files:", error);
     return res.status(500).json({
@@ -649,19 +703,30 @@ const createSaveFolder = (req, res) => {
     const userDir = path.join(TARGET_DIR, userId);
     const folderPath = path.join(userDir, folderName);
 
-    fs.mkdir(folderPath, { recursive: true }, (mkdirErr) => {
-      if (mkdirErr) {
-        console.error("Error creating directory:", mkdirErr.message);
-        return res
-          .status(500)
-          .json({ message: "Error creating folder", error: mkdirErr.message });
+    // Check if the folder already exists
+    fs.exists(folderPath, (exists) => {
+      if (!exists) {
+        // If folder doesn't exist, create it
+        fs.mkdir(folderPath, { recursive: true }, (mkdirErr) => {
+          if (mkdirErr) {
+            console.error("Error creating directory:", mkdirErr.message);
+            return res.status(500).json({
+              message: "Error creating folder",
+              error: mkdirErr.message,
+            });
+          }
+
+          console.log(
+            "Folder created successfully or already exists:",
+            folderPath
+          );
+        });
       }
 
-      console.log("Folder created successfully or already exists:", folderPath);
-
+      // Now proceed with file upload
       if (!files.file || files.file.length === 0) {
         return res.status(200).json({
-          message: "Folder created successfully, no files uploaded",
+          message: "Folder exists, no files uploaded",
           folderPath,
         });
       }
@@ -694,7 +759,6 @@ const createSaveFolder = (req, res) => {
 
             resolve({
               fileName,
-              filePath: targetPath,
             });
           });
 
@@ -731,4 +795,5 @@ module.exports = {
   getUsedSpace,
   getFilesByCategory,
   createSaveFolder,
+  loadFile,
 };

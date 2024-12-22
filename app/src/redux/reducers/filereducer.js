@@ -1,4 +1,9 @@
-import { FETCH_FILES_REQUEST, FETCH_USED_SPACE } from "./types";
+import {
+  FETCH_FILES_REQUEST,
+  FETCH_USED_SPACE,
+  SET_SEARCH_QUERY,
+  SET_TAB_BAR_VISIBLE,
+} from "../types";
 
 const initialState = {
   images: [],
@@ -12,6 +17,8 @@ const initialState = {
     usedSpacePercentage: 0,
     usedSpaceWithUnit: "",
   },
+  searchQuery: "",
+  filteredFiles: [],
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -21,27 +28,27 @@ const fileReducer = (state = initialState, action) => {
         case "images":
           return {
             ...state,
-            images: [...action.payload.files], // Replace the array with new files
+            images: [...action.payload.files],
           };
         case "videos":
           return {
             ...state,
-            videos: [...action.payload.files], // Replace the array with new files
+            videos: [...action.payload.files],
           };
         case "audios":
           return {
             ...state,
-            audios: [...action.payload.files], // Replace the array with new files
+            audios: [...action.payload.files],
           };
         case "documents":
           return {
             ...state,
-            documents: [...action.payload.files], // Replace the array with new files
+            documents: [...action.payload.files],
           };
         case "recents":
           return {
             ...state,
-            recents: [...action.payload.files], // Replace the array with new files
+            recents: [...action.payload.files],
           };
         default:
           return state;
@@ -55,6 +62,34 @@ const fileReducer = (state = initialState, action) => {
           usedSpacePercentage: action.payload.usedSpacePercentage,
           usedSpaceWithUnit: action.payload.usedSpaceWithUnit,
         },
+      };
+
+    case SET_SEARCH_QUERY:
+      const query = action.payload.toLowerCase();
+
+      const allFiles = [
+        ...state.images,
+        ...state.videos,
+        ...state.audios,
+        ...state.documents,
+        ...state.recents,
+      ];
+
+      const filteredFiles = allFiles.filter((file) => {
+        const fileName = (file.fileName || file.name || "").toLowerCase();
+        return fileName.includes(query);
+      });
+
+      return {
+        ...state,
+        searchQuery: action.payload,
+        filteredFiles,
+      };
+
+    case SET_TAB_BAR_VISIBLE:
+      return {
+        ...state,
+        tabBarVisible: action.payload,
       };
 
     default:

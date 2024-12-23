@@ -110,7 +110,7 @@ const getFileCategory = (fileName) => {
   return "documents";
 };
 
-const loadFile = (req, res) => {
+const loadImage = (req, res) => {
   const { userId, category, fileName, folder } =
     req.query || req.body || req.params;
 
@@ -399,7 +399,6 @@ const generateAudioThumbnail = (file, method) => {
             resolve(file);
           }
         } else {
-          console.log("No album artwork found");
           file.thumbnail = null;
           resolve(file);
         }
@@ -703,10 +702,8 @@ const createSaveFolder = (req, res) => {
     const userDir = path.join(TARGET_DIR, userId);
     const folderPath = path.join(userDir, folderName);
 
-    // Check if the folder already exists
     fs.exists(folderPath, (exists) => {
       if (!exists) {
-        // If folder doesn't exist, create it
         fs.mkdir(folderPath, { recursive: true }, (mkdirErr) => {
           if (mkdirErr) {
             console.error("Error creating directory:", mkdirErr.message);
@@ -723,7 +720,6 @@ const createSaveFolder = (req, res) => {
         });
       }
 
-      // Now proceed with file upload
       if (!files.file || files.file.length === 0) {
         return res.status(200).json({
           message: "Folder exists, no files uploaded",
@@ -788,6 +784,53 @@ const createSaveFolder = (req, res) => {
   });
 };
 
+const loadVideo = (req, res) => {
+  const { userId, category, fileName, range } =
+    req.query || req.body || req.params;
+  const folderPath = path.join(TARGET_DIR, userId, category);
+  const filePath = path.join(folderPath, fileName);
+
+  fs.exists(filePath, (exists) => {
+    if (!exists) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "Error retrieving file metadata" });
+      }
+
+      const videoSize = stats.size;
+      const CHUNK_SIZE = 10 ** 6; // 1MB chunks
+
+      if (range) {
+        const start = Number(range.replace(/\D/g, "")); // Remove non-digit characters
+        const end = Math.min(start + CHUNK_SIZE, videoSize - 1);
+        const chunkLength = end - start + 1;
+
+        const videoStream = fs.createReadStream(filePath, { start, end });
+
+        res.status(206); // Partial content response
+        res.setHeader("Content-Range", `bytes ${start}-${end}/${videoSize}`);
+        res.setHeader("Accept-Ranges", "bytes");
+        res.setHeader("Content-Length", chunkLength);
+        res.setHeader("Content-Type", "video/mp4");
+
+        videoStream.pipe(res);
+      } else {
+        const videoStream = fs.createReadStream(filePath);
+
+        res.setHeader("Content-Type", "video/mp4");
+        res.setHeader("Content-Length", videoSize);
+
+        videoStream.pipe(res);
+      }
+    });
+  });
+};
+
 module.exports = {
   uploadFile,
   deleteFile,
@@ -795,5 +838,6 @@ module.exports = {
   getUsedSpace,
   getFilesByCategory,
   createSaveFolder,
-  loadFile,
+  loadImage,
+  loadVideo,
 };

@@ -1,10 +1,12 @@
 import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
+import { Buffer } from "buffer";
 
 const API_URL = "http://192.168.1.3:8000/api/files";
 
 export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
+  console.log("first");
   const formData = new FormData();
   const file = {
     uri: fileUri,
@@ -123,9 +125,14 @@ export const fetchUsedSpace = async (dispatch) => {
   }
 };
 
-export const previewFile = async (fileName, category, folder = null) => {
+export const previewImage = async (
+  userId,
+  fileName,
+  category,
+  folder = null
+) => {
   try {
-    const response = await axios.get(`${API_URL}/preview`, {
+    const response = await axios.get(`${API_URL}/previewimage`, {
       params: {
         userId: "user123",
         category: category,

@@ -7,9 +7,6 @@ import LottieView from "lottie-react-native";
 import Animation from "../assets/animations/loading-2.json";
 
 const SpinnerOverlay2 = ({ visible }) => {
-  useEffect(() => {
-    //console.log("visible");
-  });
   return (
     <Spinner
       visible={visible}
@@ -38,7 +35,7 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   spinnerAnimation: {
-    width: "30%",
+    width: "33%",
     height: "30%",
     zIndex: 1000,
   },

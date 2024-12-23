@@ -1,4 +1,11 @@
-import { View, Text, ActivityIndicator, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
@@ -9,10 +16,11 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { previewFile } from "../services/fileOperations";
+import { previewImage } from "../services/fileOperations";
 import SpinnerOverlay from "./SpinnerOverlay";
+import BackIcon from "../assets/images/back_icon.png";
 
-export default function FilePreviewScreen({ route }) {
+export default function FilePreviewScreen({ route, navigation }) {
   const { fileName, category, folder } = route.params;
   const [fileData, setFileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +39,7 @@ export default function FilePreviewScreen({ route }) {
   useEffect(() => {
     const fetchFilePreview = async () => {
       if (fileName && category) {
-        const data = await previewFile(fileName, category, folder);
+        const data = await previewImage("user123", fileName, category, folder);
         setFileData(data);
       }
       setLoading(false);
@@ -43,10 +51,21 @@ export default function FilePreviewScreen({ route }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
-        <SpinnerOverlay visible={loading} />
-        <View style={styles.top}></View>
+        <View style={styles.top}>
+          <View style={styles.topContent}>
+            <TouchableOpacity
+              style={styles.backIconContainer}
+              onPress={() => navigation.goBack()}
+            >
+              <Image source={BackIcon} style={styles.backIcon} />
+            </TouchableOpacity>
+            <Text style={styles.fileName}>{fileName}</Text>
+          </View>
+        </View>
         <View style={styles.center}>
-          {fileData ? (
+          {loading ? (
+            <ActivityIndicator size="large" />
+          ) : fileData ? (
             <Image
               source={{ uri: `data:image/jpeg;base64,${fileData.base64Data}` }}
               style={styles.image}
@@ -74,11 +93,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("12%"),
+    height: hp("10%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("3%"),
+    paddingHorizontal: wp("1%"),
+  },
+  topContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: "70%",
+    gap: wp("0.5%"),
+  },
+  fileName: {
+    fontSize: hp("2.2%"),
+    color: colors.textColor3,
+    fontFamily: "Montserrat-SemiBold",
+  },
+  backIconContainer: {
+    height: hp("4.5%"),
+    width: hp("4.5%"),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backIcon: {
+    flex: 1,
+    aspectRatio: 1,
+    resizeMode: "contain",
   },
   center: {
     flex: 1,

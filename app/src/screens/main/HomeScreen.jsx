@@ -9,15 +9,9 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
-  RefreshControl
+  RefreshControl,
 } from "react-native";
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import {
@@ -62,7 +56,6 @@ import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 
 export default function HomeScreen({ navigation }) {
-  const ip = "192.168.1.3:8000";
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -101,145 +94,30 @@ export default function HomeScreen({ navigation }) {
     if (isUploading) return;
     console.log("Starting upload...");
     setIsUploading(true);
-    const result = await pickMedia("image_video");
-    if (result == "cancelled") {
-      setIsUploading(false);
-      return;
-    }
-    if (result && Array.isArray(result.assets) && result.assets.length > 0) {
-      const files = result.assets;
 
-      const mediaType = files[0].type;
-      let category = "";
+    try {
+      const result = await pickMedia("image_video");
 
-      if (mediaType.includes("image")) {
-        category = "images";
-      } else if (mediaType.includes("video")) {
-        category = "videos";
-      } else if (mediaType.includes("audio")) {
-        category = "audio";
-      } else {
-        category = "documents";
+      if (result == "cancelled") {
+        setIsUploading(false);
+        return;
       }
 
-      Alert.alert(
-        "Confirm Upload",
-        `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
-        [
-          {
-            text: "Cancel",
-            onPress: () => {
-              console.log("Upload cancelled");
-              setIsUploading(false);
-            },
-          },
-          {
-            text: "OK",
-            onPress: async () => {
-              let successCount = 0;
-              for (const file of files) {
-                const fileUri = file.uri;
-                const fileName = file.fileName || file.name;
+      if (result && Array.isArray(result.assets) && result.assets.length > 0) {
+        const files = result.assets;
+        const mediaType = files[0].type;
+        let category = "";
 
-                if (!fileUri) {
-                  console.error(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
-                    } ${fileName} missing URI.`
-                  );
-                  continue;
-                }
-
-                const uploadResponse = await uploadMedia(
-                  fileUri,
-                  fileName,
-                  category,
-                  dispatch
-                );
-                if (uploadResponse.success) {
-                  successCount++;
-                  console.log(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
-                    } ${fileName} uploaded successfully`
-                  );
-                } else {
-                  console.error(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
-                    } ${fileName} upload failed:`,
-                    uploadResponse.message
-                  );
-                }
-              }
-
-              if (successCount > 0) {
-                Alert.alert(
-                  "Upload Success",
-                  `${successCount} ${category}(s) uploaded successfully!`,
-                  [{ text: "OK" }]
-                );
-              } else {
-                Alert.alert(
-                  "Upload Failed",
-                  "No files were uploaded successfully.",
-                  [{ text: "OK" }]
-                );
-              }
-
-              refRBSheet.current.close();
-              onRefresh();
-              console.log("Upload finished...");
-              setIsUploading(false);
-            },
-          },
-        ]
-      );
-    } else {
-      console.log("No files selected or invalid data");
-      Alert.alert(
-        "No Selection",
-        "Please select valid media files to upload.",
-        [{ text: "OK" }]
-      );
-      setIsUploading(false);
-    }
-  };
-
-  const handleOthersPick = async () => {
-    if (isUploading) return;
-
-    setIsUploading(true);
-    const result = await pickMedia("others");
-    if (result == "cancelled") {
-      setIsUploading(false);
-      return;
-    }
-    const type = "other";
-
-    if (result && result.assets && result.assets.length > 0) {
-      const files = result.assets;
-
-      // Determine file category for "others" based on MIME type or extension
-      let category = "";
-
-      files.forEach((file) => {
-        const fileName = file.name || "";
-        const fileType = file.type || "";
-
-        if (fileType.includes("image")) {
+        if (mediaType.includes("image")) {
           category = "images";
-        } else if (fileType.includes("video")) {
+        } else if (mediaType.includes("video")) {
           category = "videos";
-        } else if (fileType.includes("audio")) {
+        } else if (mediaType.includes("audio")) {
           category = "audio";
-        } else if (fileName.endsWith(".pdf") || fileName.endsWith(".docx")) {
-          category = "documents"; // Identify document files
         } else {
-          category = "others"; // Default category
+          category = "documents";
         }
 
-        // Proceed with uploading
         Alert.alert(
           "Confirm Upload",
           `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
@@ -248,22 +126,21 @@ export default function HomeScreen({ navigation }) {
               text: "Cancel",
               onPress: () => {
                 console.log("Upload cancelled");
-                setIsUploading(false);
               },
             },
             {
               text: "OK",
               onPress: async () => {
                 let successCount = 0;
-
                 for (const file of files) {
                   const fileUri = file.uri;
-                  const fileName = file.name;
+                  const fileName = file.fileName || file.name;
 
                   if (!fileUri) {
                     console.error(
-                      "File URI is invalid or missing for",
-                      fileName
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} missing URI.`
                     );
                     continue;
                   }
@@ -275,7 +152,7 @@ export default function HomeScreen({ navigation }) {
                     dispatch
                   );
 
-                  if (uploadResponse?.success) {
+                  if (uploadResponse.success) {
                     successCount++;
                     console.log(
                       `${
@@ -287,7 +164,7 @@ export default function HomeScreen({ navigation }) {
                       `${
                         category.charAt(0).toUpperCase() + category.slice(1)
                       } ${fileName} upload failed:`,
-                      uploadResponse?.message || "Unknown error"
+                      uploadResponse.message
                     );
                   }
                 }
@@ -301,24 +178,159 @@ export default function HomeScreen({ navigation }) {
                 } else {
                   Alert.alert(
                     "Upload Failed",
-                    `No ${category}(s) were uploaded successfully.`,
+                    "No files were uploaded successfully.",
                     [{ text: "OK" }]
                   );
                 }
 
                 refRBSheet.current.close();
                 onRefresh();
-                setIsUploading(false);
+                console.log("Upload finished...");
               },
             },
           ]
         );
-      });
-    } else {
-      console.log("No files selected or invalid data");
-      Alert.alert("No Selection", `Please select valid ${type}(s) to upload.`, [
-        { text: "OK" },
-      ]);
+      } else {
+        console.log("No files selected or invalid data");
+        Alert.alert(
+          "No Selection",
+          "Please select valid media files to upload.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred during the media picking or upload process:",
+        error
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleOthersPick = async () => {
+    if (isUploading) return;
+
+    setIsUploading(true);
+
+    try {
+      const result = await pickMedia("others");
+
+      if (result == "cancelled") {
+        setIsUploading(false);
+        return;
+      }
+
+      const type = "other";
+
+      if (result && result.assets && result.assets.length > 0) {
+        const files = result.assets;
+
+        let category = "";
+
+        files.forEach((file) => {
+          const fileName = file.name || "";
+          const fileType = file.type || "";
+
+          if (fileType.includes("image")) {
+            category = "images";
+          } else if (fileType.includes("video")) {
+            category = "videos";
+          } else if (fileType.includes("audio")) {
+            category = "audio";
+          } else if (fileName.endsWith(".pdf") || fileName.endsWith(".docx")) {
+            category = "documents";
+          } else {
+            category = "others";
+          }
+
+          Alert.alert(
+            "Confirm Upload",
+            `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
+            [
+              {
+                text: "Cancel",
+                onPress: () => {
+                  console.log("Upload cancelled");
+                  setIsUploading(false);
+                },
+              },
+              {
+                text: "OK",
+                onPress: async () => {
+                  let successCount = 0;
+
+                  for (const file of files) {
+                    const fileUri = file.uri;
+                    const fileName = file.name;
+
+                    if (!fileUri) {
+                      console.error(
+                        "File URI is invalid or missing for",
+                        fileName
+                      );
+                      continue;
+                    }
+
+                    const uploadResponse = await uploadMedia(
+                      fileUri,
+                      fileName,
+                      category,
+                      dispatch
+                    );
+
+                    if (uploadResponse?.success) {
+                      successCount++;
+                      console.log(
+                        `${
+                          category.charAt(0).toUpperCase() + category.slice(1)
+                        } ${fileName} uploaded successfully`
+                      );
+                    } else {
+                      console.error(
+                        `${
+                          category.charAt(0).toUpperCase() + category.slice(1)
+                        } ${fileName} upload failed:`,
+                        uploadResponse?.message || "Unknown error"
+                      );
+                    }
+                  }
+
+                  if (successCount > 0) {
+                    Alert.alert(
+                      "Upload Success",
+                      `${successCount} ${category}(s) uploaded successfully!`,
+                      [{ text: "OK" }]
+                    );
+                  } else {
+                    Alert.alert(
+                      "Upload Failed",
+                      `No ${category}(s) were uploaded successfully.`,
+                      [{ text: "OK" }]
+                    );
+                  }
+
+                  refRBSheet.current.close();
+                  onRefresh();
+                },
+              },
+            ]
+          );
+        });
+      } else {
+        console.log("No files selected or invalid data");
+        Alert.alert(
+          "No Selection",
+          `Please select valid ${type}(s) to upload.`,
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred during the media picking or upload process:",
+        error
+      );
+    } finally {
       setIsUploading(false);
     }
   };
@@ -330,13 +342,12 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial opacity value
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Trigger the fade-in animation when the component mounts
     Animated.timing(fadeAnim, {
-      toValue: 1, // Fully visible
-      duration: 500, // Duration of animation in ms
+      toValue: 1,
+      duration: 500,
       useNativeDriver: true,
     }).start();
   }, [recentFilesFromRedux]);
@@ -344,7 +355,7 @@ export default function HomeScreen({ navigation }) {
   const animatedRenderItem = ({ item, index }) => {
     const translateY = fadeAnim.interpolate({
       inputRange: [0, 1],
-      outputRange: [10, 0], // Items slide up slightly
+      outputRange: [10, 0],
     });
 
     return (
@@ -442,7 +453,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
       <SpinnerOverlay visible={isLoading} />
-      <SpinnerOverlay2 visible={isUploading} />
+
       {isUploading && (
         <ActivityIndicator
           size="large"
@@ -627,6 +638,8 @@ export default function HomeScreen({ navigation }) {
                     gap: 10,
                     paddingHorizontal: 15,
                   }}
+                  extraData={recentFilesFromRedux} // Ensure this triggers re-render
+                  key={recentFilesFromRedux.length} // Add this line to force a re-render when the list changes
                 />
               ) : (
                 <FlatList
@@ -781,10 +794,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    // shadowColor: "#000",
-    // shadowOffset: { width: 2, height: 5 },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 10,
   },
   storageViewLeft: {
     height: "100%",
@@ -1097,10 +1106,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(95,42,189,0.6)",
     borderRadius: hp("2%"),
-    // shadowColor: "#000",
-    // shadowOffset: { width: 5, height: 5 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 8,
+
     gap: wp("5%"),
     justifyContent: "center",
     flexDirection: "row",
@@ -1111,10 +1117,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(95,42,189,0.6)",
     borderRadius: hp("2%"),
-    // shadowColor: "#000",
-    // shadowOffset: { width: 5, height: 5 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 8,
+
     gap: wp("2%"),
     justifyContent: "center",
     flexDirection: "row",

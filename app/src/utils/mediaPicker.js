@@ -6,7 +6,7 @@ export const pickMedia = async (type) => {
   try {
     let pickerResult;
 
-    if (type === "image" || type === "video") {
+    if (type === "image" || type === "video" || type === "image_video") {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
         console.log("Permission to access media library is required!");
@@ -15,9 +15,18 @@ export const pickMedia = async (type) => {
     }
 
     switch (type) {
+      case "image":
+      case "video":
+        pickerResult = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: type === "image" ? ["images"] : ["videos"],
+          allowsMultipleSelection: true,
+          quality: 1,
+        });
+        break;
+
       case "image_video":
         pickerResult = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["images", "videos"],
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
           allowsMultipleSelection: true,
           quality: 1,
         });
@@ -40,14 +49,22 @@ export const pickMedia = async (type) => {
       return "cancelled";
     }
 
+    const assets = pickerResult.assets || [];
+    const images = assets.filter(
+      (asset) => asset.type === "image" || asset.type.startsWith("image/")
+    );
+    const videos = assets.filter(
+      (asset) => asset.type === "video" || asset.type.startsWith("video/")
+    );
+
     if (type === "image" || type === "video") {
-      console.log("Picked files:", pickerResult.assets);
-      return pickerResult.assets.length === 1
-        ? pickerResult.assets[0]
-        : pickerResult.assets;
+      return type === "image" ? images : videos;
     }
 
-    console.log("Picked files:", pickerResult);
+    if (type === "image_video") {
+      return { images, videos };
+    }
+
     return pickerResult;
   } catch (error) {
     console.error("Error picking media:", error);

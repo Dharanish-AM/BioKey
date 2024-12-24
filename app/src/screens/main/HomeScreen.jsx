@@ -54,6 +54,8 @@ import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
+import { setTabBarVisible } from "../../redux/actions";
+import SkeletonLoader from "../../components/SkeletonLoader";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,11 +65,13 @@ export default function HomeScreen({ navigation }) {
   const refRBSheet = useRef();
   const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
+  const [isProfileLoaded, setProfileLoaded] = useState(false);
 
   const recentFilesFromRedux = useSelector(
     (state) => state.files.recents,
     shallowEqual
   );
+  const isTabBarVisible = useSelector((state) => state.appConfig.tabBarVisible);
 
   const usedSpace = useSelector((state) => state.files.usedSpace, shallowEqual);
 
@@ -382,7 +386,17 @@ export default function HomeScreen({ navigation }) {
       : { uri: item.thumbnail };
 
     return (
-      <TouchableOpacity style={styles.recentItem} key={item.id || item.name}>
+      <TouchableOpacity
+        style={styles.recentItem}
+        key={item.id || item.name}
+        onPress={() => {
+          navigation.navigate("FilePreviewScreen", {
+            fileName: item.name,
+            category: item.category,
+            folder: null,
+          });
+        }}
+      >
         <View style={styles.recentFileImageContainer}>
           {isPdf ? (
             <View style={styles.customThumbnailContainer}>
@@ -475,6 +489,7 @@ export default function HomeScreen({ navigation }) {
               source={ProfileIcon}
               style={styles.profileIcon}
               resizeMode="contain"
+              onLoadEnd={() => setProfileLoaded(true)}
             />
             <Image
               source={RightIcon}
@@ -635,11 +650,11 @@ export default function HomeScreen({ navigation }) {
                     />
                   }
                   contentContainerStyle={{
-                    gap: 10,
-                    paddingHorizontal: 15,
+                    gap: hp("0.5%"),
+                    paddingHorizontal: hp("1.5%"),
                   }}
-                  extraData={recentFilesFromRedux} // Ensure this triggers re-render
-                  key={recentFilesFromRedux.length} // Add this line to force a re-render when the list changes
+                  extraData={recentFilesFromRedux}
+                  key={recentFilesFromRedux.length}
                 />
               ) : (
                 <FlatList
@@ -661,7 +676,6 @@ export default function HomeScreen({ navigation }) {
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
-                    paddingHorizontal: 15,
                   }}
                 />
               )}
@@ -916,7 +930,7 @@ const styles = StyleSheet.create({
   addContainer: {
     height: "100%",
     width: "38%",
-    backgroundColor: "rgba(95,42,189,0.6)",
+    backgroundColor: "rgba(103, 39, 212, 0.6)",
     borderRadius: hp("1.5%"),
     alignItems: "center",
     flexDirection: "row",
@@ -1057,8 +1071,8 @@ const styles = StyleSheet.create({
     gap: "10%",
   },
   recentFileName: {
-    fontSize: hp("1.5%"),
-    fontFamily: "Montserrat-Medium",
+    fontSize: hp("1.75%"),
+    fontFamily: "Afacad-Regular",
     color: colors.textColor3,
     width: "100%",
   },
@@ -1070,13 +1084,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   recentFileSize: {
-    fontSize: hp("1.4%"),
-    fontFamily: "Montserrat-Medium",
+    fontSize: hp("1.65%"),
+    fontFamily: "Afacad-Regular",
     color: colors.textColor2,
   },
   modifiedTime: {
-    fontSize: hp("1.4%"),
-    fontFamily: "Montserrat-Medium",
+    fontSize: hp("1.65%"),
+    fontFamily: "Afacad-Regular",
     color: colors.textColor2,
   },
   moreIconContainer: {

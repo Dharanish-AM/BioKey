@@ -559,16 +559,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   fileName: {
-    fontSize: hp("1.3%"),
+    fontSize: hp("1.5%"),
     color: colors.textColor3,
-    fontFamily: "Montserrat-Regular",
+    fontFamily: "Afacad-Regular",
     opacity: 0.9,
     width: "60%",
   },
   fileSize: {
-    fontSize: hp("1.3%"),
+    fontSize: hp("1.5%"),
     color: "rgba(255,255,255,0.7)",
-    fontFamily: "Montserrat-Regular",
+    fontFamily: "Afacad-Regular",
   },
   addButton: {
     position: "absolute",

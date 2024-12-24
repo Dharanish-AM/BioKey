@@ -6,10 +6,13 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { enableFreeze } from "react-native-screens";
 
 import useLoadFonts from "./src/hooks/useLoadFonts";
 import colors from "./src/constants/colors";
 import store from "./src/redux/store";
+
+enableFreeze(true);
 
 export default function App() {
   const fontsLoaded = useLoadFonts();

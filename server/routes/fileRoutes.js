@@ -9,6 +9,8 @@ router.get("/usedspace", fileController.getUsedSpace);
 router.get("/list", fileController.getFilesByCategory);
 router.get("/previewimage", fileController.loadImage);
 router.get("/previewvideo", fileController.loadVideo);
+router.get("/previewaudio", fileController.loadAudio);
+router.post("/dummy", fileController.dummyUpload);
 router.post("/newfolder", fileController.createSaveFolder);
 
 module.exports = router;

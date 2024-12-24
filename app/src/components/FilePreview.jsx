@@ -16,37 +16,192 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { previewImage } from "../services/fileOperations";
-import SpinnerOverlay from "./SpinnerOverlay";
-import BackIcon from "../assets/images/back_icon.png";
+import {
+  previewImage,
+  previewVideo,
+  previewAudio,
+  previewDocument,
+} from "../services/fileOperations";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { Audio } from "expo-av";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { fileName, category, folder } = route.params;
   const [fileData, setFileData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [sound, setSound] = useState(null);
   const dispatch = useDispatch();
 
-  useFocusEffect(
-    React.useCallback(() => {
-      dispatch(setTabBarVisible(false));
-
-      return () => {
-        dispatch(setTabBarVisible(true));
-      };
-    }, [dispatch])
-  );
+  const player = useVideoPlayer(fileData, (player) => {
+    player.loop = true;
+    player.play();
+  });
 
   useEffect(() => {
+    setLoading(true);
     const fetchFilePreview = async () => {
       if (fileName && category) {
-        const data = await previewImage("user123", fileName, category, folder);
-        setFileData(data);
+        try {
+          if (category === "images") {
+            const response = await previewImage(
+              "user123",
+              fileName,
+              category,
+              folder
+            );
+            setFileData(response);
+          } else if (category === "videos") {
+            const videoUrl1 = previewVideo(
+              "user123",
+              category,
+              fileName,
+              folder
+            );
+            setFileData(videoUrl1);
+          } else if (category === "audios") {
+            const audioUrl = previewAudio(
+              "user123",
+              category,
+              fileName,
+              folder
+            );
+            setFileData(audioUrl);
+          } else if (category === "documents") {
+            const docData = await previewDocument(
+              "user123",
+              category,
+              fileName,
+              folder
+            );
+            setFileData(docData);
+          }
+        } catch (error) {
+          console.error("Error fetching file preview:", error);
+        }
       }
+
       setLoading(false);
     };
 
     fetchFilePreview();
-  }, [fileName, category, folder]);
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [fileName, category, folder, sound]);
+
+  const ImagePreview = ({ fileData }) => (
+    <View style={styles.imageContainer}>
+      <Image
+        source={{
+          uri: `data:image/jpeg;base64,${fileData.base64Data}`,
+        }}
+        style={styles.image}
+      />
+    </View>
+  );
+
+  const VideoPreview = ({ player }) => (
+    <View style={styles.videoContainer}>
+      <VideoView
+        style={styles.video}
+        player={player}
+        shouldPlay
+        allowsFullscreen
+        allowsPictureInPicture
+        fullscreen={true}
+        rate={1.0}
+        volume={1.0}
+        isMuted={false}
+        resizeMode="contain"
+        contentFit="cover"
+      />
+    </View>
+  );
+
+  const AudioPreview = ({ fileData }) => {
+    const [sound, setSound] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const playAudio = async () => {
+      try {
+        if (sound) {
+          await sound.unloadAsync();
+          setSound(null);
+        }
+
+        const { sound: newSound } = await Audio.Sound.createAsync({
+          uri: fileData,
+        });
+
+        setSound(newSound);
+        await newSound.playAsync();
+        setIsPlaying(true);
+
+        newSound.setOnPlaybackStatusUpdate((status) => {
+          if (status.didJustFinish) {
+            stopAudio();
+          }
+        });
+      } catch (error) {
+        console.error("Error playing audio:", error);
+      }
+    };
+
+    const stopAudio = async () => {
+      try {
+        if (sound) {
+          await sound.stopAsync();
+          await sound.unloadAsync();
+          setSound(null);
+        }
+        setIsPlaying(false);
+      } catch (error) {
+        console.error("Error stopping audio:", error);
+      }
+    };
+
+    useEffect(() => {
+      return () => {
+        if (sound) {
+          sound.unloadAsync().catch((error) => {
+            console.error("Error unloading audio during cleanup:", error);
+          });
+        }
+      };
+    }, [sound]);
+
+    return (
+      <View>
+        {!isPlaying ? (
+          <TouchableOpacity style={styles.audioButton} onPress={playAudio}>
+            <Text style={styles.audioButtonText}>Play Audio</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.audioButton} onPress={stopAudio}>
+            <Text style={styles.audioButtonText}>Stop Audio</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  const DocumentPreview = ({ fileData }) => (
+    <View style={styles.documentContainer}>
+      <Text style={styles.documentText}>
+        Document Preview: {fileData.name || "Unnamed Document"}
+      </Text>
+      <Text style={styles.documentText}>
+        Size: {fileData.size || "Unknown"} bytes
+      </Text>
+    </View>
+  );
+
+  const NoPreviewAvailable = () => (
+    <Text style={styles.noPreviewText}>No Preview Available</Text>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,7 +212,10 @@ export default function FilePreviewScreen({ route, navigation }) {
               style={styles.backIconContainer}
               onPress={() => navigation.goBack()}
             >
-              <Image source={BackIcon} style={styles.backIcon} />
+              <Image
+                source={require("../assets/images/back_icon.png")}
+                style={styles.backIcon}
+              />
             </TouchableOpacity>
             <Text style={styles.fileName}>{fileName}</Text>
           </View>
@@ -66,12 +224,19 @@ export default function FilePreviewScreen({ route, navigation }) {
           {loading ? (
             <ActivityIndicator size="large" />
           ) : fileData ? (
-            <Image
-              source={{ uri: `data:image/jpeg;base64,${fileData.base64Data}` }}
-              style={styles.image}
-            />
+            category === "images" ? (
+              <ImagePreview fileData={fileData} />
+            ) : category === "videos" ? (
+              <VideoPreview player={player} />
+            ) : category === "audios" ? (
+              <AudioPreview fileData={fileData} />
+            ) : category === "documents" ? (
+              <DocumentPreview fileData={fileData} />
+            ) : (
+              <NoPreviewAvailable />
+            )
           ) : (
-            <Text>No Preview Available</Text>
+            <NoPreviewAvailable />
           )}
         </View>
         <View style={styles.bottom}></View>
@@ -111,8 +276,8 @@ const styles = StyleSheet.create({
     fontFamily: "Montserrat-SemiBold",
   },
   backIconContainer: {
-    height: hp("4.5%"),
-    width: hp("4.5%"),
+    height: hp("4%"),
+    width: hp("4%"),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -130,13 +295,48 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+  },
+  imageContainer: {
+    width: "100%",
+    height: "100%",
+  },
+  videoContainer: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    overflow: "hidden",
+  },
+  video: {
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
   },
+  audioButton: {
+    padding: 10,
+    backgroundColor: colors.primaryColor,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  audioButtonText: {
+    color: colors.white,
+    fontSize: hp("2%"),
+  },
+  documentContainer: {
+    padding: 20,
+    backgroundColor: colors.secondaryColor2,
+    borderRadius: 10,
+  },
+  documentText: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+  },
+  noPreviewText: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+    fontStyle: "italic",
+  },
   bottom: {
-    height: hp("12%"),
+    height: hp("10%"),
     width: wp("100%"),
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: wp("3%"),
   },
 });

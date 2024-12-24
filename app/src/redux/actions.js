@@ -44,5 +44,5 @@ export const setTabBarVisible = (isVisible) => ({
 
 export const setFirstRender = (screen) => ({
   type: SET_FIRST_RENDER,
-  screen, 
+  screen,
 });

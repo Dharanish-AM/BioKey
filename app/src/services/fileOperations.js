@@ -6,7 +6,6 @@ import { Buffer } from "buffer";
 const API_URL = "http://192.168.1.3:8000/api/files";
 
 export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
-  console.log("first");
   const formData = new FormData();
   const file = {
     uri: fileUri,
@@ -141,10 +140,47 @@ export const previewImage = async (
       },
     });
 
-    console.log("File preview success");
     return response.data;
   } catch (error) {
     console.error("Error fetching file preview:", error);
+    return null;
+  }
+};
+
+export const previewVideo = (userId, category, fileName, folder = null) => {
+  try {
+    let url = `${API_URL}/previewvideo?userId=${userId}&category=${category}&fileName=${fileName}`;
+
+    if (folder) {
+      if (typeof folder !== "string" || folder.trim() === "") {
+        throw new Error("Invalid folder provided");
+      }
+
+      url = `${API_URL}/previewvideo?userId=${userId}&category=${category}&folder=${folder}&fileName=${fileName}`;
+    }
+
+    return url;
+  } catch (error) {
+    console.error("Error generating video URL:", error.message);
+    return null;
+  }
+};
+
+export const previewAudio = (userId, category, fileName, folder = null) => {
+  try {
+    let url = `${API_URL}/previewaudio?userId=${userId}&category=${category}&fileName=${fileName}`;
+
+    if (folder) {
+      if (typeof folder !== "string" || folder.trim() === "") {
+        throw new Error("Invalid folder provided");
+      }
+
+      url = `${API_URL}/previewaudio?userId=${userId}&category=${category}&folder=${folder}&fileName=${fileName}`;
+    }
+
+    return url;
+  } catch (error) {
+    console.error("Error generating audio URL:", error.message);
     return null;
   }
 };

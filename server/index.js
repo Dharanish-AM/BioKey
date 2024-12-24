@@ -10,7 +10,7 @@ app.use(
     origin: "*",
   })
 );
-app.use(express.json());
+app.use(express.json()); 
 
 const fileRoutes = require("./routes/fileRoutes");
 

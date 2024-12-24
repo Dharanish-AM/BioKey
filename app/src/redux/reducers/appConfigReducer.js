@@ -1,4 +1,4 @@
-import { SET_TAB_BAR_VISIBLE,SET_FIRST_RENDER } from "../types";
+import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER } from "../types";
 
 const initialState = {
   tabBarVisible: true,
@@ -17,14 +17,14 @@ export const appConfigReducer = (state = initialState, action) => {
         ...state,
         tabBarVisible: action.payload,
       };
-      case SET_FIRST_RENDER:
-        return {
-          ...state,
-          isFirstRender: {
-            ...state.isFirstRender,
-            [action.screen]: false, 
-          },
-        };
+    case SET_FIRST_RENDER:
+      return {
+        ...state,
+        isFirstRender: {
+          ...state.isFirstRender,
+          [action.screen]: false,
+        },
+      };
     default:
       return state;
   }

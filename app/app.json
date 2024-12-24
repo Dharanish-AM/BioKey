@@ -13,7 +13,13 @@
     "updates": {
       "enabled": true
     },
-    "platforms": ["ios", "android"],
-    "newArchEnabled": true
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-audio"
+    ]
   }
 }

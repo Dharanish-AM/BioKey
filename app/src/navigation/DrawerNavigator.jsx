@@ -8,6 +8,7 @@ import {
 import colors from "../constants/colors";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DrawerView from "../components/DrawerView";
 
 const Drawer = createDrawerNavigator();
 
@@ -15,14 +16,15 @@ export default function DrawerNavigator() {
   return (
     <Drawer.Navigator
       initialRouteName="TabNavigator"
+      drawerContent={(props) => <DrawerView {...props} />}
       screenOptions={{
         headerShown: false,
         drawerType: "front",
+
         drawerPosition: "left",
         drawerStyle: {
-          backgroundColor: colors.lightColor2,
-          width: widthPercentageToDP("65%"),
-          borderTopRightRadius: heightPercentageToDP("5%"),
+          backgroundColor: "transparent",
+          width: widthPercentageToDP("70%"),
         },
         overlayColor: "rgba(0,0,0,0.5)",
         drawerLockMode: "unlocked",

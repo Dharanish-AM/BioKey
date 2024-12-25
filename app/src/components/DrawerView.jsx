@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     tintColor: colors.textColor2,
   },
   optionsText: {
-    fontSize: hp("2.5%"),
+    fontSize: hp("2.3%"),
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
   },
@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoutIcon: {
-    width: wp("7%"),
-    height: wp("7%"),
+    width: wp("6%"),
+    height: wp("6%"),
     resizeMode: "contain",
     tintColor: colors.textColor2,
   },
   logoutText: {
-    fontSize: hp("2.5%"),
+    fontSize: hp("2.3%"),
     color: colors.textColor2,
     fontFamily: "Afacad-Regular",
   },

@@ -1,7 +1,6 @@
 import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
-import { Buffer } from "buffer";
 
 const API_URL = "http://192.168.1.3:8000/api/files";
 
@@ -130,19 +129,16 @@ export const previewImage = async (
   category,
   folder = null
 ) => {
+  let url = "";
   try {
-    const response = await axios.get(`${API_URL}/previewimage`, {
-      params: {
-        userId: "user123",
-        category: category,
-        fileName: fileName,
-        folder: folder || undefined,
-      },
-    });
-
-    return response.data;
+    if (folder) {
+      url = `${API_URL}/previewimage?userId=${userId}&folder=${folder}&fileName=${fileName}`;
+    } else {
+      url = `${API_URL}/previewimage?userId=${userId}&category=${category}&fileName=${fileName}`;
+    }
+    return url;
   } catch (error) {
-    console.error("Error fetching file preview:", error);
+    console.error("Error generating image URL:", error.message);
     return null;
   }
 };

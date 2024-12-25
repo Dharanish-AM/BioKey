@@ -4,11 +4,10 @@ const path = require("path");
 const sharp = require("sharp");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = "D:/ffmpeg-7.1-essentials_build/bin/ffmpeg.exe";
-const pdf = require("pdf-poppler");
 const os = require("os");
 const jsmediatags = require("jsmediatags");
 const busboy = require("busboy");
-
+const File = require("../models/fileSchema");
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const TARGET_DIR = path.join(
@@ -128,16 +127,16 @@ const loadImage = async (req, res) => {
   try {
     const stats = await fs.promises.stat(filePath);
 
-    const fileBuffer = await fs.promises.readFile(filePath);
-    const base64Data = fileBuffer.toString("base64");
+    res.setHeader("Content-Type", `image/${path.extname(fileName).slice(1)}`);
+    res.setHeader("Content-Length", stats.size);
+    res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
 
-    res.status(200).json({
-      fileName,
-      fileSize: stats.size,
-      fileType: path.extname(fileName),
-      base64Data,
-      createdAt: stats.birthtime,
-      modifiedAt: stats.mtime,
+    const readStream = fs.createReadStream(filePath);
+    readStream.pipe(res);
+
+    readStream.on("error", (err) => {
+      console.error(err);
+      return res.status(500).json({ message: "Error retrieving file data" });
     });
   } catch (err) {
     if (err.code === "ENOENT") {
@@ -405,11 +404,17 @@ const generateAudioThumbnail = (file, method) => {
   });
 };
 
-const resizeThumbnail = (buffer, size) => {
-  const dimensions =
-    size === "recent"
-      ? { width: 150, height: 150 }
-      : { width: 500, height: 500 };
+const resizeThumbnail = (buffer, category) => {
+  const dimensions = (() => {
+    switch (category) {
+      case "recent":
+        return { width: 150, height: 150 };
+      case "audio":
+        return { width: 500, height: 500 };
+      default:
+        return { width: 500, height: 500 };
+    }
+  })();
 
   return sharp(buffer).resize(dimensions.width, dimensions.height).toBuffer();
 };
@@ -799,11 +804,25 @@ const createSaveFolder = (req, res) => {
 };
 
 const loadVideo = async (req, res) => {
-  const { userId, category, fileName } = req.query || req.body || req.params;
-  const folderPath = path.join(TARGET_DIR, userId, category);
-  const filePath = path.join(folderPath, fileName);
-
   try {
+    const { userId, category, fileName, folder } =
+      req.query || req.body || req.params;
+
+    const folderPath = folder
+      ? path.join(TARGET_DIR, userId, folder)
+      : path.join(TARGET_DIR, userId, category);
+
+    const filePath = path.join(folderPath, fileName);
+
+    const fileExists = await fs.promises
+      .access(filePath, fs.constants.F_OK)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!fileExists) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
     const stat = await fs.promises.stat(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;
@@ -814,7 +833,11 @@ const loadVideo = async (req, res) => {
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
 
-      const file = fs.createReadStream(filePath, { start, end });
+      if (start >= fileSize || end >= fileSize) {
+        return res.status(416).json({ message: "Range not satisfiable" });
+      }
+
+      const fileStream = fs.createReadStream(filePath, { start, end });
 
       const head = {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
@@ -824,7 +847,7 @@ const loadVideo = async (req, res) => {
       };
 
       res.writeHead(206, head);
-      file.pipe(res);
+      fileStream.pipe(res);
     } else {
       const head = {
         "Content-Length": fileSize,
@@ -835,29 +858,49 @@ const loadVideo = async (req, res) => {
       fs.createReadStream(filePath).pipe(res);
     }
   } catch (err) {
-    console.error(err);
+    console.error("Error loading video file:", err.message);
     return res.status(500).json({ message: "Error loading video file." });
   }
 };
 
 const loadAudio = async (req, res) => {
-  const { userId, category, fileName } = req.query || req.body || req.params;
-  const folderPath = path.join(TARGET_DIR, userId, category);
-  const filePath = path.join(folderPath, fileName);
-
   try {
+    const { userId, category, fileName, folder } = req.query;
+
+    if (!userId || !category || !fileName) {
+      return res.status(400).json({ message: "Missing required parameters" });
+    }
+
+    const folderPath = folder
+      ? path.join("uploads", userId, folder)
+      : path.join("uploads", userId, category);
+
+    const filePath = path.join(folderPath, fileName);
+
+    const fileExists = await fs.promises
+      .access(filePath, fs.constants.F_OK)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!fileExists) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
     const stat = await fs.promises.stat(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;
 
     if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const [startRange, endRange] = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(startRange, 10);
+      const end = endRange ? parseInt(endRange, 10) : fileSize - 1;
       const chunkSize = end - start + 1;
 
-      const file = fs.createReadStream(filePath, { start, end });
+      if (start >= fileSize || end >= fileSize) {
+        return res.status(416).json({ message: "Range not satisfiable" });
+      }
 
+      const fileStream = fs.createReadStream(filePath, { start, end });
       const head = {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
@@ -866,7 +909,7 @@ const loadAudio = async (req, res) => {
       };
 
       res.writeHead(206, head);
-      file.pipe(res);
+      fileStream.pipe(res);
     } else {
       const head = {
         "Content-Length": fileSize,
@@ -876,8 +919,8 @@ const loadAudio = async (req, res) => {
       res.writeHead(200, head);
       fs.createReadStream(filePath).pipe(res);
     }
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("Error loading audio stream:", error.message);
     return res.status(500).json({ message: "Error loading audio file." });
   }
 };

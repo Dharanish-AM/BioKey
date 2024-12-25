@@ -375,17 +375,17 @@ export default function PhotosScreen({ navigation }) {
         <View style={styles.center}>
           {initialLoading ? (
             <FlatList
-              data={[1, 2, 3, 4, 5, 6]}
+              data={[1, 2, 3, 4, 5, 6, 7, 8]}
               renderItem={renderSkeletonItem}
               keyExtractor={(item, index) => `skeleton-${index}`}
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent: "center",
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{
                 justifyContent: "space-between",
+
                 marginBottom: hp("2%"),
               }}
               refreshControl={
@@ -404,7 +404,7 @@ export default function PhotosScreen({ navigation }) {
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent: images.length === 0 ? "center" : "flex-start",
+
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{

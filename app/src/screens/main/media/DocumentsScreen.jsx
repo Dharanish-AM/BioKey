@@ -106,13 +106,13 @@ export default function DocumentsScreen() {
         <View style={styles.center}>
           {initialLoading ? (
             <FlatList
-              data={[1, 2, 3, 4, 5, 6]}
+              data={[1, 2, 3, 4, 5, 6, 7, 8]}
               renderItem={renderSkeletonItem}
               keyExtractor={(item, index) => `skeleton-${index}`}
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent: "center",
+
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{
@@ -135,8 +135,6 @@ export default function DocumentsScreen() {
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent:
-                  documents.length === 0 ? "center" : "flex-start",
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{

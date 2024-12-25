@@ -10,12 +10,16 @@ app.use(
     origin: "*",
   })
 );
-app.use(express.json()); 
+app.use(express.json());
 
+const connectToDB = require("./config/db");
 const fileRoutes = require("./routes/fileRoutes");
+const userRoutes = require("./routes/userRoutes");
+
+connectToDB();
 
 app.use("/api/files", fileRoutes);
-// app.use("/api/users");
+app.use("/api/users", userRoutes);
 // app.use("/api/passwords");
 // app.use("/api/devices");
 

@@ -71,7 +71,6 @@ export default function HomeScreen({ navigation }) {
     (state) => state.files.recents,
     shallowEqual
   );
-  const isTabBarVisible = useSelector((state) => state.appConfig.tabBarVisible);
 
   const usedSpace = useSelector((state) => state.files.usedSpace, shallowEqual);
 

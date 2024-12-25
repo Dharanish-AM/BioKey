@@ -94,11 +94,12 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("audiosScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileName) => {
+  const handlePress = async (fileName, thumbnail) => {
     await navigation.navigate("FilePreviewScreen", {
       fileName,
       category: "audios",
       folder: null,
+      thumbnail,
     });
   };
 
@@ -285,7 +286,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <Pressable
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileName)}
+      onPress={() => handlePress(item.fileName, item.thumbnail)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
@@ -377,13 +378,13 @@ export default function PhotosScreen({ navigation }) {
         <View style={styles.center}>
           {initialLoading ? (
             <FlatList
-              data={[1, 2, 3, 4, 5, 6]}
+              data={[1, 2, 3, 4, 5, 6, 7, 8]}
               renderItem={renderSkeletonItem}
               keyExtractor={(item, index) => `skeleton-${index}`}
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent: "center",
+
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{
@@ -406,7 +407,6 @@ export default function PhotosScreen({ navigation }) {
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-                justifyContent: audios.length === 0 ? "center" : "flex-start",
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{

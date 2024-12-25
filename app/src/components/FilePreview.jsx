@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   StyleSheet,
   Image,
-  Slider,
   TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -27,6 +26,12 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { Audio } from "expo-av";
 import PlayButtonIcon from "../assets/images/play-button.png";
 import PauseButtonicon from "../assets/images/pause-icon.png";
+import Slider from "@react-native-community/slider";
+import FavIcon from "../assets/images/heart_bottom_icon.png";
+import ShareIcon from "../assets/images/share_bottom_icon.png";
+import AddFolder from "../assets/images/addfolder_bottom_icon.png";
+import BinIcon from "../assets/images/trash_bottom_icon.png";
+import InfoIcon from "../assets/images/info_bottom_icon.png";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { fileName, category, folder, thumbnail } = route.params;
@@ -122,27 +127,31 @@ export default function FilePreviewScreen({ route, navigation }) {
     </View>
   );
 
-  const AudioPreview = ({ fileData, thumbnail }) => {
+  const AudioPreview = ({ fileData = "", thumbnail = "" }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [sound, setSound] = useState(null);
     const [position, setPosition] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
       const loadAudio = async () => {
         try {
-          const { sound: newSound } = await Audio.Sound.createAsync({
-            uri: fileData,
-            shouldPlay: true,
-            isLooping: true,
-          });
+          const { sound: newSound } = await Audio.Sound.createAsync(
+            { uri: fileData },
+            { shouldPlay: false, isLooping: true },
+            updateStatus
+          );
           setSound(newSound);
+          setIsLoaded(true);
         } catch (error) {
           console.error("Error loading audio:", error);
         }
       };
 
-      loadAudio();
+      if (fileData) {
+        loadAudio();
+      }
 
       return () => {
         if (sound) {
@@ -162,6 +171,16 @@ export default function FilePreviewScreen({ route, navigation }) {
         };
       }, [sound])
     );
+
+    const updateStatus = (status) => {
+      if (status.isLoaded) {
+        setDuration(status.durationMillis || 0);
+        setPosition(status.positionMillis || 0);
+        setIsPlaying(status.isPlaying || false);
+      } else if (status.error) {
+        console.error("Audio playback error:", status.error);
+      }
+    };
 
     const playAudio = async () => {
       try {
@@ -185,12 +204,51 @@ export default function FilePreviewScreen({ route, navigation }) {
       }
     };
 
+    const handleSlidingComplete = async (value) => {
+      if (sound) {
+        try {
+          await sound.setPositionAsync(value);
+          setPosition(value);
+
+          if (value === 0) {
+            await sound.pauseAsync();
+            setIsPlaying(false);
+          } else {
+            await sound.playAsync();
+            setIsPlaying(true);
+          }
+        } catch (error) {
+          console.error("Error during slider interaction:", error);
+        }
+      }
+    };
+
+    const formatTime = (timeInMillis) => {
+      const minutes = Math.floor(timeInMillis / 60000); // Convert milliseconds to minutes
+      const seconds = Math.floor((timeInMillis % 60000) / 1000); // Get the remaining seconds
+      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`; // Format in "mm:ss"
+    };
+
     return (
       <View style={styles.audioContainer}>
         <View style={styles.audioThumbnailContainer}>
           <Image source={{ uri: thumbnail }} style={styles.audioThumbnail} />
         </View>
         <View style={styles.audioControls}>
+          <Slider
+            value={position}
+            minimumValue={0}
+            maximumValue={duration}
+            style={styles.slider}
+            onSlidingComplete={handleSlidingComplete}
+            disabled={!isLoaded}
+            tapToSeek={true}
+            minimumTrackTintColor={colors.primaryColor}
+          />
+          <View style={styles.audioTimeContainer}>
+            <Text style={styles.audioText}>{formatTime(position)} </Text>
+            <Text style={styles.audioText}>{formatTime(duration)} </Text>
+          </View>
           {isPlaying ? (
             <TouchableOpacity onPress={pauseAudio}>
               <Image source={PauseButtonicon} style={styles.pauseButton} />
@@ -279,7 +337,42 @@ export default function FilePreviewScreen({ route, navigation }) {
           </View>
         </View>
         <View style={styles.center}>{renderFilePreview()}</View>
-        <View style={styles.bottom}></View>
+        <View style={styles.bottom}>
+          <TouchableOpacity
+            onPress={() => console.log("Favorite Icon Pressed")}
+            style={styles.opticonContainer}
+          >
+            <Image source={FavIcon} style={styles.opticon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => console.log("Share Icon Pressed")}
+            style={styles.opticonContainer}
+          >
+            <Image source={ShareIcon} style={styles.opticon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => console.log("Add Folder Icon Pressed")}
+            style={styles.opticonContainer}
+          >
+            <Image source={AddFolder} style={styles.opticon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => console.log("Bin Icon Pressed")}
+            style={styles.opticonContainer}
+          >
+            <Image source={BinIcon} style={styles.opticon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => console.log("Info Icon Pressed")}
+            style={styles.opticonContainer}
+          >
+            <Image source={InfoIcon} style={styles.opticon} />
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -288,7 +381,7 @@ export default function FilePreviewScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.secondaryColor2,
+    backgroundColor: colors.secondaryColor1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -309,15 +402,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: "70%",
     gap: wp("0.5%"),
+    width: "90%",
   },
   fileName: {
-    fontSize: hp("2.2%"),
+    fontSize: hp("2%"),
     color: colors.textColor3,
     fontFamily: "Montserrat-SemiBold",
   },
   backIconContainer: {
-    height: hp("4%"),
-    width: hp("4%"),
+    height: hp("4.5%"),
+    width: hp("4.5%"),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -368,30 +462,47 @@ const styles = StyleSheet.create({
   bottom: {
     height: hp("10%"),
     width: wp("100%"),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: wp("6%"),
   },
   audioContainer: {
     flex: 1,
     flexDirection: "column",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.secondaryColor2,
   },
   audioThumbnailContainer: {
     width: "90%",
     height: "60%",
     marginTop: hp("5%"),
   },
+  audioTimeContainer: {
+    width: "90%",
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  audioText: {
+    fontSize: hp("1.8%"),
+    color: colors.textColor2,
+    fontFamily: "Afacad-Regular",
+  },
   audioThumbnail: {
     aspectRatio: 1,
     resizeMode: "contain",
-    borderRadius: hp("1.5%"),
+    borderRadius: hp("2%"),
+  },
+  slider: {
+    width: "90%",
   },
   audioControls: {
     width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-
-    height: "10%",
-    marginTop: hp("4%"),
+    flexDirection: "column",
+    flex: 1,
+    marginTop: hp("3%"),
     alignItems: "center",
   },
   pauseButton: {
@@ -402,6 +513,16 @@ const styles = StyleSheet.create({
   playButton: {
     width: hp("7%"),
     height: hp("7%"),
+    tintColor: colors.textColor3,
+  },
+  opticonContainer: {
+    width: hp("3.2%"),
+    height: hp("3.2%"),
+  },
+  opticon: {
+    flex: 1,
+    aspectRatio: 1,
+    resizeMode: "contain",
     tintColor: colors.textColor3,
   },
 });

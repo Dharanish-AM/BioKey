@@ -38,6 +38,7 @@ import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
+import PlayIcon from "../../../assets/images/play_icon.png";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -282,10 +283,11 @@ export default function PhotosScreen({ navigation }) {
   };
 
   const renderItem = ({ item }) => (
-    <Pressable
+    <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => handlePress(item.fileName)}
     >
+      <Image source={PlayIcon} style={styles.playIcon} />
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
           <Image
@@ -302,7 +304,7 @@ export default function PhotosScreen({ navigation }) {
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 
   const renderSkeletonItem = () => (
@@ -331,7 +333,7 @@ export default function PhotosScreen({ navigation }) {
           >
             <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Photos</Text>
+          <Text style={styles.screenTitle}>Videos</Text>
 
           <View style={styles.filterContainer}>
             <Animated.View
@@ -538,6 +540,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  playIcon: {
+    position: "absolute",
+    zIndex: 100,
+    height: hp("5%"),
+    width: hp("5%"),
+    tintColor: "rgba(202, 202, 202, 0.75)",
   },
   fileThumbnailContainer: {
     height: "80%",

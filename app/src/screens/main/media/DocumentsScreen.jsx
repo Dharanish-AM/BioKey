@@ -1,4 +1,3 @@
-import React, { useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,24 +7,37 @@ import {
   StyleSheet,
   RefreshControl,
   TouchableOpacity,
+  Animated,
+  Alert,
+  TextInput,
 } from "react-native";
-import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import React, { useRef, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchFilesByCategory } from "../../../services/fileOperations";
+import { shallowEqual } from "react-redux";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { setFirstRender } from "../../../redux/actions";
+import { Easing } from "react-native-reanimated";
+import { pickMedia } from "../../../utils/mediaPicker";
+import { uploadMedia } from "../../../services/fileOperations";
+
 import colors from "../../../constants/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import PlusIcon from "../../../assets/images/plus.png";
-import DocsFileIcon from "../../../assets/images/document_bottom.png";
 import SkeletonLoader from "../../../components/SkeletonLoader";
-import { setFirstRender } from "../../../redux/actions";
+import SearchIcon from "../../../assets/images/new_search_icon.png";
+import FilterIcon from "../../../assets/images/filter_icon.png";
+import BackIcon from "../../../assets/images/back_icon.png";
+import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
+import DocsFileIcon from "../../../assets/images/document_icon.png";
+import PdfIcon from "../../../assets/images/pdf_icon.png";
 
-export default function DocumentsScreen() {
+export default function DocumentsScreen({ navigation }) {
   const dispatch = useDispatch();
-
   const { documents, loading, error } = useSelector(
     (state) => ({
       documents: state.files.documents,
@@ -41,6 +53,13 @@ export default function DocumentsScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtereddocuments, setFiltereddocuments] = useState(documents);
+  const [width] = useState(new Animated.Value(0));
+  const [opacity] = useState(new Animated.Value(0));
+  const [iconsOpacity] = useState(new Animated.Value(1));
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchData = async () => {
     setIsInitialLoading(true);
@@ -55,13 +74,206 @@ export default function DocumentsScreen() {
   };
 
   useEffect(() => {
+    if (searchTerm) {
+      const filteredData = documents.filter((image) =>
+        image.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFiltereddocuments(filteredData);
+    } else {
+      setFiltereddocuments(documents);
+    }
+  }, [documents, searchTerm]);
+
+  useEffect(() => {
     if (!isFirstRender) return;
     fetchData();
     dispatch(setFirstRender("documentsScreen"));
   }, [isFirstRender, dispatch]);
 
+  const handlePress = async (fileName) => {
+    await navigation.navigate("FilePreviewScreen", {
+      fileName,
+      category: "documents",
+      folder: null,
+    });
+  };
+
+  const handleSearchIconClick = () => {
+    setIsSearchActive(true);
+    Animated.parallel([
+      Animated.timing(width, {
+        toValue: hp("21%"),
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(iconsOpacity, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    ]).start();
+  };
+
+  const handleCancelSearch = () => {
+    Animated.parallel([
+      Animated.timing(width, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      Animated.timing(iconsOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: false,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    ]).start(() => setIsSearchActive(false));
+  };
+
+  const handleSearchChange = (text) => {
+    setSearchTerm(text);
+    const filteredData = documents.filter((document) =>
+      document.fileName.toLowerCase().includes(text.toLowerCase())
+    );
+    setFiltereddocuments(filteredData);
+  };
+
+  const handleSubmitEditing = () => {
+    handleCancelSearch();
+  };
+
+  const handleDocumentsPick = async () => {
+    if (isUploading) return;
+    try {
+      const result = await pickMedia("documents");
+
+      if (result === "cancelled") {
+        setIsUploading(false);
+        return;
+      }
+
+      if (Array.isArray(result) && result.length > 0) {
+        const files = result;
+        console.log("Files selected:", files);
+
+        const category = "documents";
+
+        Alert.alert(
+          "Confirm Upload",
+          `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
+          [
+            {
+              text: "Cancel",
+              onPress: () => {
+                console.log("Upload cancelled");
+                setIsUploading(false);
+              },
+            },
+            {
+              text: "OK",
+              onPress: async () => {
+                setIsUploading(true);
+                let successCount = 0;
+
+                for (const file of files) {
+                  const fileUri = file.uri;
+                  const fileName = file.fileName || file.name;
+
+                  if (!fileUri) {
+                    console.error(
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} missing URI.`
+                    );
+                    continue;
+                  }
+
+                  const uploadResponse = await uploadMedia(
+                    fileUri,
+                    fileName,
+                    category,
+                    dispatch
+                  );
+
+                  if (uploadResponse.success) {
+                    successCount++;
+                    console.log(
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} uploaded successfully`
+                    );
+                  } else {
+                    console.error(
+                      `${
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      } ${fileName} upload failed:`,
+                      uploadResponse.message
+                    );
+                  }
+                }
+
+                setIsUploading(false);
+
+                if (successCount > 0) {
+                  Alert.alert(
+                    "Upload Success",
+                    `${successCount} ${category}(s) uploaded successfully!`,
+                    [{ text: "OK" }]
+                  );
+                } else {
+                  Alert.alert(
+                    "Upload Failed",
+                    "No files were uploaded successfully.",
+                    [{ text: "OK" }]
+                  );
+                }
+
+                refRBSheet.current.close();
+                console.log("Upload finished...");
+              },
+            },
+          ]
+        );
+      } else {
+        console.log("No files selected or invalid data");
+        Alert.alert(
+          "No Selection",
+          "Please select valid media files to upload.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred during the media picking or upload process:",
+        error
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const renderItem = ({ item }) => (
-    <View style={styles.fileContainer}>
+    <TouchableOpacity
+      style={styles.fileContainer}
+      onPress={() => {
+        handlePress(item.fileName);
+      }}
+    >
       <View
         style={[
           styles.fileThumbnailContainer,
@@ -69,7 +281,13 @@ export default function DocumentsScreen() {
         ]}
       >
         <Image
-          source={item.thumbnail ? { uri: item.thumbnail } : DocsFileIcon}
+          source={
+            item.thumbnail
+              ? { uri: item.thumbnail }
+              : item.fileName.includes("pdf")
+              ? PdfIcon
+              : DocsFileIcon
+          }
           style={[styles.fileThumbnail, !item.thumbnail && styles.fallbackIcon]}
         />
       </View>
@@ -79,12 +297,12 @@ export default function DocumentsScreen() {
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderSkeletonItem = () => (
-    <View style={styles.shimmerFileContainer}>
-      <View style={{}}>
+    <View>
+      <View>
         <SkeletonLoader boxHeight={hp("18%")} boxWidth={wp("45%")} />
       </View>
       <View style={{ marginTop: hp("1%") }}>
@@ -99,10 +317,55 @@ export default function DocumentsScreen() {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
+      <SpinnerOverlay2 visible={isUploading} />
       <View style={styles.innerContainer}>
         <View style={styles.top}>
+          <TouchableOpacity
+            style={styles.backIconContainer}
+            onPress={() => navigation.goBack()}
+          >
+            <Image source={BackIcon} style={styles.backIcon} />
+          </TouchableOpacity>
           <Text style={styles.screenTitle}>Documents</Text>
+
+          <View style={styles.filterContainer}>
+            <Animated.View
+              style={[styles.filterContainer, { opacity: iconsOpacity }]}
+            >
+              {!isSearchActive && (
+                <TouchableOpacity style={styles.filterIconContainer}>
+                  <Image source={FilterIcon} style={styles.filterIcon} />
+                </TouchableOpacity>
+              )}
+
+              {!isSearchActive && (
+                <TouchableOpacity
+                  style={styles.searchIconContainer}
+                  onPress={handleSearchIconClick}
+                >
+                  <Image source={SearchIcon} style={styles.searchIcon} />
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+
+            {isSearchActive && (
+              <Animated.View
+                style={[styles.inputContainer, { width, opacity }]}
+              >
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChangeText={handleSearchChange}
+                  autoFocus={true}
+                  onSubmitEditing={handleSubmitEditing}
+                  returnKeyType="done"
+                />
+              </Animated.View>
+            )}
+          </View>
         </View>
+
         <View style={styles.center}>
           {initialLoading ? (
             <FlatList
@@ -129,7 +392,7 @@ export default function DocumentsScreen() {
             />
           ) : (
             <FlatList
-              data={documents}
+              data={filtereddocuments}
               renderItem={renderItem}
               keyExtractor={(item, index) => `${item.fileName}-${index}`}
               numColumns={2}
@@ -141,9 +404,6 @@ export default function DocumentsScreen() {
                 justifyContent: "space-between",
                 marginBottom: hp("2%"),
               }}
-              ListFooterComponent={
-                loading ? <ActivityIndicator size="large" /> : null
-              }
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -154,7 +414,12 @@ export default function DocumentsScreen() {
             />
           )}
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            handleDocumentsPick();
+          }}
+        >
           <Image source={PlusIcon} style={styles.plusIcon} />
         </TouchableOpacity>
       </View>
@@ -179,12 +444,78 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("3%"),
+    paddingHorizontal: wp("1%"),
+    justifyContent: "space-between",
+  },
+  titleContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    textAlignVertical: "center",
+    alignSelf: "center",
+    height: "80%",
+  },
+  backIconContainer: {
+    height: hp("4.5%"),
+    width: hp("4.5%"),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backIcon: {
+    flex: 1,
+    aspectRatio: 1,
+    resizeMode: "contain",
   },
   screenTitle: {
     fontSize: hp("4%"),
     fontFamily: "Afacad-SemiBold",
     color: colors.textColor3,
+    width: "40%",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: wp("4%"),
+    flex: 1,
+    alignItems: "center",
+    marginRight: wp("1%"),
+    height: "80%",
+  },
+  searchIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchIcon: {
+    height: hp("3.7%"),
+    aspectRatio: 1,
+    resizeMode: "contain",
+    tintColor: colors.textColor3,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.secondaryColor2,
+    borderRadius: hp("2%"),
+    paddingHorizontal: hp("2%"),
+    overflow: "hidden",
+    height: "70%",
+  },
+  textInput: {
+    height: "100%",
+    fontSize: hp("1.7%"),
+    flex: 1,
+    fontFamily: "Montserrat-Medium",
+    color: colors.textColor3,
+  },
+  filterIconContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterIcon: {
+    height: hp("5%"),
+    aspectRatio: 1,
+    resizeMode: "contain",
+    tintColor: colors.textColor3,
   },
   center: {
     flex: 1,
@@ -195,7 +526,7 @@ const styles = StyleSheet.create({
     height: hp("21%"),
     overflow: "hidden",
     borderRadius: hp("1.5%"),
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 0.6,
     backgroundColor: "rgba(25, 29, 36, 0.5)",
@@ -203,6 +534,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+  },
+  fallbackThumbnailContainer: {
+    width: "100%",
+    height: "80%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fallbackIcon: {
+    width: "60%",
+    height: "60%",
+    resizeMode: "contain",
   },
   fileThumbnailContainer: {
     height: "80%",
@@ -213,12 +555,6 @@ const styles = StyleSheet.create({
   fileThumbnail: {
     height: "100%",
     width: "100%",
-  },
-  fallbackIcon: {
-    height: "50%",
-    width: "50%",
-    tintColor: colors.textColor3,
-    opacity: 0.9,
   },
   fileDetails: {
     alignItems: "center",
@@ -242,7 +578,19 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: "absolute",
-    right: wp("5%"),
-    bottom: hp("5%"),
+    right: wp("7%"),
+    bottom: hp("3%"),
+    width: hp("7.5%"),
+    aspectRatio: 1,
+    backgroundColor: "rgba(101, 48, 194, 0.95)",
+
+    borderRadius: hp("100%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  plusIcon: {
+    width: "50%",
+    height: "50%",
+    opacity: 0.9,
   },
 });

@@ -3,6 +3,7 @@ import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER } from "../types";
 const initialState = {
   tabBarVisible: true,
   isFirstRender: {
+    homeScreen: true,
     imagesScreen: true,
     videosScreen: true,
     audiosScreen: true,

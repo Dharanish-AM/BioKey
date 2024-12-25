@@ -58,6 +58,7 @@ export default function TabNavigator() {
           );
         },
         tabBarHideOnKeyboard: true,
+        lazy: true,
       })}
     >
       <Tab.Screen

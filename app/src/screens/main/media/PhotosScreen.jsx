@@ -283,7 +283,7 @@ export default function PhotosScreen({ navigation }) {
   };
 
   const renderItem = ({ item }) => (
-    <Pressable
+    <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => handlePress(item.fileName)}
     >
@@ -303,7 +303,7 @@ export default function PhotosScreen({ navigation }) {
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 
   const renderSkeletonItem = () => (
@@ -404,7 +404,6 @@ export default function PhotosScreen({ navigation }) {
               numColumns={2}
               contentContainerStyle={{
                 flexGrow: 1,
-
                 paddingHorizontal: wp("3%"),
               }}
               columnWrapperStyle={{

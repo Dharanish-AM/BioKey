@@ -284,7 +284,7 @@ export default function PhotosScreen({ navigation }) {
   };
 
   const renderItem = ({ item }) => (
-    <Pressable
+    <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => handlePress(item.fileName, item.thumbnail)}
     >
@@ -306,7 +306,7 @@ export default function PhotosScreen({ navigation }) {
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 
   const renderSkeletonItem = () => (

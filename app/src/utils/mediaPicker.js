@@ -26,13 +26,13 @@ export const pickMedia = async (type) => {
 
       case "image_video":
         pickerResult = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          mediaTypes: ["images", "videos"],
           allowsMultipleSelection: true,
           quality: 1,
         });
         break;
 
-      case "others":
+      case "documents":
         pickerResult = await DocumentPicker.getDocumentAsync({
           type: "*/*",
           multiple: true,
@@ -49,20 +49,14 @@ export const pickMedia = async (type) => {
       return "cancelled";
     }
 
+    console.log("Picker result:", pickerResult);
+
     const assets = pickerResult.assets || [];
-    const images = assets.filter(
-      (asset) => asset.type === "image" || asset.type.startsWith("image/")
-    );
-    const videos = assets.filter(
-      (asset) => asset.type === "video" || asset.type.startsWith("video/")
-    );
+    const images = assets.filter((asset) => asset.type === "image");
+    const videos = assets.filter((asset) => asset.type === "video");
 
     if (type === "image" || type === "video") {
       return type === "image" ? images : videos;
-    }
-
-    if (type === "image_video") {
-      return { images, videos };
     }
 
     return pickerResult;

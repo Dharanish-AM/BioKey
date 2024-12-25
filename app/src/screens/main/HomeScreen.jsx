@@ -11,7 +11,7 @@ import {
   Animated,
   RefreshControl,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import {
@@ -54,14 +54,13 @@ import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
-import { setTabBarVisible } from "../../redux/actions";
+import { setFirstRender, setTabBarVisible } from "../../redux/actions";
 import SkeletonLoader from "../../components/SkeletonLoader";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const fetchOnceRef = useRef(false);
   const refRBSheet = useRef();
   const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
@@ -73,12 +72,14 @@ export default function HomeScreen({ navigation }) {
   );
 
   const usedSpace = useSelector((state) => state.files.usedSpace, shallowEqual);
+  const isFirstRender = useSelector(
+    (state) => state.appConfig.isFirstRender.homeScreen
+  );
 
   useEffect(() => {
-    if (fetchOnceRef.current) return;
-    fetchOnceRef.current = true;
+    if (!isFirstRender) return;
     setIsLoading(true);
-
+    dispatch(setFirstRender("homeScreen"));
     const fetchData = async () => {
       try {
         await fetchRecentFiles(dispatch);
@@ -509,11 +510,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.storageView}>
             <View style={styles.storageViewLeft}>
               <CircularProgress
-                value={
-                  usedSpace && usedSpace.usedSpacePercentage
-                    ? usedSpace.usedSpacePercentage
-                    : 0
-                }
+                value={usedSpace.usedSpacePercentage}
                 radius={hp("8%")}
                 duration={2000}
                 progressValueColor={colors.textColor3}
@@ -1019,8 +1016,7 @@ const styles = StyleSheet.create({
   pdfImage: {
     width: "65%",
     height: "65%",
-    tintColor: "#D3D3D3",
-    opacity: 0.8,
+    opacity: 0.9,
   },
   audioImage: {
     tintColor: "#D3D3D3",
@@ -1036,11 +1032,11 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     position: "absolute",
-    width: "90%",
-    height: "90%",
-    tintColor: colors.textColor3,
-    opacity: 0.8,
+    width: "40%",
+    height: "40%",
+    tintColor: "rgba(202, 202, 202, 0.80)",
     zIndex: 10,
+    opacity: 0.9,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -1048,10 +1044,9 @@ const styles = StyleSheet.create({
     borderRadius: hp("1.5%"),
   },
   documentImage: {
-    tintColor: "#D3D3D3",
-    opacity: 0.8,
-    height: "45%",
-    width: "45%",
+    height: "60%",
+    width: "60%",
+    resizeMode: "contain",
   },
   fileDetailsContainer: {
     flex: 1,

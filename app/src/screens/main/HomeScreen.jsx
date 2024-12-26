@@ -341,7 +341,7 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRecentFiles(dispatch);
+    //await fetchRecentFiles(dispatch);
     await fetchUsedSpace(dispatch);
     setRefreshing(false);
   };

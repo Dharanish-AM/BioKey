@@ -23,6 +23,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.0",
     "nodemon": "^3.1.9",
+    "p-limit": "^6.2.0",
     "pdf-lib": "^1.17.1",
     "pdf-poppler": "^0.2.1",
     "sharp": "^0.33.5",

@@ -1,44 +1,48 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    lowercase: true,
-    validate: {
-      validator: function (v) {
-        return /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid email!`,
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+    },
+    phone: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    profile: {
+      type: String,
+      default: null,
+    },
+    device: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Device",
+      default: null,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
     },
   },
-  phone: {
-    type: Number,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  profile: {
-    type: String,
-    default: null,
-  },
-  device: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Device",
-    default: null,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
+
+userSchema.index({ email: 1 });
+userSchema.index({ phone: 1 });
 
 module.exports = mongoose.model("User", userSchema);

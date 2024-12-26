@@ -79,14 +79,15 @@ export const fetchFilesByCategory = async (
 
 export const fetchRecentFiles = async (dispatch) => {
   try {
+    const userId = "user123";
+
     const response = await axios.get(`${API_URL}/recent`, {
-      params: {
-        userId: "user123",
-      },
+      params: { userId },
     });
-    if (response.status === 200) {
-      dispatch(fetchFilesAction("recents", response.data.files || []));
-      console.log("Fetched Files of category - recents");
+
+    if (response.status === 200 && response.data.success) {
+      dispatch(fetchFilesAction("recents", response.data.recentFiles || []));
+      console.log("Fetched Recent Files");
     } else {
       console.error("Error fetching recent files:", response.statusText);
     }

@@ -66,13 +66,13 @@ export default function PhotosScreen({ navigation }) {
 
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("user123", "images", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "images", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("user123", "images", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "images", dispatch);
     setRefreshing(false);
   };
 
@@ -257,8 +257,7 @@ export default function PhotosScreen({ navigation }) {
                     [{ text: "OK" }]
                   );
                 }
-
-                refRBSheet.current.close();
+                refreshData();
                 console.log("Upload finished...");
               },
             },
@@ -285,7 +284,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileName)}
+      onPress={() => handlePress(item.name)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
@@ -295,11 +294,13 @@ export default function PhotosScreen({ navigation }) {
           />
         </View>
       ) : (
-        <Text>No Thumbnail Available</Text>
+        <View style={styles.fileThumbnailContainer}>
+          <Text style={styles.noThumbnail}>No Thumbnail Available</Text>
+        </View>
       )}
       <View style={styles.fileDetails}>
         <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
-          {item.fileName}
+          {item.name}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
@@ -531,7 +532,7 @@ const styles = StyleSheet.create({
     height: hp("21%"),
     overflow: "hidden",
     borderRadius: hp("1.5%"),
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 0.6,
     backgroundColor: "rgba(25, 29, 36, 0.5)",
@@ -549,6 +550,7 @@ const styles = StyleSheet.create({
   fileThumbnail: {
     height: "100%",
     width: "100%",
+    resizeMode: "cover",
   },
   fileDetails: {
     alignItems: "center",
@@ -558,12 +560,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: "6%",
     flexDirection: "row",
   },
+  noThumbnail: {
+    fontFamily: "Afacad-Regular",
+    opacity: 0.9,
+    fontSize: hp("1.5%"),
+    color: colors.textColor2,
+    alignSelf: "center",
+  },
   fileName: {
     fontSize: hp("1.5%"),
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
     opacity: 0.9,
-    width: "60%",
+    width: "70%",
   },
   fileSize: {
     fontSize: hp("1.5%"),

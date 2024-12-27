@@ -4,14 +4,14 @@ import { formatFileSize } from "../utils/formatFileSize";
 
 const API_URL = "http://192.168.1.3:8000/api/files";
 
-export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
+export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();
   const file = {
     uri: fileUri,
     name: fileName,
   };
 
-  let userId = "user123";
+  let userId = "676aee09b3f0d752bbbe58f7";
   formData.append("userId", userId);
   formData.append("file", file);
 
@@ -24,8 +24,6 @@ export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
 
     if (response.status >= 200 && response.status < 300) {
       console.log("Upload successful", response.data);
-
-      await fetchFilesByCategory(userId, category, dispatch);
 
       return { success: true, message: "Upload successful and files updated" };
     } else {
@@ -47,26 +45,18 @@ export const uploadMedia = async (fileUri, fileName, category, dispatch) => {
   }
 };
 
-export const fetchFilesByCategory = async (
-  userId,
-  category,
-  dispatch,
-  page = 1,
-  limit = 0
-) => {
+export const fetchFilesByCategory = async (userId, category, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/list`, {
       params: {
         userId,
         category,
-        page,
-        limit,
       },
     });
 
-    if (response.data.success) {
+    if (response.status == 200) {
       const files = response.data.files;
-      console.log(`Fetched Files of category ${category} - Page ${page}`);
+      console.log(`Fetched Files of category ${category} `);
       console.log("Fetched files:", files.length);
       dispatch(fetchFilesAction(category, files));
     } else {
@@ -79,14 +69,12 @@ export const fetchFilesByCategory = async (
 
 export const fetchRecentFiles = async (dispatch) => {
   try {
-    const userId = "user123";
+    const userId = "676aee09b3f0d752bbbe58f7";
 
-    const response = await axios.get(`${API_URL}/recent`, {
-      params: { userId },
-    });
+    const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
 
-    if (response.status === 200 && response.data.success) {
-      dispatch(fetchFilesAction("recents", response.data.recentFiles || []));
+    if (response.status === 200) {
+      dispatch(fetchFilesAction("recents", response.data.files || []));
       console.log("Fetched Recent Files");
     } else {
       console.error("Error fetching recent files:", response.statusText);
@@ -99,7 +87,9 @@ export const fetchRecentFiles = async (dispatch) => {
 export const fetchUsedSpace = async (dispatch) => {
   const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   try {
-    const response = await axios.get(`${API_URL}/usedspace?userId=user123`);
+    const response = await axios.get(
+      `${API_URL}/usedspace?userId=676aee09b3f0d752bbbe58f7`
+    );
 
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;

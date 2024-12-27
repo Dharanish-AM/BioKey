@@ -39,13 +39,9 @@ export default function FilePreviewScreen({ route, navigation }) {
   const [videoData, setVideoData] = useState(null);
   const [audioData, setAudioData] = useState(null);
   const [documentData, setDocumentData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const userId = "676aee09b3f0d752bbbe58f7";
   const dispatch = useDispatch();
-
-  const player = useVideoPlayer(videoData, (player) => {
-    player.loop = true;
-    player.play();
-  });
 
   useEffect(() => {
     const fetchFilePreview = async () => {
@@ -54,7 +50,7 @@ export default function FilePreviewScreen({ route, navigation }) {
         switch (category) {
           case "images":
             const imageResponse = await previewImage(
-              "user123",
+              userId,
               fileName,
               category,
               folder
@@ -62,26 +58,16 @@ export default function FilePreviewScreen({ route, navigation }) {
             setImageData(imageResponse);
             break;
           case "videos":
-            const videoUrl = previewVideo(
-              "user123",
-              category,
-              fileName,
-              folder
-            );
+            const videoUrl = previewVideo(userId, category, fileName, folder);
             setVideoData(videoUrl);
             break;
           case "audios":
-            const audioUrl = previewAudio(
-              "user123",
-              category,
-              fileName,
-              folder
-            );
+            const audioUrl = previewAudio(userId, category, fileName, folder);
             setAudioData(audioUrl);
             break;
           case "documents":
             const docResponse = await previewDocument(
-              "user123",
+              userId,
               category,
               fileName,
               folder
@@ -99,33 +85,47 @@ export default function FilePreviewScreen({ route, navigation }) {
     };
 
     fetchFilePreview();
-  }, [category, fileName, folder]);
+  }, []);
 
-  const ImagePreview = ({ fileData }) => (
-    <View style={styles.imageContainer}>
-      <Image
-        source={{ uri: fileData }}
-        style={styles.image}
-        onLoad={() => setLoading(false)}
-        onError={() => setLoading(false)}
-      />
-    </View>
-  );
+  const ImagePreview = ({ fileData }) => {
+    return (
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: fileData }} style={styles.image} />
+      </View>
+    );
+  };
 
-  const VideoPreview = ({ player }) => (
-    <View style={styles.videoContainer}>
-      <VideoView
-        style={styles.video}
-        player={player}
-        shouldPlay
-        allowsFullscreen
-        allowsPictureInPicture
-        fullscreen={true}
-        resizeMode="contain"
-        contentFit="cover"
-      />
-    </View>
-  );
+  const VideoPreview = () => {
+    const player = useVideoPlayer(videoData, (player) => {
+      player.loop = true;
+      player.play();
+    });
+
+    useFocusEffect(
+      React.useCallback(() => {
+        return () => {
+          if (player) {
+            player.pause();
+          }
+        };
+      }, [player])
+    );
+
+    return (
+      <View style={styles.videoContainer}>
+        <VideoView
+          style={styles.video}
+          player={player}
+          shouldPlay
+          allowsFullscreen
+          allowsPictureInPicture
+          fullscreen={true}
+          resizeMode="contain"
+          contentFit="cover"
+        />
+      </View>
+    );
+  };
 
   const AudioPreview = ({ fileData = "", thumbnail = "" }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -224,9 +224,9 @@ export default function FilePreviewScreen({ route, navigation }) {
     };
 
     const formatTime = (timeInMillis) => {
-      const minutes = Math.floor(timeInMillis / 60000); // Convert milliseconds to minutes
-      const seconds = Math.floor((timeInMillis % 60000) / 1000); // Get the remaining seconds
-      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`; // Format in "mm:ss"
+      const minutes = Math.floor(timeInMillis / 60000);
+      const seconds = Math.floor((timeInMillis % 60000) / 1000);
+      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 
     return (
@@ -279,16 +279,6 @@ export default function FilePreviewScreen({ route, navigation }) {
   );
 
   const renderFilePreview = () => {
-    if (loading) {
-      return (
-        <ActivityIndicator
-          size="large"
-          color={colors.primaryColor}
-          style={styles.loadingIndicator}
-        />
-      );
-    }
-
     switch (category) {
       case "images":
         return imageData ? (
@@ -297,11 +287,7 @@ export default function FilePreviewScreen({ route, navigation }) {
           <NoPreviewAvailable />
         );
       case "videos":
-        return videoData ? (
-          <VideoPreview player={player} />
-        ) : (
-          <NoPreviewAvailable />
-        );
+        return videoData ? <VideoPreview /> : <NoPreviewAvailable />;
       case "audios":
         return audioData ? (
           <AudioPreview fileData={audioData} thumbnail={thumbnail} />
@@ -421,8 +407,10 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   center: {
-    flex: 1,
     width: wp("100%"),
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
     width: "100%",
@@ -459,6 +447,12 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontStyle: "italic",
   },
+  loadingIndicator: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -25 }, { translateY: -25 }],
+  },
   bottom: {
     height: hp("10%"),
     width: wp("100%"),
@@ -468,7 +462,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("6%"),
   },
   audioContainer: {
-    flex: 1,
+    width: "100%",
+    height: "100%",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",

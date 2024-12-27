@@ -67,13 +67,13 @@ export default function PhotosScreen({ navigation }) {
 
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("user123", "videos", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "videos", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("user123", "videos", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "videos", dispatch);
     setRefreshing(false);
   };
 
@@ -258,7 +258,7 @@ export default function PhotosScreen({ navigation }) {
                   );
                 }
 
-                refRBSheet.current.close();
+                refreshData()
                 console.log("Upload finished...");
               },
             },
@@ -285,7 +285,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileName)}
+      onPress={() => handlePress(item.name)}
     >
       <Image source={PlayIcon} style={styles.playIcon} />
       {item.thumbnail ? (
@@ -300,7 +300,7 @@ export default function PhotosScreen({ navigation }) {
       )}
       <View style={styles.fileDetails}>
         <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
-          {item.fileName}
+          {item.name}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
     opacity: 0.9,
-    width: "60%",
+    width: "70%",
   },
   fileSize: {
     fontSize: hp("1.5%"),

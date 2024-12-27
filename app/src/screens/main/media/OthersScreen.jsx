@@ -33,14 +33,14 @@ import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
-import DocsFileIcon from "../../../assets/images/document_icon.png";
+import DocsFileIcon from "../../../assets/images/docs_icon.png";
 import PdfIcon from "../../../assets/images/pdf_icon.png";
 
-export default function DocumentsScreen({ navigation }) {
+export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { documents, loading, error } = useSelector(
+  const { others, loading, error } = useSelector(
     (state) => ({
-      documents: state.files.documents,
+      others: state.files.others,
       loading: state.loading,
       error: state.error,
     }),
@@ -48,14 +48,14 @@ export default function DocumentsScreen({ navigation }) {
   );
 
   const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.documentsScreen
+    (state) => state.appConfig.isFirstRender.othersScreen
   );
 
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtereddocuments, setFiltereddocuments] = useState(documents);
+  const [filteredothers, setFilteredothers] = useState(others);
   const [width] = useState(new Animated.Value(0));
   const [opacity] = useState(new Animated.Value(0));
   const [iconsOpacity] = useState(new Animated.Value(1));
@@ -63,37 +63,38 @@ export default function DocumentsScreen({ navigation }) {
 
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("user123", "documents", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "others", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("user123", "documents", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "others", dispatch);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (searchTerm) {
-      const filteredData = documents.filter((image) =>
-        image.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+      const filteredData = others.filter((other) =>
+        other.fileName.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFiltereddocuments(filteredData);
+      setFilteredothers(filteredData);
     } else {
-      setFiltereddocuments(documents);
+      setFilteredothers(others);
     }
-  }, [documents, searchTerm]);
+  }, [others, searchTerm]);
 
   useEffect(() => {
     if (!isFirstRender) return;
     fetchData();
-    dispatch(setFirstRender("documentsScreen"));
+
+    dispatch(setFirstRender("othersScreen"));
   }, [isFirstRender, dispatch]);
 
   const handlePress = async (fileName) => {
     await navigation.navigate("FilePreviewScreen", {
       fileName,
-      category: "documents",
+      category: "others",
       folder: null,
     });
   };
@@ -147,20 +148,33 @@ export default function DocumentsScreen({ navigation }) {
 
   const handleSearchChange = (text) => {
     setSearchTerm(text);
-    const filteredData = documents.filter((document) =>
-      document.fileName.toLowerCase().includes(text.toLowerCase())
+    const filteredData = others.filter((other) =>
+      other.fileName.toLowerCase().includes(text.toLowerCase())
     );
-    setFiltereddocuments(filteredData);
+    setFilteredothers(filteredData);
   };
 
   const handleSubmitEditing = () => {
     handleCancelSearch();
   };
 
-  const handleDocumentsPick = async () => {
+  const handleothersPick = async () => {
     if (isUploading) return;
     try {
-      const result = await pickMedia("documents");
+      const result = await pickMedia("others");
+
+      console.log(result);
+
+      if (!result) {
+        console.log("No files selected or invalid data");
+        Alert.alert(
+          "No Selection",
+          "Please select valid media files to upload.",
+          [{ text: "OK" }]
+        );
+        setIsUploading(false);
+        return;
+      }
 
       if (result === "cancelled") {
         setIsUploading(false);
@@ -171,7 +185,7 @@ export default function DocumentsScreen({ navigation }) {
         const files = result;
         console.log("Files selected:", files);
 
-        const category = "documents";
+        const category = "others";
 
         Alert.alert(
           "Confirm Upload",
@@ -243,7 +257,7 @@ export default function DocumentsScreen({ navigation }) {
                   );
                 }
 
-                refRBSheet.current.close();
+                refreshData();
                 console.log("Upload finished...");
               },
             },
@@ -271,7 +285,7 @@ export default function DocumentsScreen({ navigation }) {
     <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => {
-        handlePress(item.fileName);
+        handlePress(item.name);
       }}
     >
       <View
@@ -284,7 +298,7 @@ export default function DocumentsScreen({ navigation }) {
           source={
             item.thumbnail
               ? { uri: item.thumbnail }
-              : item.fileName.includes("pdf")
+              : item.name.includes("pdf")
               ? PdfIcon
               : DocsFileIcon
           }
@@ -293,7 +307,7 @@ export default function DocumentsScreen({ navigation }) {
       </View>
       <View style={styles.fileDetails}>
         <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
-          {item.fileName}
+          {item.name}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
@@ -326,7 +340,7 @@ export default function DocumentsScreen({ navigation }) {
           >
             <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Documents</Text>
+          <Text style={styles.screenTitle}>Others</Text>
 
           <View style={styles.filterContainer}>
             <Animated.View
@@ -392,7 +406,7 @@ export default function DocumentsScreen({ navigation }) {
             />
           ) : (
             <FlatList
-              data={filtereddocuments}
+              data={filteredothers}
               renderItem={renderItem}
               keyExtractor={(item, index) => `${item.fileName}-${index}`}
               numColumns={2}
@@ -417,7 +431,7 @@ export default function DocumentsScreen({ navigation }) {
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
-            handleDocumentsPick();
+            handleothersPick();
           }}
         >
           <Image source={PlusIcon} style={styles.plusIcon} />
@@ -569,7 +583,7 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
     opacity: 0.9,
-    width: "60%",
+    width: "70%",
   },
   fileSize: {
     fontSize: hp("1.5%"),

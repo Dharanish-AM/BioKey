@@ -7,7 +7,7 @@ const initialState = {
     imagesScreen: true,
     videosScreen: true,
     audiosScreen: true,
-    documentsScreen: true,
+    othersScreen: true,
   },
 };
 

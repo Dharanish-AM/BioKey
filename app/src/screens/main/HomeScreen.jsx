@@ -94,105 +94,81 @@ export default function HomeScreen({ navigation }) {
     fetchData();
   }, [dispatch]);
 
+  const showAlert = (title, message, onConfirm) => {
+    Alert.alert(title, message, [
+      { text: "Cancel", onPress: () => console.log("Action cancelled") },
+      { text: "OK", onPress: onConfirm },
+    ]);
+  };
+
+  const uploadFiles = async (files) => {
+    let successCount = 0;
+
+    for (const file of files) {
+      const fileUri = file.uri;
+      const fileName = file.fileName || file.name;
+
+      if (!fileUri) {
+        console.error(`File ${fileName} missing URI.`);
+        continue;
+      }
+
+      try {
+        const uploadResponse = await uploadMedia(fileUri, fileName);
+        if (uploadResponse.success) {
+          successCount++;
+          console.log(`File ${fileName} uploaded successfully.`);
+        } else {
+          console.error(
+            `File ${fileName} upload failed:`,
+            uploadResponse.message
+          );
+        }
+      } catch (error) {
+        console.error(`Error uploading ${fileName}:`, error);
+      }
+    }
+
+    return successCount;
+  };
+
   const handleImageVideoPick = async () => {
     if (isUploading) return;
-    console.log("Starting upload...");
     setIsUploading(true);
 
     try {
-      const result = await pickMedia("image_video");
+      const result = await pickMedia("images_videos");
 
-      if (result == "cancelled") {
+      if (result === "cancelled") {
         setIsUploading(false);
         return;
       }
 
-      if (result && Array.isArray(result.assets) && result.assets.length > 0) {
+      if (result?.assets?.length > 0) {
         const files = result.assets;
-        const mediaType = files[0].type;
-        let category = "";
-
-        if (mediaType.includes("image")) {
-          category = "images";
-        } else if (mediaType.includes("video")) {
-          category = "videos";
-        } else if (mediaType.includes("audio")) {
-          category = "audio";
-        } else {
-          category = "documents";
-        }
-
-        Alert.alert(
+        showAlert(
           "Confirm Upload",
-          `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
-          [
-            {
-              text: "Cancel",
-              onPress: () => {
-                console.log("Upload cancelled");
-              },
-            },
-            {
-              text: "OK",
-              onPress: async () => {
-                let successCount = 0;
-                for (const file of files) {
-                  const fileUri = file.uri;
-                  const fileName = file.fileName || file.name;
+          `You have selected ${files.length} file(s). Do you want to upload them?`,
+          async () => {
+            const successCount = await uploadFiles(files);
 
-                  if (!fileUri) {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} missing URI.`
-                    );
-                    continue;
-                  }
+            if (successCount > 0) {
+              Alert.alert(
+                "Upload Success",
+                `${successCount} file(s) uploaded successfully!`,
+                [{ text: "OK" }]
+              );
+            } else {
+              Alert.alert(
+                "Upload Failed",
+                "No files were uploaded successfully.",
+                [{ text: "OK" }]
+              );
+            }
 
-                  const uploadResponse = await uploadMedia(
-                    fileUri,
-                    fileName,
-                    category,
-                    dispatch
-                  );
-
-                  if (uploadResponse.success) {
-                    successCount++;
-                    console.log(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} uploaded successfully`
-                    );
-                  } else {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} upload failed:`,
-                      uploadResponse.message
-                    );
-                  }
-                }
-
-                if (successCount > 0) {
-                  Alert.alert(
-                    "Upload Success",
-                    `${successCount} ${category}(s) uploaded successfully!`,
-                    [{ text: "OK" }]
-                  );
-                } else {
-                  Alert.alert(
-                    "Upload Failed",
-                    "No files were uploaded successfully.",
-                    [{ text: "OK" }]
-                  );
-                }
-
-                refRBSheet.current.close();
-                onRefresh();
-                console.log("Upload finished...");
-              },
-            },
-          ]
+            refRBSheet.current.close();
+            onRefresh();
+          }
         );
       } else {
         console.log("No files selected or invalid data");
@@ -214,120 +190,47 @@ export default function HomeScreen({ navigation }) {
 
   const handleOthersPick = async () => {
     if (isUploading) return;
-
     setIsUploading(true);
 
     try {
       const result = await pickMedia("others");
 
-      if (result == "cancelled") {
+      if (result === "cancelled") {
         setIsUploading(false);
         return;
       }
 
-      const type = "other";
-
-      if (result && result.assets && result.assets.length > 0) {
+      if (result?.assets?.length > 0) {
         const files = result.assets;
+        showAlert(
+          "Confirm Upload",
+          `You have selected ${files.length} file(s). Do you want to upload them?`,
+          async () => {
+            const successCount = await uploadFiles(files);
 
-        let category = "";
+            if (successCount > 0) {
+              Alert.alert(
+                "Upload Success",
+                `${successCount} file(s) uploaded successfully!`,
+                [{ text: "OK" }]
+              );
+            } else {
+              Alert.alert(
+                "Upload Failed",
+                "No files were uploaded successfully.",
+                [{ text: "OK" }]
+              );
+            }
 
-        files.forEach((file) => {
-          const fileName = file.name || "";
-          const fileType = file.type || "";
-
-          if (fileType.includes("image")) {
-            category = "images";
-          } else if (fileType.includes("video")) {
-            category = "videos";
-          } else if (fileType.includes("audio")) {
-            category = "audio";
-          } else if (fileName.endsWith(".pdf") || fileName.endsWith(".docx")) {
-            category = "documents";
-          } else {
-            category = "others";
+            refRBSheet.current.close();
+            onRefresh();
           }
-
-          Alert.alert(
-            "Confirm Upload",
-            `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
-            [
-              {
-                text: "Cancel",
-                onPress: () => {
-                  console.log("Upload cancelled");
-                  setIsUploading(false);
-                },
-              },
-              {
-                text: "OK",
-                onPress: async () => {
-                  let successCount = 0;
-
-                  for (const file of files) {
-                    const fileUri = file.uri;
-                    const fileName = file.name;
-
-                    if (!fileUri) {
-                      console.error(
-                        "File URI is invalid or missing for",
-                        fileName
-                      );
-                      continue;
-                    }
-
-                    const uploadResponse = await uploadMedia(
-                      fileUri,
-                      fileName,
-                      category,
-                      dispatch
-                    );
-
-                    if (uploadResponse?.success) {
-                      successCount++;
-                      console.log(
-                        `${
-                          category.charAt(0).toUpperCase() + category.slice(1)
-                        } ${fileName} uploaded successfully`
-                      );
-                    } else {
-                      console.error(
-                        `${
-                          category.charAt(0).toUpperCase() + category.slice(1)
-                        } ${fileName} upload failed:`,
-                        uploadResponse?.message || "Unknown error"
-                      );
-                    }
-                  }
-
-                  if (successCount > 0) {
-                    Alert.alert(
-                      "Upload Success",
-                      `${successCount} ${category}(s) uploaded successfully!`,
-                      [{ text: "OK" }]
-                    );
-                  } else {
-                    Alert.alert(
-                      "Upload Failed",
-                      `No ${category}(s) were uploaded successfully.`,
-                      [{ text: "OK" }]
-                    );
-                  }
-
-                  refRBSheet.current.close();
-                  onRefresh();
-                },
-              },
-            ]
-          );
-        });
+        );
       } else {
         console.log("No files selected or invalid data");
-        Alert.alert(
-          "No Selection",
-          `Please select valid ${type}(s) to upload.`,
-          [{ text: "OK" }]
-        );
+        Alert.alert("No Selection", "Please select valid files to upload.", [
+          { text: "OK" },
+        ]);
       }
     } catch (error) {
       console.error(
@@ -341,7 +244,7 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    //await fetchRecentFiles(dispatch);
+    await fetchRecentFiles(dispatch);
     await fetchUsedSpace(dispatch);
     setRefreshing(false);
   };
@@ -374,50 +277,79 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  const renderItem = ({ item }) => {
-    const isPdf = item.name.toLowerCase().endsWith(".pdf");
+  const getThumbnailSource = (item) => {
+    const isPdf = item.fileName.toLowerCase().endsWith(".pdf");
 
-    const thumbnailSource = isPdf
-      ? PdfIcon
-      : item.category === "documents" && !item.thumbnail
-      ? DocsFileIcon
-      : item.category === "audio" && !item.thumbnail
-      ? AudioFileIcon
-      : { uri: item.thumbnail };
+    if (isPdf) {
+      return PdfIcon;
+    }
+
+    if (item.fileType === "images" && item.thumbnail) {
+      return {
+        uri: item.thumbnail,
+      };
+    }
+
+    if (item.fileType === "videos" && item.thumbnail) {
+      return {
+        uri: item.thumbnail,
+      };
+    }
+
+    if (item.fileType === "audios" && item.thumbnail) {
+      return {
+        uri: item.thumbnail,
+      };
+    }
+
+    if (item.fileType === "audios" && !item.thumbnail) {
+      return AudioFileIcon;
+    }
+
+    if (item.fileType === "others" && !item.thumbnail) {
+      return DocsFileIcon;
+    }
+
+    return { uri: item.thumbnail };
+  };
+
+  const renderItem = ({ item }) => {
+    const thumbnailSource = getThumbnailSource(item);
 
     return (
       <TouchableOpacity
         style={styles.recentItem}
-        key={item.id || item.name}
+        key={item.id || item.fileName}
         onPress={() => {
           navigation.navigate("FilePreviewScreen", {
-            fileName: item.name,
-            category: item.category,
+            fileName: item.fileName,
+            category: item.fileType,
             folder: null,
+            thumbnail: item.fileType === "audios" ? item.thumbnail : null,
           });
         }}
       >
         <View style={styles.recentFileImageContainer}>
-          {isPdf ? (
+          {item.fileType === "pdf" ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>
-          ) : item.category === "documents" && !item.thumbnail ? (
+          ) : item.fileType === "others" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={DocsFileIcon} style={styles.documentImage} />
             </View>
-          ) : item.category === "audios" && !item.thumbnail ? (
+          ) : item.fileType === "audios" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={AudioFileIcon} style={styles.audioImage} />
             </View>
-          ) : item.category === "videos" ? (
+          ) : item.fileType === "videos" ? (
             <View style={styles.videoFileWithPlayContainer}>
               <Image
                 source={thumbnailSource}
                 style={[
                   styles.fileImage,
-                  item.category === "documents" && styles.documentImage,
-                  item.category === "audio" && styles.audioImage,
+                  item.fileType === "others" && styles.documentImage,
+                  item.fileType === "audios" && styles.audioImage,
                 ]}
               />
               <View style={styles.overlay} />
@@ -428,8 +360,8 @@ export default function HomeScreen({ navigation }) {
               source={thumbnailSource}
               style={[
                 styles.fileImage,
-                item.category === "documents" && styles.documentImage,
-                item.category === "audio" && styles.audioImage,
+                item.fileType === "others" && styles.documentImage,
+                item.fileType === "audios" && styles.audioImage,
               ]}
             />
           )}
@@ -441,18 +373,18 @@ export default function HomeScreen({ navigation }) {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {item.name}
+              {item.fileName}
             </Text>
             <View style={styles.fileDetails}>
               <Text style={styles.recentFileSize}>
                 {formatFileSize(item.size)}
               </Text>
               <Text style={styles.modifiedTime}>
-                {new Date(item.modifiedTime).toLocaleString("en-US", {
+                {new Date(item.createdAt).toLocaleString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
                   hour12: true,
-                })}{" "}
+                })}
               </Text>
             </View>
           </View>
@@ -589,7 +521,7 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity
                 style={styles.iconContainer}
                 onPress={() => {
-                  navigation.navigate("DocumentsScreen");
+                  navigation.navigate("OthersScreen");
                 }}
               >
                 <Image
@@ -638,7 +570,7 @@ export default function HomeScreen({ navigation }) {
                 <FlatList
                   data={recentFilesFromRedux}
                   renderItem={animatedRenderItem}
-                  keyExtractor={(item) => item.name}
+                  keyExtractor={(item) => item.fileName}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -646,7 +578,7 @@ export default function HomeScreen({ navigation }) {
                     />
                   }
                   contentContainerStyle={{
-                    gap: hp("0.5%"),
+                    gap: hp("0.4%"),
                     paddingHorizontal: hp("1.5%"),
                   }}
                   extraData={recentFilesFromRedux}
@@ -1019,10 +951,9 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   audioImage: {
-    tintColor: "#D3D3D3",
-    opacity: 0.8,
-    height: "60%",
-    width: "60%",
+    width: "100%",
+    height: "100%",
+    borderRadius: hp("1.5%"),
   },
   videoFileWithPlayContainer: {
     width: "100%",
@@ -1032,11 +963,11 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     position: "absolute",
-    width: "40%",
-    height: "40%",
+    width: "35%",
+    height: "35%",
     tintColor: "rgba(202, 202, 202, 0.80)",
     zIndex: 10,
-    opacity: 0.9,
+    opacity: 0.95,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

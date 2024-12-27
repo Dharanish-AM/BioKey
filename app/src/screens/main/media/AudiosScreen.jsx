@@ -67,13 +67,13 @@ export default function PhotosScreen({ navigation }) {
 
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("user123", "audios", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "audios", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("user123", "audios", dispatch);
+    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "audios", dispatch);
     setRefreshing(false);
   };
 
@@ -165,7 +165,7 @@ export default function PhotosScreen({ navigation }) {
   const handleaudiosPick = async () => {
     if (isUploading) return;
     try {
-      const result = await pickMedia("audio");
+      const result = await pickMedia("others");
 
       if (result === "cancelled") {
         setIsUploading(false);
@@ -259,7 +259,7 @@ export default function PhotosScreen({ navigation }) {
                   );
                 }
 
-                refRBSheet.current.close();
+                refreshData();
                 console.log("Upload finished...");
               },
             },
@@ -286,7 +286,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileName, item.thumbnail)}
+      onPress={() => handlePress(item.name, item.thumbnail)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
@@ -302,7 +302,7 @@ export default function PhotosScreen({ navigation }) {
       )}
       <View style={styles.fileDetails}>
         <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
-          {item.fileName}
+          {item.name}
         </Text>
         <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
       </View>
@@ -335,7 +335,7 @@ export default function PhotosScreen({ navigation }) {
           >
             <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Photos</Text>
+          <Text style={styles.screenTitle}>Audios</Text>
 
           <View style={styles.filterContainer}>
             <Animated.View
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
     opacity: 0.9,
-    width: "60%",
+    width: "65%",
   },
   fileSize: {
     fontSize: hp("1.5%"),

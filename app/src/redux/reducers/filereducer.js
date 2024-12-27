@@ -40,10 +40,10 @@ const fileReducer = (state = initialState, action) => {
             ...state,
             audios: [...action.payload.files],
           };
-        case "documents":
+        case "others":
           return {
             ...state,
-            documents: [...action.payload.files],
+            others: [...action.payload.files],
           };
         case "recents":
           return {

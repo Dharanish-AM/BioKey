@@ -33,20 +33,18 @@ import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
-import DocsFileIcon from "../../../assets/images/docs_icon.png";
+import DocsFileIcon from "../../../assets/images/document_icon.png";
 import PdfIcon from "../../../assets/images/pdf_icon.png";
 
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { others, loading, error } = useSelector(
+
+  const { others} = useSelector(
     (state) => ({
       others: state.files.others,
-      loading: state.loading,
-      error: state.error,
     }),
     shallowEqual
   );
-
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.othersScreen
   );
@@ -70,13 +68,14 @@ export default function OthersScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "others", dispatch);
+    fetchRecentFiles(dispatch);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (searchTerm) {
       const filteredData = others.filter((other) =>
-        other.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+        other.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredothers(filteredData);
     } else {
@@ -149,7 +148,7 @@ export default function OthersScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = others.filter((other) =>
-      other.fileName.toLowerCase().includes(text.toLowerCase())
+      other.name.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredothers(filteredData);
   };
@@ -583,7 +582,7 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
     opacity: 0.9,
-    width: "70%",
+    width: "65%",
   },
   fileSize: {
     fontSize: hp("1.5%"),
@@ -594,10 +593,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: wp("7%"),
     bottom: hp("3%"),
-    width: hp("7.5%"),
+    width: hp("8%"),
     aspectRatio: 1,
     backgroundColor: "rgba(101, 48, 194, 0.95)",
-
     borderRadius: hp("100%"),
     alignItems: "center",
     justifyContent: "center",

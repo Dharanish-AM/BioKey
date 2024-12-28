@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const busboy = require("busboy");
 const { IncomingForm } = require("formidable");
+const mongoose = require("mongoose");
+const sharp = require("sharp");
 
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
@@ -132,19 +134,34 @@ const getUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid userId format." });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
+    if (user.profile) {
+      const profilePath = path.join(TARGET_DIR, userId, user.profile);
+      if (fs.existsSync(profilePath)) {
+        const imageBuffer = fs.readFileSync(profilePath);
+
+        const compressedImageBuffer = await sharp(imageBuffer)
+          .resize({ width: 150 })
+          .webp({ quality: 100 })
+          .toBuffer();
+
+        user.profile = `data:image/webp;base64,${compressedImageBuffer.toString(
+          "base64"
+        )}`;
+      }
+    }
+
     res.status(200).json({
       message: "User fetched successfully.",
-      user: user,
+      user,
     });
   } catch (error) {
     console.error(error);
-
     res.status(500).json({ message: "Error fetching user." });
   }
 };
@@ -215,11 +232,7 @@ const setProfile = async (req, res) => {
         "assets",
         `profile${fileExtension}`
       );
-      const tempFilePath = path.join(
-        userId,
-        "assets",
-        `profile${fileExtension}`
-      );
+      const tempFilePath = path.join("assets", `profile${fileExtension}`);
 
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);

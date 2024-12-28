@@ -13,6 +13,8 @@ import DrawerView from "../components/DrawerView";
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
+
+  
   return (
     <Drawer.Navigator
       initialRouteName="TabNavigator"

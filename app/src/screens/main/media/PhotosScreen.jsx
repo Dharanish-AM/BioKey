@@ -12,7 +12,7 @@ import {
   Alert,
   TextInput,
 } from "react-native";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchFilesByCategory,
@@ -41,15 +41,13 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { images, loading, error } = useSelector(
+
+  const { images } = useSelector(
     (state) => ({
       images: state.files.images,
-      loading: state.loading,
-      error: state.error,
     }),
     shallowEqual
   );
-
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.imagesScreen
   );
@@ -73,13 +71,14 @@ export default function PhotosScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "images", dispatch);
+    fetchRecentFiles(dispatch);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (searchTerm) {
       const filteredData = images.filter((image) =>
-        image.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+        image.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredImages(filteredData);
     } else {
@@ -89,16 +88,15 @@ export default function PhotosScreen({ navigation }) {
 
   useEffect(() => {
     if (!isFirstRender) return;
-
     fetchData();
     dispatch(setFirstRender("imagesScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileName) => {
+  const handlePress = async (fileId, fileName, type) => {
     await navigation.navigate("FilePreviewScreen", {
+      fileId,
       fileName,
-      category: "images",
-      folder: null,
+      type,
     });
   };
 
@@ -152,7 +150,7 @@ export default function PhotosScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = images.filter((image) =>
-      image.fileName.toLowerCase().includes(text.toLowerCase())
+      image.name.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredImages(filteredData);
   };
@@ -183,9 +181,9 @@ export default function PhotosScreen({ navigation }) {
         } else if (mediaType.includes("video")) {
           category = "videos";
         } else if (mediaType.includes("audio")) {
-          category = "audio";
+          category = "audios";
         } else {
-          category = "documents";
+          category = "others";
         }
 
         Alert.alert(
@@ -284,7 +282,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.name)}
+      onPress={() => handlePress(item.fileId, item.name, item.type)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
@@ -583,10 +581,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: wp("7%"),
     bottom: hp("3%"),
-    width: hp("7.5%"),
+    width: hp("8%"),
     aspectRatio: 1,
     backgroundColor: "rgba(101, 48, 194, 0.95)",
-
     borderRadius: hp("100%"),
     alignItems: "center",
     justifyContent: "center",

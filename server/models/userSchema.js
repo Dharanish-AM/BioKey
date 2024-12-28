@@ -32,6 +32,25 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
+    favorite: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "File",
+      default: [],
+    },
+    folder: [
+      {
+        name: {
+          type: String,
+        },
+        files: [
+          {
+            type: [mongoose.Schema.Types.ObjectId],
+            ref: "File",
+            default: [],
+          },
+        ],
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,

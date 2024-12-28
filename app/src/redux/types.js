@@ -3,3 +3,5 @@ export const FETCH_USED_SPACE = "FETCH_USED_SPACE";
 export const SET_SEARCH_QUERY = "SET_SEARCH_QUERY";
 export const SET_TAB_BAR_VISIBLE = "SET_TAB_BAR_VISIBLE";
 export const SET_FIRST_RENDER = "SET_FIRST_RENDER";
+
+export const SET_USER = "SET_USER";

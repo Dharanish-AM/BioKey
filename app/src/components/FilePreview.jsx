@@ -20,7 +20,6 @@ import {
   previewImage,
   previewVideo,
   previewAudio,
-  previewDocument,
 } from "../services/fileOperations";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Audio } from "expo-av";
@@ -34,7 +33,7 @@ import BinIcon from "../assets/images/trash_bottom_icon.png";
 import InfoIcon from "../assets/images/info_bottom_icon.png";
 
 export default function FilePreviewScreen({ route, navigation }) {
-  const { fileName, category, folder, thumbnail } = route.params;
+  const { fileName, fileId, type, thumbnail } = route.params;
   const [imageData, setImageData] = useState(null);
   const [videoData, setVideoData] = useState(null);
   const [audioData, setAudioData] = useState(null);
@@ -45,37 +44,31 @@ export default function FilePreviewScreen({ route, navigation }) {
 
   useEffect(() => {
     const fetchFilePreview = async () => {
-      setLoading(true);
       try {
-        switch (category) {
+        switch (type) {
           case "images":
-            const imageResponse = await previewImage(
-              userId,
-              fileName,
-              category,
-              folder
-            );
+            const imageResponse = await previewImage(userId, fileId);
             setImageData(imageResponse);
             break;
           case "videos":
-            const videoUrl = previewVideo(userId, category, fileName, folder);
+            const videoUrl = previewVideo(userId, fileId);
             setVideoData(videoUrl);
             break;
           case "audios":
-            const audioUrl = previewAudio(userId, category, fileName, folder);
+            const audioUrl = previewAudio(userId, fileId);
             setAudioData(audioUrl);
             break;
-          case "documents":
-            const docResponse = await previewDocument(
-              userId,
-              category,
-              fileName,
-              folder
-            );
-            setDocumentData(docResponse);
-            break;
+          // case "others":
+          //   const docResponse = await previewDocument(
+          //     userId,
+          //     category,
+          //     fileName,
+          //     folder
+          //   );
+          //   setDocumentData(docResponse);
+          //   break;
           default:
-            console.warn("Unknown category:", category);
+            console.warn("Unknown category:", type);
         }
       } catch (error) {
         console.error("Error fetching file preview:", error);
@@ -88,9 +81,19 @@ export default function FilePreviewScreen({ route, navigation }) {
   }, []);
 
   const ImagePreview = ({ fileData }) => {
+    const [isLoading, setIsLoading] = useState(true);
+
     return (
       <View style={styles.imageContainer}>
-        <Image source={{ uri: fileData }} style={styles.image} />
+        <Image
+          source={{ uri: fileData }}
+          style={styles.image}
+          onLoadStart={() => setIsLoading(true)}
+          onLoad={() => setIsLoading(false)}
+        />
+        {isLoading && (
+          <ActivityIndicator size="large" style={styles.activityIndicator} />
+        )}
       </View>
     );
   };
@@ -259,6 +262,9 @@ export default function FilePreviewScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
         </View>
+        {!isLoaded && (
+          <ActivityIndicator size="large" style={styles.activityIndicator} />
+        )}
       </View>
     );
   };
@@ -279,7 +285,7 @@ export default function FilePreviewScreen({ route, navigation }) {
   );
 
   const renderFilePreview = () => {
-    switch (category) {
+    switch (type) {
       case "images":
         return imageData ? (
           <ImagePreview fileData={imageData} />
@@ -415,6 +421,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+    resizeMode: "contain",
   },
   imageContainer: {
     width: "100%",
@@ -422,11 +429,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  activityIndicator: {
+    position: "absolute",
+    alignSelf: "center",
+  },
   videoContainer: {
     width: "100%",
     height: "100%",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
   },
   video: {
     width: "100%",

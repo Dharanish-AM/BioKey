@@ -114,7 +114,8 @@ const getTabBarDisplay = (route) => {
     routeName === "PhotosScreen" ||
     routeName === "FilePreviewScreen" ||
     routeName === "VideosScreen" ||
-    routeName === "AudiosScreen"
+    routeName === "AudiosScreen" ||
+    routeName === "OthersScreen"
   ) {
     return "none";
   }

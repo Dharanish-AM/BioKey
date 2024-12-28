@@ -5,6 +5,8 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useSelector } from "react-redux";
+import { shallowEqual } from "react-redux";
 
 import ProfileIcon from "../assets/images/profile_icon.png";
 import DownArrow from "../assets/images/down_arrow.png";
@@ -15,11 +17,21 @@ import LogsIcon from "../assets/images/drawer_history.png";
 import SupportIcon from "../assets/images/drawer_accounts.png";
 
 export default function DrawerView() {
+  const user = useSelector((state) => state.user, shallowEqual);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.profileContent}>
-          <Image style={styles.profileImage} source={ProfileIcon} />
+          <View style={styles.profileImageContainer}>
+            {user.profileImage ? (
+              <Image
+                source={{ uri: user.profileImage }}
+                style={styles.profileIcon}
+                resizeMode="cover"
+              />
+            ) : null}
+          </View>
+
           <View style={styles.bottomDetails}>
             <View style={styles.userDetails}>
               <Text style={styles.userName}>Dharanish A M</Text>
@@ -68,7 +80,7 @@ const styles = StyleSheet.create({
   header: {
     height: "20%",
     width: "100%",
-    //backgroundColor: "rgba(23, 27, 31, 0.5)",
+
     justifyContent: "space-evenly",
     marginTop: hp("7%"),
     flexDirection: "column",
@@ -81,6 +93,22 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     paddingHorizontal: wp("4%"),
     justifyContent: "center",
+  },
+  
+  profileImageContainer: {
+    height: hp("10%"),
+    width: hp("10%"),
+    borderRadius: hp("5%"),
+    backgroundColor: colors.secondaryColor2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  profileIcon: {
+    height: "100%",
+    width: "100%",
+    borderRadius: hp("5%"),
+    resizeMode: "cover",
   },
   bottomDetails: {
     flexDirection: "row",

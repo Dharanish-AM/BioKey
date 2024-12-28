@@ -4,6 +4,7 @@ import {
   SET_FIRST_RENDER,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
+  SET_USER,
 } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
@@ -45,4 +46,9 @@ export const setTabBarVisible = (isVisible) => ({
 export const setFirstRender = (screen) => ({
   type: SET_FIRST_RENDER,
   screen,
+});
+
+export const setUser = (user) => ({
+  type: SET_USER,
+  payload: user,
 });

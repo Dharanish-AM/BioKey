@@ -66,8 +66,8 @@ const getFileCategory = (filename) => {
   return "others";
 };
 
-const createThumbnail = (filePath, userId, fileCategory, fileName) => {
-  return new Promise((resolve, reject) => {
+const createThumbnail = async (filePath, userId, fileCategory, fileName) => {
+  try {
     const thumbnailDir = path.join(
       TARGET_DIR,
       userId,
@@ -80,89 +80,60 @@ const createThumbnail = (filePath, userId, fileCategory, fileName) => {
       `${path.parse(fileName).name}.webp`
     );
 
-    fs.mkdir(thumbnailDir, { recursive: true }, (err) => {
-      if (err) {
-        return reject({
-          error: "Error creating thumbnail directory",
-          details: err,
-        });
-      }
+    await fs.promises.mkdir(thumbnailDir, { recursive: true });
 
-      if (fileCategory === "images") {
-        sharp(filePath)
-          .resize(500, 500)
-          .webp()
-          .toFile(thumbnailPath, (err, info) => {
-            if (err) {
-              return reject({
-                error: "Error creating image thumbnail",
-                details: err,
-              });
-            }
-            resolve(thumbnailPath);
-          });
-      } else if (fileCategory === "videos") {
+    if (fileCategory === "images") {
+      await sharp(filePath).resize(500, 500).webp().toFile(thumbnailPath);
+      return thumbnailPath;
+    } else if (fileCategory === "videos") {
+      return new Promise((resolve, reject) => {
         ffmpeg(filePath)
           .screenshots({
             count: 1,
             timemarks: ["00:00:01.000"],
             folder: path.dirname(thumbnailPath),
             filename: path.basename(thumbnailPath),
-
             size: "500x?",
           })
-          .on("end", () => {
-            resolve(thumbnailPath);
-          })
-          .on("error", (err) => {
-            reject({ error: "Error creating video thumbnail", details: err });
-          });
-      } else if (fileCategory === "audios") {
+          .on("end", () => resolve(thumbnailPath))
+          .on("error", (err) =>
+            reject({ error: "Error creating video thumbnail", details: err })
+          );
+      });
+    } else if (fileCategory === "audios") {
+      return new Promise((resolve, reject) => {
         jsmediatags.read(filePath, {
-          onSuccess: function (tag) {
+          onSuccess: async (tag) => {
             const albumArt = tag.tags["APIC"];
-
-            if (albumArt) {
-              const imageData = albumArt.data;
-
-              if (imageData && imageData.data) {
-                const imageBuffer = Buffer.from(imageData.data);
-
-                sharp(imageBuffer)
+            if (albumArt?.data) {
+              try {
+                const imageBuffer = Buffer.from(albumArt.data);
+                const resizedBuffer = await sharp(imageBuffer)
                   .resize(500, 500)
                   .webp()
-                  .toBuffer()
-                  .then((resizedBuffer) => {
-                    fs.writeFile(thumbnailPath, resizedBuffer, (err) => {
-                      if (err) {
-                        return reject({
-                          error: "Error saving audio thumbnail",
-                          details: err,
-                        });
-                      }
-                      resolve(thumbnailPath);
-                    });
-                  })
-                  .catch((error) => {
-                    reject({
-                      error: "Error resizing audio thumbnail",
-                      details: error,
-                    });
-                  });
-              } else {
-                reject({ error: "No album artwork found in audio file" });
+                  .toBuffer();
+                await fs.promises.writeFile(thumbnailPath, resizedBuffer);
+                resolve(thumbnailPath);
+              } catch (error) {
+                reject({
+                  error: "Error resizing audio thumbnail",
+                  details: error,
+                });
               }
+            } else {
+              resolve(null);
             }
           },
-          onError: function (error) {
-            reject({ error: "Error reading audio metadata", details: error });
-          },
+          onError: (error) =>
+            reject({ error: "Error reading audio metadata", details: error }),
         });
-      } else {
-        resolve(null);
-      }
-    });
-  });
+      });
+    } else {
+      return null;
+    }
+  } catch (error) {
+    throw { error: "Error creating thumbnail", details: error };
+  }
 };
 
 const deleteTempFile = (filePath) => {
@@ -201,7 +172,7 @@ const uploadFile = (req, res) => {
   const form = new IncomingForm();
   form.multiples = true;
 
-  form.parse(req, (err, fields, files) => {
+  form.parse(req, async (err, fields, files) => {
     if (err) {
       console.error("Error parsing form:", err.message);
       return res.status(500).json({ message: "Error processing file upload" });
@@ -212,135 +183,97 @@ const uploadFile = (req, res) => {
       return res.status(400).json({ message: "Missing userId" });
     }
 
-    User.findById(userId)
-      .then((user) => {
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-        const uploadedFiles = Array.isArray(files.file)
-          ? files.file
-          : [files.file];
-        if (!uploadedFiles || uploadedFiles.length === 0) {
-          return res.status(400).json({ message: "No files uploaded" });
-        }
+      const uploadedFiles = Array.isArray(files.file)
+        ? files.file
+        : [files.file];
+      if (!uploadedFiles || uploadedFiles.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
 
-        const uploadPromises = uploadedFiles.map((file) => {
-          return new Promise((resolve, reject) => {
-            const fileName =
-              file.originalFilename || `default_filename_${Date.now()}`;
-            const fileCategory = getFileCategory(fileName);
+      const results = await Promise.allSettled(
+        uploadedFiles.map(async (file) => {
+          const fileName =
+            file.originalFilename || `default_filename_${Date.now()}`;
+          const fileCategory = getFileCategory(fileName);
 
-            const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+          const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+          const uniqueFileName = getUniqueFilePath(targetDir, fileName);
+          const uniqueTargetPath = path.join(targetDir, uniqueFileName);
 
-            const uniqueFileName = getUniqueFilePath(targetDir, fileName);
-            const uniqueTargetPath = path.join(targetDir, uniqueFileName);
+          await fs.promises.mkdir(targetDir, { recursive: true });
 
-            fs.mkdir(targetDir, { recursive: true }, (mkdirErr) => {
-              if (mkdirErr) {
-                return reject({ fileName, error: "Error creating directory" });
-              }
+          await fs.promises.copyFile(file.filepath, uniqueTargetPath);
 
-              const sourcePath = file.filepath;
-              const readStream = fs.createReadStream(sourcePath);
-              const writeStream = fs.createWriteStream(uniqueTargetPath);
+          const thumbnailPath = await createThumbnail(
+            uniqueTargetPath,
+            userId,
+            fileCategory,
+            fileName
+          );
 
-              readStream.pipe(writeStream);
-
-              writeStream.on("finish", () => {
-                const thumbnailPath = path.join(
+          const fileMetadata = new File({
+            name: uniqueFileName,
+            path: path.join(fileCategory, uniqueFileName),
+            type: fileCategory,
+            thumbnail: thumbnailPath
+              ? path.join(
                   "thumbnails",
                   fileCategory,
-                  `${Date.now()}_${fileName.replace(
-                    path.extname(fileName),
-                    ".webp"
-                  )}`
-                );
-
-                createThumbnail(sourcePath, userId, fileCategory, thumbnailPath)
-                  .then((thumbnailPath) => {
-                    const relativeFilePath = path.join(
-                      fileCategory,
-                      uniqueFileName
-                    );
-                    const relativeThumbnailPath = thumbnailPath
-                      ? path.join(
-                          "thumbnails",
-                          fileCategory,
-                          path.basename(thumbnailPath)
-                        )
-                      : null;
-
-                    const fileMetadata = new File({
-                      name: uniqueFileName,
-                      path: relativeFilePath,
-                      type: fileCategory,
-                      thumbnail: relativeThumbnailPath || null,
-                      size: file.size,
-                      owner: userId,
-                    });
-
-                    fileMetadata
-                      .save()
-                      .then(() => {
-                        deleteTempFile(sourcePath)
-                          .then(() => {
-                            resolve({
-                              fileName: uniqueFileName,
-                              filePath: relativeFilePath,
-                              thumbnailPath: relativeThumbnailPath,
-                              category: fileCategory,
-                            });
-                          })
-                          .catch((deleteErr) => {
-                            reject({
-                              fileName: uniqueFileName,
-                              error: "Error deleting temp file",
-                            });
-                          });
-                      })
-                      .catch(() => {
-                        reject({
-                          fileName: uniqueFileName,
-                          error: "Error saving file metadata",
-                        });
-                      });
-                  })
-                  .catch(() => {
-                    reject({
-                      fileName: uniqueFileName,
-                      error: "Error creating thumbnail",
-                    });
-                  });
-              });
-
-              writeStream.on("error", () => {
-                reject({
-                  fileName: uniqueFileName,
-                  error: "Error saving file",
-                });
-              });
-            });
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            size: file.size,
+            owner: userId,
           });
+
+          await fileMetadata.save();
+
+          await deleteTempFile(file.filepath);
+
+          return {
+            fileName: uniqueFileName,
+            filePath: path.join(fileCategory, uniqueFileName),
+            thumbnailPath: thumbnailPath
+              ? path.join(
+                  "thumbnails",
+                  fileCategory,
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            category: fileCategory,
+          };
+        })
+      );
+
+      const successes = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      const errors = results
+        .filter((result) => result.status === "rejected")
+        .map((result) => result.reason);
+
+      if (errors.length > 0) {
+        res.status(207).json({
+          message: "Some files failed to upload",
+          successes,
+          errors,
         });
-
-        Promise.all(uploadPromises)
-          .then((results) => {
-            res.status(200).json({
-              message: "Files uploaded successfully",
-              files: results,
-            });
-          })
-          .catch((errors) => {
-            res.status(500).json({
-              message: "Some files failed to upload",
-              errors,
-            });
-          });
-      })
-      .catch(() => {
-        res.status(500).json({ message: "Database error" });
-      });
+      } else {
+        res.status(200).json({
+          message: "Files uploaded successfully",
+          files: successes,
+        });
+      }
+    } catch (dbError) {
+      console.error("Database error:", dbError.message);
+      res.status(500).json({ message: "Database error" });
+    }
   });
 };
 
@@ -411,17 +344,17 @@ const getRecentFiles = async (req, res) => {
   }
 
   try {
-    const user = await User.findById(new mongoose.Types.ObjectId(userId));
-
+    const user = await User.exists({ _id: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const files = await File.find({ owner: userId })
       .sort({ updatedAt: -1 })
-      .limit(7);
+      .limit(7)
+      .select("name type size createdAt thumbnail _id");
 
-    if (files.length === 0) {
+    if (!files.length) {
       return res.status(200).json({
         message: "No files found for this user",
         files: [],
@@ -434,23 +367,27 @@ const getRecentFiles = async (req, res) => {
           const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
 
           try {
-            const fileData = fs.readFileSync(thumbnailPath);
+            const fileData = await fs.promises.readFile(thumbnailPath);
             const base64File = `data:image/webp;base64,${fileData.toString(
               "base64"
             )}`;
-
             return {
-              fileName: file.name,
-              fileType: file.type,
+              fileId: file._id,
+              name: file.name,
+              type: file.type,
               size: file.size,
               createdAt: file.createdAt,
               thumbnail: base64File,
             };
           } catch (err) {
-            console.error("Error reading file:", err.message);
+            console.error(
+              `Error reading thumbnail for ${file.name}:`,
+              err.message
+            );
             return {
-              fileName: file.name,
-              fileType: file.type,
+              fileId: file._id,
+              name: file.name,
+              type: file.type,
               size: file.size,
               createdAt: file.createdAt,
               thumbnail: null,
@@ -458,8 +395,9 @@ const getRecentFiles = async (req, res) => {
           }
         } else {
           return {
-            fileName: file.name,
-            fileType: file.type,
+            fileId: file._id,
+            name: file.name,
+            type: file.type,
             size: file.size,
             createdAt: file.createdAt,
             thumbnail: null,
@@ -473,7 +411,7 @@ const getRecentFiles = async (req, res) => {
       files: fileResponses,
     });
   } catch (err) {
-    console.error("Error retrieving files:", err.message);
+    console.error("Error retrieving recent files:", err.message);
     res.status(500).json({ message: "Error retrieving recent files" });
   }
 };
@@ -558,28 +496,22 @@ const listFile = async (req, res) => {
     const query = { owner: userId };
     if (category) query.type = category;
 
-    const files = await File.find(query);
-
+    const files = await File.find(query, "name type size thumbnail _id");
     if (!files || files.length === 0) {
-      return res.status(200).json({
-        message: "No files found",
-        files: [],
-      });
+      return res.status(200).json({ message: "No files found", files: [] });
     }
 
     const processedFiles = await Promise.all(
       files.map(async (file) => {
-        // Check if thumbnail exists before using it
         let base64Thumbnail = null;
         if (file.thumbnail) {
           const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
           try {
-            if (fs.existsSync(thumbnailPath)) {
-              const thumbnailData = fs.readFileSync(thumbnailPath);
-              base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString(
-                "base64"
-              )}`;
-            }
+            await fs.promises.access(thumbnailPath);
+            const thumbnailData = await fs.promises.readFile(thumbnailPath);
+            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString(
+              "base64"
+            )}`;
           } catch (err) {
             console.error(
               `Error reading thumbnail for file ${file.name}:`,
@@ -589,6 +521,7 @@ const listFile = async (req, res) => {
         }
 
         return {
+          fileId: file._id,
           name: file.name,
           type: file.type,
           size: file.size,
@@ -608,19 +541,17 @@ const listFile = async (req, res) => {
 };
 
 const loadImage = async (req, res) => {
-  const { userId, category, fileName, folder } =
-    req.query || req.body || req.params;
+  const { userId, fileId } = req.query;
 
-  if (!userId || !category || !fileName) {
+  if (!userId || !fileId) {
     console.error("Missing required parameters");
-    return res.status(400).json({ message: "Missing required parameters." });
+    return res.status(400).json({ message: "Missing userId or fileId" });
   }
 
   try {
     const fileRecord = await File.findOne({
+      _id: fileId,
       owner: userId,
-      type: category,
-      name: fileName,
     });
 
     if (!fileRecord) {
@@ -628,10 +559,7 @@ const loadImage = async (req, res) => {
       return res.status(404).json({ message: "File not found in database" });
     }
 
-    const folderPath = folder
-      ? path.join(TARGET_DIR, userId, folder)
-      : path.join(TARGET_DIR, userId);
-    const filePath = path.resolve(folderPath, fileRecord.path);
+    const filePath = path.resolve(TARGET_DIR, userId, fileRecord.path);
 
     try {
       await fs.promises.access(filePath, fs.constants.F_OK);
@@ -642,7 +570,7 @@ const loadImage = async (req, res) => {
 
     const stats = await fs.promises.stat(filePath);
 
-    const fileExt = path.extname(fileName).slice(1).toLowerCase();
+    const fileExt = path.extname(fileRecord.name).slice(1).toLowerCase();
     const mimeTypes = {
       jpg: "image/jpeg",
       jpeg: "image/jpeg",
@@ -655,7 +583,10 @@ const loadImage = async (req, res) => {
 
     res.setHeader("Content-Type", contentType);
     res.setHeader("Content-Length", stats.size);
-    res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${fileRecord.name}"`
+    );
 
     const readStream = fs.createReadStream(filePath);
     readStream.pipe(res);
@@ -671,33 +602,30 @@ const loadImage = async (req, res) => {
 };
 
 const loadVideo = async (req, res) => {
+  const { userId, fileId } = req.query;
+
+  if (!userId || !fileId) {
+    console.error("Missing required parameters");
+    return res.status(400).json({ message: "Missing userId or fileId" });
+  }
+
   try {
-    const { userId, category, fileName, folder } =
-      req.query || req.body || req.params;
-
-    if (!userId || !category || !fileName) {
-      return res.status(400).json({ message: "Missing required parameters" });
-    }
-
     const fileRecord = await File.findOne({
+      _id: fileId,
       owner: userId,
-      type: category,
-      name: fileName,
     });
 
     if (!fileRecord) {
+      console.error("File not found in database");
       return res.status(404).json({ message: "File not found in database" });
     }
 
-    const folderPath = folder
-      ? path.join(TARGET_DIR, userId, folder)
-      : path.join(TARGET_DIR, userId, category);
-
-    const filePath = path.join(folderPath, fileName);
+    const filePath = path.join(TARGET_DIR, userId, fileRecord.path);
 
     try {
       await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch {
+    } catch (accessErr) {
+      console.error("File not found on disk:", filePath, accessErr);
       return res.status(404).json({ message: "File not found on disk" });
     }
 
@@ -742,26 +670,31 @@ const loadVideo = async (req, res) => {
 };
 
 const loadAudio = async (req, res) => {
-  try {
-    const { userId, category, fileName, folder } = req.query;
+  const { userId, fileId } = req.query;
 
-    if (!userId || !category || !fileName) {
-      return res.status(400).json({ message: "Missing required parameters" });
+  if (!userId || !fileId) {
+    console.error("Missing required parameters");
+    return res.status(400).json({ message: "Missing userId or fileId" });
+  }
+
+  try {
+    const fileRecord = await File.findOne({
+      _id: fileId,
+      owner: userId,
+    });
+
+    if (!fileRecord) {
+      console.error("File not found in database");
+      return res.status(404).json({ message: "File not found in database" });
     }
 
-    const folderPath = folder
-      ? path.join("uploads", userId, folder)
-      : path.join("uploads", userId, category);
+    const filePath = path.join(TARGET_DIR, userId, fileRecord.path);
 
-    const filePath = path.join(folderPath, fileName);
-
-    const fileExists = await fs.promises
-      .access(filePath, fs.constants.F_OK)
-      .then(() => true)
-      .catch(() => false);
-
-    if (!fileExists) {
-      return res.status(404).json({ message: "File not found" });
+    try {
+      await fs.promises.access(filePath, fs.constants.F_OK);
+    } catch (accessErr) {
+      console.error("File not found on disk:", filePath, accessErr);
+      return res.status(404).json({ message: "File not found on disk" });
     }
 
     const stat = await fs.promises.stat(filePath);
@@ -769,9 +702,9 @@ const loadAudio = async (req, res) => {
     const range = req.headers.range;
 
     if (range) {
-      const [startRange, endRange] = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(startRange, 10);
-      const end = endRange ? parseInt(endRange, 10) : fileSize - 1;
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
 
       if (start >= fileSize || end >= fileSize) {
@@ -779,6 +712,7 @@ const loadAudio = async (req, res) => {
       }
 
       const fileStream = fs.createReadStream(filePath, { start, end });
+
       const head = {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
@@ -797,9 +731,52 @@ const loadAudio = async (req, res) => {
       res.writeHead(200, head);
       fs.createReadStream(filePath).pipe(res);
     }
-  } catch (error) {
-    console.error("Error loading audio stream:", error.message);
+  } catch (err) {
+    console.error("Error loading audio file:", err.message);
     return res.status(500).json({ message: "Error loading audio file." });
+  }
+};
+const addFavorite = async (req, res) => {
+  try {
+    const { userId, fileId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (user.favorite.includes(fileId)) {
+      return res.status(400).json({ message: "File is already in favorites." });
+    }
+
+    user.favorite.push(fileId);
+    await user.save();
+
+    res.status(200).json({ message: "File added to favorites." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error adding file to favorites." });
+  }
+};
+
+const removeFavorite = async (req, res) => {
+  try {
+    const { userId, fileId } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.favorite = user.favorite.filter(
+      (favoriteId) => favoriteId.toString() !== fileId
+    );
+    await user.save();
+
+    res.status(200).json({ message: "File removed from favorites." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error removing file from favorites." });
   }
 };
 

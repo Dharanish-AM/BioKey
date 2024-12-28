@@ -42,15 +42,14 @@ import AudioFileIcon from "../../../assets/images/audiofile_icon.png";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { audios, loading, error } = useSelector(
+
+  
+  const { audios } = useSelector(
     (state) => ({
       audios: state.files.audios,
-      loading: state.loading,
-      error: state.error,
     }),
     shallowEqual
   );
-
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.audiosScreen
   );
@@ -74,13 +73,14 @@ export default function PhotosScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "audios", dispatch);
+    fetchRecentFiles(dispatch);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (searchTerm) {
       const filteredData = audios.filter((image) =>
-        image.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+        image.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredaudios(filteredData);
     } else {
@@ -94,11 +94,11 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("audiosScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileName, thumbnail) => {
+  const handlePress = async (fileId, fileName, type, thumbnail) => {
     await navigation.navigate("FilePreviewScreen", {
+      fileId,
       fileName,
-      category: "audios",
-      folder: null,
+      type,
       thumbnail,
     });
   };
@@ -153,7 +153,7 @@ export default function PhotosScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = audios.filter((audio) =>
-      audio.fileName.toLowerCase().includes(text.toLowerCase())
+      audio.name.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredaudios(filteredData);
   };
@@ -286,7 +286,9 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.name, item.thumbnail)}
+      onPress={() =>
+        handlePress(item.fileId, item.name, item.type, item.thumbnail)
+      }
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
@@ -580,10 +582,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: wp("7%"),
     bottom: hp("3%"),
-    width: hp("7.5%"),
+    width: hp("8%"),
     aspectRatio: 1,
     backgroundColor: "rgba(101, 48, 194, 0.95)",
-
     borderRadius: hp("100%"),
     alignItems: "center",
     justifyContent: "center",

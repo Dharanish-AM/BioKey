@@ -114,60 +114,35 @@ export const fetchUsedSpace = async (dispatch) => {
   }
 };
 
-export const previewImage = async (
-  userId,
-  fileName,
-  category,
-  folder = null
-) => {
+export const previewImage = async (userId, fileId) => {
   let url = "";
   try {
-    if (folder) {
-      url = `${API_URL}/previewimage?userId=${userId}&folder=${folder}&fileName=${fileName}`;
-    } else {
-      url = `${API_URL}/previewimage?userId=${userId}&category=${category}&fileName=${fileName}`;
-    }
+    url = `${API_URL}/previewimage?userId=${userId}&fileId=${fileId}`;
     return url;
   } catch (error) {
-    console.error("Error generating image URL:", error.message);
+    console.error("Error generating URL:", error.message);
     return null;
   }
 };
 
-export const previewVideo = (userId, category, fileName, folder = null) => {
+export const previewVideo = (userId, fileId) => {
+  let url = "";
   try {
-    let url = `${API_URL}/previewvideo?userId=${userId}&category=${category}&fileName=${fileName}`;
-
-    if (folder) {
-      if (typeof folder !== "string" || folder.trim() === "") {
-        throw new Error("Invalid folder provided");
-      }
-
-      url = `${API_URL}/previewvideo?userId=${userId}&category=${category}&folder=${folder}&fileName=${fileName}`;
-    }
-
+    url = `${API_URL}/previewvideo?userId=${userId}&fileId=${fileId}`;
     return url;
   } catch (error) {
-    console.error("Error generating video URL:", error.message);
+    console.error("Error generating URL:", error.message);
     return null;
   }
 };
 
-export const previewAudio = (userId, category, fileName, folder = null) => {
+export const previewAudio = (userId, fileId) => {
+  let url = "";
   try {
-    let url = `${API_URL}/previewaudio?userId=${userId}&category=${category}&fileName=${fileName}`;
-
-    if (folder) {
-      if (typeof folder !== "string" || folder.trim() === "") {
-        throw new Error("Invalid folder provided");
-      }
-
-      url = `${API_URL}/previewaudio?userId=${userId}&category=${category}&folder=${folder}&fileName=${fileName}`;
-    }
-
+    url = `${API_URL}/previewaudio?userId=${userId}&fileId=${fileId}`;
     return url;
   } catch (error) {
-    console.error("Error generating audio URL:", error.message);
+    console.error("Error generating URL:", error.message);
     return null;
   }
 };

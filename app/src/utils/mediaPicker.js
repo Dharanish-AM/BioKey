@@ -61,6 +61,8 @@ export const pickMedia = async (type) => {
     if (type === "image" || type === "video") {
       return type === "image" ? images : videos;
     }
+
+    return pickerResult;
   } catch (error) {
     console.error("Error picking media:", error);
     return null;

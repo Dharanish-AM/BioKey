@@ -56,6 +56,7 @@ import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 import { setFirstRender, setTabBarVisible } from "../../redux/actions";
 import SkeletonLoader from "../../components/SkeletonLoader";
+import { loadProfile } from "../../services/userOperations";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -65,16 +66,20 @@ export default function HomeScreen({ navigation }) {
   const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
   const [isProfileLoaded, setProfileLoaded] = useState(false);
+  const [usedSpace, setUsedSpace] = useState(0);
 
   const recentFilesFromRedux = useSelector(
     (state) => state.files.recents,
     shallowEqual
   );
 
-  const usedSpace = useSelector((state) => state.files.usedSpace, shallowEqual);
+  const usedSpaceRedux = useSelector((state) => state.files.usedSpace);
+
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.homeScreen
   );
+
+  const user = useSelector((state) => state.user, shallowEqual);
 
   useEffect(() => {
     if (!isFirstRender) return;
@@ -91,8 +96,20 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
+    const fetchUser = async () => {
+      await loadProfile((userId = "676aee09b3f0d752bbbe58f7"), dispatch);
+   
+    };
+
+    fetchUser();
     fetchData();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (usedSpaceRedux) {
+      setUsedSpace(usedSpaceRedux);
+    }
+  }, [usedSpaceRedux]);
 
   const showAlert = (title, message, onConfirm) => {
     Alert.alert(title, message, [
@@ -278,35 +295,35 @@ export default function HomeScreen({ navigation }) {
   };
 
   const getThumbnailSource = (item) => {
-    const isPdf = item.fileName.toLowerCase().endsWith(".pdf");
+    const isPdf = item.name.toLowerCase().endsWith(".pdf");
 
     if (isPdf) {
       return PdfIcon;
     }
 
-    if (item.fileType === "images" && item.thumbnail) {
+    if (item.type === "images" && item.thumbnail) {
       return {
         uri: item.thumbnail,
       };
     }
 
-    if (item.fileType === "videos" && item.thumbnail) {
+    if (item.type === "videos" && item.thumbnail) {
       return {
         uri: item.thumbnail,
       };
     }
 
-    if (item.fileType === "audios" && item.thumbnail) {
+    if (item.type === "audios" && item.thumbnail) {
       return {
         uri: item.thumbnail,
       };
     }
 
-    if (item.fileType === "audios" && !item.thumbnail) {
+    if (item.type === "audios" && !item.thumbnail) {
       return AudioFileIcon;
     }
 
-    if (item.fileType === "others" && !item.thumbnail) {
+    if (item.type === "others" && !item.thumbnail) {
       return DocsFileIcon;
     }
 
@@ -319,37 +336,37 @@ export default function HomeScreen({ navigation }) {
     return (
       <TouchableOpacity
         style={styles.recentItem}
-        key={item.id || item.fileName}
+        key={item.id || item.name}
         onPress={() => {
           navigation.navigate("FilePreviewScreen", {
-            fileName: item.fileName,
-            category: item.fileType,
-            folder: null,
-            thumbnail: item.fileType === "audios" ? item.thumbnail : null,
+            fileName: item.name,
+            type: item.type,
+            fileId: item.fileId,
+            thumbnail: item.type === "audios" ? item.thumbnail : null,
           });
         }}
       >
         <View style={styles.recentFileImageContainer}>
-          {item.fileType === "pdf" ? (
+          {item.type === "pdf" ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>
-          ) : item.fileType === "others" && !item.thumbnail ? (
+          ) : item.type === "others" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={DocsFileIcon} style={styles.documentImage} />
             </View>
-          ) : item.fileType === "audios" && !item.thumbnail ? (
+          ) : item.type === "audios" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={AudioFileIcon} style={styles.audioImage} />
             </View>
-          ) : item.fileType === "videos" ? (
+          ) : item.type === "videos" ? (
             <View style={styles.videoFileWithPlayContainer}>
               <Image
                 source={thumbnailSource}
                 style={[
                   styles.fileImage,
-                  item.fileType === "others" && styles.documentImage,
-                  item.fileType === "audios" && styles.audioImage,
+                  item.type === "others" && styles.documentImage,
+                  item.type === "audios" && styles.audioImage,
                 ]}
               />
               <View style={styles.overlay} />
@@ -360,8 +377,8 @@ export default function HomeScreen({ navigation }) {
               source={thumbnailSource}
               style={[
                 styles.fileImage,
-                item.fileType === "others" && styles.documentImage,
-                item.fileType === "audios" && styles.audioImage,
+                item.type === "others" && styles.documentImage,
+                item.type === "audios" && styles.audioImage,
               ]}
             />
           )}
@@ -373,7 +390,7 @@ export default function HomeScreen({ navigation }) {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {item.fileName}
+              {item.name}
             </Text>
             <View style={styles.fileDetails}>
               <Text style={styles.recentFileSize}>
@@ -417,12 +434,17 @@ export default function HomeScreen({ navigation }) {
             style={styles.profileContainer}
             onPress={() => navigation.openDrawer()}
           >
-            <Image
-              source={ProfileIcon}
-              style={styles.profileIcon}
-              resizeMode="contain"
-              onLoadEnd={() => setProfileLoaded(true)}
-            />
+            <View style={styles.profileImageContainer}>
+              {user.profileImage ? (
+                <Image
+                  source={{ uri: user.profileImage }}
+                  style={styles.profileIcon}
+                  resizeMode="cover"
+                  onLoadEnd={() => setProfileLoaded(true)}
+                />
+              ) : null}
+            </View>
+
             <Image
               source={RightIcon}
               resizeMethod="contain"
@@ -442,7 +464,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.storageView}>
             <View style={styles.storageViewLeft}>
               <CircularProgress
-                value={usedSpace.usedSpacePercentage}
+                value={usedSpace.usedSpacePercentage || 0}
                 radius={hp("8%")}
                 duration={2000}
                 progressValueColor={colors.textColor3}
@@ -570,7 +592,7 @@ export default function HomeScreen({ navigation }) {
                 <FlatList
                   data={recentFilesFromRedux}
                   renderItem={animatedRenderItem}
-                  keyExtractor={(item) => item.fileName}
+                  keyExtractor={(item) => item.name}
                   refreshControl={
                     <RefreshControl
                       refreshing={refreshing}
@@ -683,9 +705,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
   },
+  profileImageContainer: {
+    height: hp("5%"),
+    width: hp("5%"),
+    borderRadius: hp("5%"),
+    backgroundColor: colors.secondaryColor2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   profileIcon: {
-    height: "85%",
-    width: "35%",
+    height: "100%",
+    width: "100%",
+    borderRadius: hp("5%"),
+    resizeMode: "cover",
   },
   rightIcon: {
     height: "45%",

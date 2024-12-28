@@ -42,15 +42,13 @@ import PlayIcon from "../../../assets/images/play_icon.png";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { videos, loading, error } = useSelector(
+  
+  const { videos } = useSelector(
     (state) => ({
       videos: state.files.videos,
-      loading: state.loading,
-      error: state.error,
     }),
     shallowEqual
   );
-
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.videosScreen
   );
@@ -74,13 +72,14 @@ export default function PhotosScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "videos", dispatch);
+    fetchRecentFiles(dispatch);
     setRefreshing(false);
   };
 
   useEffect(() => {
     if (searchTerm) {
       const filteredData = videos.filter((image) =>
-        image.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+        image.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredVideos(filteredData);
     } else {
@@ -94,11 +93,11 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("videosScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileName) => {
+  const handlePress = async (fileId, fileName, type) => {
     await navigation.navigate("FilePreviewScreen", {
+      fileId,
       fileName,
-      category: "videos",
-      folder: null,
+      type,
     });
   };
 
@@ -152,7 +151,7 @@ export default function PhotosScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = videos.filter((video) =>
-      video.fileName.toLowerCase().includes(text.toLowerCase())
+      video.name.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredVideos(filteredData);
   };
@@ -258,7 +257,7 @@ export default function PhotosScreen({ navigation }) {
                   );
                 }
 
-                refreshData()
+                refreshData();
                 console.log("Upload finished...");
               },
             },
@@ -285,7 +284,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.name)}
+      onPress={() => handlePress(item.fileId, item.name, item.type)}
     >
       <Image source={PlayIcon} style={styles.playIcon} />
       {item.thumbnail ? (
@@ -582,10 +581,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: wp("7%"),
     bottom: hp("3%"),
-    width: hp("7.5%"),
+    width: hp("8%"),
     aspectRatio: 1,
     backgroundColor: "rgba(101, 48, 194, 0.95)",
-
     borderRadius: hp("100%"),
     alignItems: "center",
     justifyContent: "center",

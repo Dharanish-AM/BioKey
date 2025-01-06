@@ -9,19 +9,24 @@ import {
   TextInput,
   FlatList,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../../constants/colors";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useSelector, useDispatch } from "react-redux";
+import RBSheet from "react-native-raw-bottom-sheet";
 
 import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import MoreIcon from "../../../assets/images/more_icon.png";
+import PlusIcon from "../../../assets/images/plus_icon.png";
 
 import InstagramIcon from "../../../assets/icons/instagram.png";
 import GoogleIcon from "../../../assets/icons/google.png";
@@ -30,6 +35,11 @@ import LinkedInIcon from "../../../assets/icons/linkedin.png";
 import FacebookIcon from "../../../assets/icons/facebook.png";
 import SnapchatIcon from "../../../assets/icons/snapchat.png";
 import RedditIcon from "../../../assets/icons/reddit.png";
+import NetflixIcon from "../../../assets/icons/netflix.png";
+import PinterestIcon from "../../../assets/icons/pintrest.png";
+import AmazonIcon from "../../../assets/icons/amazon.png";
+import { getAllPasswords } from "../../../services/passwordOperations";
+import AddPasswordSheet from "../../../components/AddPasswordSheet";
 
 export default function PasswordsScreen({ navigation }) {
   const [width] = useState(new Animated.Value(0));
@@ -37,30 +47,30 @@ export default function PasswordsScreen({ navigation }) {
   const [iconsOpacity] = useState(new Animated.Value(1));
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [passwords] = useState(
-    [
-      { name: "Instagram", email: "user1@example.com" },
-      { name: "Facebook", email: "user2@example.com" },
-      { name: "Twitter", email: "user3@example.com" },
-      { name: "Google", email: "user4@example.com" },
-      { name: "LinkedIn", email: "user5@example.com" },
-      { name: "Snapchat", email: "user6@example.com" },
-      { name: "Reddit", email: "user7@example.com" },
-      { name: "Pinterest", email: "user8@example.com" },
-      { name: "Netflix", email: "user9@example.com" },
-      { name: "Amazon", email: "user10@example.com" },
-    ].sort((a, b) => a.name.localeCompare(b.name))
-  );
+  const dispatch = useDispatch();
+  const bottomSheetRef = useRef();
+
+  const { passwords } = useSelector((state) => state.passwords);
 
   const [filteredPasswords, setFilteredPasswords] = useState(passwords);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  useEffect(() => {
+    getAllPasswords("676aee09b3f0d752bbbe58f7", dispatch);
+  }, []);
+
+  useEffect(() => {
+    setFilteredPasswords(passwords);
+  }, [passwords]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setFilteredPasswords(passwords);
-      setIsRefreshing(false);
-    }, 1000);
+    getAllPasswords("676aee09b3f0d752bbbe58f7", dispatch);
+    setIsRefreshing(false);
+  };
+
+  const handleAddPassword = () => {
+    bottomSheetRef.current.open();
   };
 
   const handleSearchIconClick = () => {
@@ -112,8 +122,10 @@ export default function PasswordsScreen({ navigation }) {
 
   const handleSearchChange = (text) => {
     setSearchTerm(text);
-    const filteredData = passwords.filter((password) =>
-      password.toString().includes(text)
+    const filteredData = passwords.filter(
+      (password) =>
+        password.name.toLowerCase().includes(text.toLowerCase()) ||
+        password.email.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredPasswords(filteredData);
   };
@@ -123,19 +135,71 @@ export default function PasswordsScreen({ navigation }) {
   };
 
   const handlePress = (item) => {
-    navigation.navigate("PasswordPreview");
+    navigation.navigate("PasswordPreview", {
+      passwordData: item,
+    });
   };
 
   const renderItem = ({ item }) => {
+    let iconSource;
+
+    switch (item.name.toLowerCase()) {
+      case "amazon":
+        iconSource = AmazonIcon;
+        break;
+      case "instagram":
+        iconSource = InstagramIcon;
+        break;
+      case "facebook":
+        iconSource = FacebookIcon;
+        break;
+      case "twitter":
+        iconSource = TwitterIcon;
+        break;
+      case "google":
+        iconSource = GoogleIcon;
+        break;
+      case "linkedin":
+        iconSource = LinkedInIcon;
+        break;
+      case "snapchat":
+        iconSource = SnapchatIcon;
+        break;
+      case "reddit":
+        iconSource = RedditIcon;
+        break;
+      case "netflix":
+        iconSource = NetflixIcon;
+        break;
+      case "pinterest":
+        iconSource = PinterestIcon;
+        break;
+      default:
+        iconSource = item.name.charAt(0).toUpperCase();
+    }
+
     return (
       <TouchableOpacity
         onPress={() => handlePress(item)}
         style={styles.passwordContainer}
       >
-        <View style={styles.iconContainer}></View>
+        <View style={styles.iconContainer}>
+          {typeof iconSource === "string" ? (
+            <View style={styles.iconTextContainer}>
+              <Text style={styles.iconText}>{iconSource}</Text>
+            </View>
+          ) : (
+            <Image
+              source={iconSource}
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
+        </View>
         <View style={styles.passwordDetails}>
           <Text style={styles.passwordName}>{item.name}</Text>
-          <Text style={styles.passwordEmail}>{item.email}</Text>
+          <Text style={styles.passwordEmail}>
+            {item.email || item.userName}
+          </Text>
         </View>
         <View style={styles.moreIconContainer}>
           <Image source={MoreIcon} style={styles.moreIcon} />
@@ -146,7 +210,10 @@ export default function PasswordsScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <View style={styles.innerContainer}>
+      <KeyboardAvoidingView
+        style={styles.innerContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={styles.top}>
           <TouchableOpacity
             style={styles.backIconContainer}
@@ -217,7 +284,37 @@ export default function PasswordsScreen({ navigation }) {
             }
           />
         </View>
-      </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            handleAddPassword();
+          }}
+        >
+          <Image source={PlusIcon} style={styles.plusIcon} />
+        </TouchableOpacity>
+        <RBSheet
+          ref={bottomSheetRef}
+          height={hp("85%")}
+          openDuration={250}
+          draggable={true}
+          animationType="slide"
+          closeOnPressMask={true}
+          closeOnDragDown={true}
+          keyboardAvoidingViewEnabled={true}
+          customStyles={{
+            container: {
+              borderTopLeftRadius: hp("3%"),
+              borderTopRightRadius: hp("3%"),
+              backgroundColor: colors.secondaryColor2,
+            },
+            mask: {
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            },
+          }}
+        >
+          <AddPasswordSheet />
+        </RBSheet>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -330,14 +427,26 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   iconContainer: {
-    width: "20%",
+    width: "17%",
     aspectRatio: 1,
-    backgroundColor: colors.lightColor2,
     borderRadius: hp("50%"),
+  },
+  iconTextContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.lightColor1,
+    borderRadius: hp("50%"),
+  },
+  iconText: {
+    fontSize: hp("3%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Medium",
+    textAlign: "center",
   },
   passwordDetails: {
     justifyContent: "center",
-    marginRight: "25%",
+    marginRight: "18%",
   },
   passwordName: {
     fontSize: hp("2.5%"),
@@ -350,10 +459,11 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Regular",
   },
   emptyText: {
-    fontSize: hp("2%"),
+    fontSize: hp("2.5%"),
     color: colors.textColor3,
     textAlign: "center",
     marginTop: hp("5%"),
+    fontFamily: "Afacad-Italic",
   },
   moreIconContainer: {
     height: "40%",
@@ -363,5 +473,21 @@ const styles = StyleSheet.create({
   moreIcon: {
     width: "100%",
     height: "100%",
+  },
+  addButton: {
+    position: "absolute",
+    right: wp("7%"),
+    bottom: hp("3%"),
+    width: hp("8%"),
+    aspectRatio: 1,
+    backgroundColor: "rgba(101, 48, 194, 0.95)",
+    borderRadius: hp("100%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  plusIcon: {
+    width: "50%",
+    height: "50%",
+    opacity: 0.9,
   },
 });

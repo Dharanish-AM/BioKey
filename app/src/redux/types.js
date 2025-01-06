@@ -5,3 +5,5 @@ export const SET_TAB_BAR_VISIBLE = "SET_TAB_BAR_VISIBLE";
 export const SET_FIRST_RENDER = "SET_FIRST_RENDER";
 
 export const SET_USER = "SET_USER";
+
+export const SET_PASSWORD = "SET_PASSWORD";

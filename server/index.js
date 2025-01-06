@@ -15,12 +15,13 @@ app.use(express.json());
 const connectToDB = require("./config/db");
 const fileRoutes = require("./routes/fileRoutes");
 const userRoutes = require("./routes/userRoutes");
+const passwordRoutes = require("./routes/passwordRoutes");
 
 connectToDB();
 
 app.use("/api/files", fileRoutes);
 app.use("/api/users", userRoutes);
-// app.use("/api/passwords");
+app.use("/api/passwords",passwordRoutes);
 // app.use("/api/devices");
 
 app.listen(PORT, () => {

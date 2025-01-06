@@ -5,6 +5,7 @@ import {
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
   SET_USER,
+  SET_PASSWORD,
 } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
@@ -51,4 +52,9 @@ export const setFirstRender = (screen) => ({
 export const setUser = (user) => ({
   type: SET_USER,
   payload: user,
+});
+
+export const setPasswords = (passwords) => ({
+  type: SET_PASSWORD,
+  payload: passwords, 
 });

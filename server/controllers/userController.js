@@ -54,7 +54,10 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Email already in use." });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = new User({
       name,

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../constants/colors";
 import {
@@ -15,11 +15,16 @@ import {
 } from "react-native-responsive-screen";
 
 import BackIcon from "../assets/images/back_icon.png";
+import EyeIcon from "../assets/images/eye.png";
+import EyeOffIcon from "../assets/images/eye-crossed.png";
 
-export default function PasswordPreview({ navigation }) {
-  const [username, setUsername] = useState("john_doe");
-  const [email, setEmail] = useState("john@example.com");
-  const [password, setPassword] = useState("*****");
+export default function PasswordPreview({ navigation, route }) {
+  const { passwordData } = route.params;
+
+  const [username, setUsername] = useState(passwordData.userName);
+  const [email, setEmail] = useState(passwordData.email);
+  const [password, setPassword] = useState(passwordData.password);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,12 +60,26 @@ export default function PasswordPreview({ navigation }) {
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailTitle}>Password:</Text>
-              <TextInput
-                style={styles.inputField}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={true}
-              />
+              <View style={styles.passwordFieldContainer}>
+                <TextInput
+                  style={styles.inputField}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={showPassword ? false : true}
+                  autoCompleteType="off"
+                  textContentType="none"
+                />
+
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIconContainer}
+                >
+                  <Image
+                    source={showPassword ? EyeIcon : EyeOffIcon}
+                    style={styles.eyeIcon}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
           <View style={styles.securityContainer}></View>
@@ -140,12 +159,33 @@ const styles = StyleSheet.create({
   inputField: {
     width: "100%",
     fontSize: hp("2.2%"),
-    color: colors.textColor3,
+    color: colors.textColor2,
     borderBottomColor: "rgba(166, 173, 186, 0.25)",
     borderBottomWidth: wp("0.2%"),
     padding: 0,
     marginBottom: hp("1.5%"),
     fontFamily: "Afacad-Regular",
+  },
+  passwordFieldContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  eyeIconContainer: {
+    width: hp("5%"),
+    height: hp("5%"),
+    position: "absolute",
+    right: wp("0%"),
+    bottom: hp("1%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  eyeIcon: {
+    width: "45%",
+    height: "45%",
+    resizeMode: "contain",
+    tintColor: colors.textColor3,
+    opacity: 0.7,
   },
   securityContainer: {
     height: "25%",

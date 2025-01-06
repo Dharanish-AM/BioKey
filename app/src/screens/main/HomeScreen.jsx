@@ -471,7 +471,7 @@ export default function HomeScreen({ navigation }) {
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
                 backgroundColor={"rgba(23, 27, 31, 0.7)"}
-                rotation={0} 
+                rotation={0}
               >
                 {(fill) => (
                   <View style={{ alignItems: "center" }}>
@@ -645,8 +645,9 @@ export default function HomeScreen({ navigation }) {
         </View>
         <RBSheet
           ref={refRBSheet}
-          height={hp("18%")}
+          height={hp("20%")}
           openDuration={400}
+          draggable={true}
           closeDuration={300}
           animationType="slide"
           closeOnPressMask={true}

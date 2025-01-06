@@ -484,8 +484,7 @@ const styles = StyleSheet.create({
   },
   audioThumbnailContainer: {
     width: "90%",
-    height: "60%",
-    marginTop: hp("5%"),
+    aspectRatio:1
   },
   audioTimeContainer: {
     width: "90%",
@@ -509,7 +508,6 @@ const styles = StyleSheet.create({
   audioControls: {
     width: "100%",
     flexDirection: "column",
-    flex: 1,
     marginTop: hp("3%"),
     alignItems: "center",
   },

@@ -39,7 +39,7 @@ import PdfIcon from "../../../assets/images/pdf_icon.png";
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
 
-  const { others} = useSelector(
+  const { others } = useSelector(
     (state) => ({
       others: state.files.others,
     }),
@@ -90,11 +90,11 @@ export default function OthersScreen({ navigation }) {
     dispatch(setFirstRender("othersScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileName) => {
+  const handlePress = async (fileId, fileName, type) => {
     await navigation.navigate("FilePreviewScreen", {
+      fileId,
       fileName,
-      category: "others",
-      folder: null,
+      type,
     });
   };
 
@@ -284,7 +284,7 @@ export default function OthersScreen({ navigation }) {
     <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => {
-        handlePress(item.name);
+        handlePress(item._id, item.name, item.type);
       }}
     >
       <View

@@ -2,7 +2,7 @@ import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 
-const API_URL = "http://192.168.1.3:8000/api/files";
+const API_URL = "http://192.168.187.73:8000/api/files";
 
 export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();
@@ -58,7 +58,7 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
       const files = response.data.files;
       console.log(`Fetched Files of category ${category} `);
       console.log("Fetched files:", files.length);
-      dispatch(fetchFilesAction(category, files));
+      dispatch(fetchFilesAction(category, files || []));
     } else {
       console.error("Error fetching files:", response.data.error);
     }

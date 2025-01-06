@@ -24,6 +24,7 @@ import SpinnerOverlay from "../../components/SpinnerOverlay";
 import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
+import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 import {
   fetchFilesByCategory,
@@ -97,8 +98,7 @@ export default function HomeScreen({ navigation }) {
     };
 
     const fetchUser = async () => {
-      await loadProfile((userId = "676aee09b3f0d752bbbe58f7"), dispatch);
-   
+      await loadProfile("676aee09b3f0d752bbbe58f7", dispatch);
     };
 
     fetchUser();
@@ -463,28 +463,33 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.center}>
           <View style={styles.storageView}>
             <View style={styles.storageViewLeft}>
-              <CircularProgress
-                value={usedSpace.usedSpacePercentage || 0}
-                radius={hp("8%")}
+              <AnimatedCircularProgress
+                size={hp("16%")}
+                width={hp("1.2%")}
+                fill={Number(usedSpace?.usedSpacePercentage) || 0}
+                prefill={0}
                 duration={2000}
-                progressValueColor={colors.textColor3}
-                maxValue={100}
-                title={"Used"}
-                valueSuffix="%"
-                titleColor={colors.textColor3}
-                titleStyle={{
-                  fontWeight: "bold",
-                  fontSize: hp("1.8%"),
-                  color: colors.textColor2,
-                }}
-                activeStrokeColor="rgba(100, 25, 230, 0.8)"
-                progressValueStyle={{
-                  fontSize: hp("2.5%"),
-                }}
-                valueSuffixStyle={{
-                  fontSize: hp("2.2%"),
-                }}
-              />
+                tintColor="rgba(100, 25, 230, 0.8)"
+                backgroundColor={"rgba(23, 27, 31, 0.7)"}
+              >
+                {(fill) => (
+                  <View style={{ alignItems: "center" }}>
+                    <Text
+                      style={[
+                        styles.progressValueStyle,
+                        { color: colors.textColor3 },
+                      ]}
+                    >
+                      {`${Math.round(fill)}%`}
+                    </Text>
+                    <Text
+                      style={[styles.titleStyle, { color: colors.textColor2 }]}
+                    >
+                      Used
+                    </Text>
+                  </View>
+                )}
+              </AnimatedCircularProgress>
             </View>
             <View style={styles.storageSepView}></View>
             <View style={styles.storageViewRight}>
@@ -552,7 +557,9 @@ export default function HomeScreen({ navigation }) {
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconContainer}>
+              <TouchableOpacity style={styles.iconContainer} onPress={()=>{
+                navigation.navigate("PasswordsScreen");
+              }}>
                 <Image
                   style={styles.utilIcons}
                   source={PassIcon}
@@ -775,6 +782,16 @@ const styles = StyleSheet.create({
     width: "50%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  progressValueStyle: {
+    fontWeight: "bold",
+    fontSize: hp("2.4%"),
+    textAlign: "center",
+  },
+  titleStyle: {
+    fontSize: hp("2.2%"),
+    textAlign: "center",
+    fontFamily: "Afacad-SemiBold",
   },
   storageSepView: {
     backgroundColor: colors.textColor2,

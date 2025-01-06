@@ -70,7 +70,7 @@ export default function TabNavigator() {
             backgroundColor: colors.lightColor2,
             borderTopColor: "transparent",
             borderTopWidth: 0,
-            height: Platform.OS === "android" ? hp("7.5%") : hp("10.5%"),
+            height: Platform.OS === "android" ? hp("9%") : hp("10.5%"),
             paddingTop: Platform.OS === "android" ? hp("1.7%") : hp("2.2%"),
           },
         })}
@@ -84,7 +84,7 @@ export default function TabNavigator() {
             backgroundColor: colors.lightColor2,
             borderTopColor: "transparent",
             borderTopWidth: 0,
-            height: Platform.OS === "android" ? hp("7.5%") : hp("10.5%"),
+            height: Platform.OS === "android" ? hp("9%") : hp("10.5%"),
             paddingTop: Platform.OS === "android" ? hp("1.7%") : hp("2.2%"),
           },
         })}
@@ -98,7 +98,7 @@ export default function TabNavigator() {
             backgroundColor: colors.lightColor2,
             borderTopColor: "transparent",
             borderTopWidth: 0,
-            height: Platform.OS === "android" ? hp("7.5%") : hp("10.5%"),
+            height: Platform.OS === "android" ? hp("9%") : hp("10.5%"),
             paddingTop: Platform.OS === "android" ? hp("1.7%") : hp("2.2%"),
           },
         })}
@@ -115,7 +115,8 @@ const getTabBarDisplay = (route) => {
     routeName === "FilePreviewScreen" ||
     routeName === "VideosScreen" ||
     routeName === "AudiosScreen" ||
-    routeName === "OthersScreen"
+    routeName === "OthersScreen" || 
+    routeName === "PasswordsScreen"
   ) {
     return "none";
   }

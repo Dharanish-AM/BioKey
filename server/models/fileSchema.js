@@ -36,5 +36,6 @@ const fileSchema = new mongoose.Schema(
 );
 
 fileSchema.index({ owner: 1, createdAt: -1 });
-
-module.exports = mongoose.model("File", fileSchema);
+ 
+module.exports = mongoose.model("File", fileSchema); 
+  

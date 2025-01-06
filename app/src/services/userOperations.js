@@ -1,6 +1,6 @@
 import axios from "axios";
 import { setUser } from "../redux/actions";
-const API_URL = "http://192.168.1.3:8000/api/users";
+const API_URL = "http://192.168.187.73:8000/api/users";
 
 export const loadProfile = async (userId, dispatch) => {
   try {

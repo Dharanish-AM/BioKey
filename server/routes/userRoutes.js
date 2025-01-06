@@ -9,3 +9,4 @@ router.get("/details", userController.getUser);
 router.post("/setprofile", userController.setProfile);
 
 module.exports = router;
+  

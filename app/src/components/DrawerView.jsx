@@ -34,8 +34,8 @@ export default function DrawerView() {
 
           <View style={styles.bottomDetails}>
             <View style={styles.userDetails}>
-              <Text style={styles.userName}>Dharanish A M</Text>
-              <Text style={styles.userEmail}>dharanish816@gmail.com</Text>
+              <Text style={styles.userName}>{user.userName}</Text>
+              <Text style={styles.userEmail}>{user.userEmail}</Text>
             </View>
             <Image source={DownArrow} style={styles.downArrow} />
           </View>

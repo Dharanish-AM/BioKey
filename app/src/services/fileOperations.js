@@ -2,7 +2,7 @@ import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 
-const API_URL = "http://192.168.187.73:8000/api/files";
+const API_URL = "http://172.20.10.2:8000/api/files";
 
 export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();

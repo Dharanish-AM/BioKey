@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   filterIcon: {
-    height: hp("5%"),
+    height: hp("4.7%"),
     aspectRatio: 1,
     resizeMode: "contain",
     tintColor: colors.textColor3,

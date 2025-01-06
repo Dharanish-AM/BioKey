@@ -18,6 +18,7 @@ import AudiosScreen from "../screens/main/media/AudiosScreen";
 import OthersScreen from "../screens/main/media/OthersScreen";
 import FilePreviewScreen from "../components/FilePreview";
 import PasswordsScreen from "../screens/main/media/PasswordsScreen";
+import PasswordPreview from "../components/PasswordPreview";
 
 const Stack = createStackNavigator();
 
@@ -100,6 +101,7 @@ function HomeStack() {
       <Stack.Screen name="AudiosScreen" component={AudiosScreen} />
       <Stack.Screen name="OthersScreen" component={OthersScreen} />
       <Stack.Screen name="PasswordsScreen" component={PasswordsScreen} />
+      <Stack.Screen name="PasswordPreview" component={PasswordPreview} />
     </Stack.Navigator>
   );
 }

@@ -471,6 +471,7 @@ export default function HomeScreen({ navigation }) {
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
                 backgroundColor={"rgba(23, 27, 31, 0.7)"}
+                rotation={0} 
               >
                 {(fill) => (
                   <View style={{ alignItems: "center" }}>
@@ -557,9 +558,12 @@ export default function HomeScreen({ navigation }) {
                   resizeMode="contain"
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconContainer} onPress={()=>{
-                navigation.navigate("PasswordsScreen");
-              }}>
+              <TouchableOpacity
+                style={styles.iconContainer}
+                onPress={() => {
+                  navigation.navigate("PasswordsScreen");
+                }}
+              >
                 <Image
                   style={styles.utilIcons}
                   source={PassIcon}

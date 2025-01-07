@@ -693,7 +693,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
-    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -1006,9 +1005,9 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   audioImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: hp("1.5%"),
+    width: "60%",
+    height: "60%",
+    resizeMode: "contain",
   },
   videoFileWithPlayContainer: {
     width: "100%",

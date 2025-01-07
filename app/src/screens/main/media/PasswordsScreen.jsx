@@ -38,8 +38,11 @@ import RedditIcon from "../../../assets/icons/reddit.png";
 import NetflixIcon from "../../../assets/icons/netflix.png";
 import PinterestIcon from "../../../assets/icons/pintrest.png";
 import AmazonIcon from "../../../assets/icons/amazon.png";
+import FlipkartIcon from "../../../assets/icons/flipkart.png";
 import { getAllPasswords } from "../../../services/passwordOperations";
 import AddPasswordSheet from "../../../components/AddPasswordSheet";
+import { shallowEqual } from "react-redux";
+import { setFirstRender } from "../../../redux/actions";
 
 export default function PasswordsScreen({ navigation }) {
   const [width] = useState(new Animated.Value(0));
@@ -50,13 +53,18 @@ export default function PasswordsScreen({ navigation }) {
   const dispatch = useDispatch();
   const bottomSheetRef = useRef();
 
-  const { passwords } = useSelector((state) => state.passwords);
+  const passwords = useSelector((state) => state.passwords.passwords);
+  const isFirstRender = useSelector(
+    (state) => state.appConfig.isFirstRender.passwordsScreen
+  );
 
   const [filteredPasswords, setFilteredPasswords] = useState(passwords);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
+    if (!isFirstRender) return;
     getAllPasswords("676aee09b3f0d752bbbe58f7", dispatch);
+    dispatch(setFirstRender("passwordsScreen"));
   }, []);
 
   useEffect(() => {
@@ -174,6 +182,9 @@ export default function PasswordsScreen({ navigation }) {
       case "pinterest":
         iconSource = PinterestIcon;
         break;
+      case "flipkart":
+        iconSource = FlipkartIcon;
+        break;
       default:
         iconSource = item.name.charAt(0).toUpperCase();
     }
@@ -183,23 +194,29 @@ export default function PasswordsScreen({ navigation }) {
         onPress={() => handlePress(item)}
         style={styles.passwordContainer}
       >
-        <View style={styles.iconContainer}>
-          {typeof iconSource === "string" ? (
-            <View style={styles.iconTextContainer}>
-              <Text style={styles.iconText}>{iconSource}</Text>
-            </View>
-          ) : (
-            <Image
-              source={iconSource}
-              style={{ width: "100%", height: "100%" }}
-            />
-          )}
-        </View>
-        <View style={styles.passwordDetails}>
-          <Text style={styles.passwordName}>{item.name}</Text>
-          <Text style={styles.passwordEmail}>
-            {item.email || item.userName}
-          </Text>
+        <View style={styles.parentPassword}>
+          <View style={styles.iconContainer}>
+            {typeof iconSource === "string" ? (
+              <View style={styles.iconTextContainer}>
+                <Text style={styles.iconText}>{iconSource}</Text>
+              </View>
+            ) : (
+              <Image
+                source={iconSource}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: hp("50%"),
+                }}
+              />
+            )}
+          </View>
+          <View style={styles.passwordDetails}>
+            <Text style={styles.passwordName}>{item.name}</Text>
+            <Text style={styles.passwordEmail}>
+              {item.email || item.userName}
+            </Text>
+          </View>
         </View>
         <View style={styles.moreIconContainer}>
           <Image source={MoreIcon} style={styles.moreIcon} />
@@ -210,10 +227,7 @@ export default function PasswordsScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.innerContainer}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+      <View style={styles.innerContainer}>
         <View style={styles.top}>
           <TouchableOpacity
             style={styles.backIconContainer}
@@ -292,6 +306,7 @@ export default function PasswordsScreen({ navigation }) {
         >
           <Image source={PlusIcon} style={styles.plusIcon} />
         </TouchableOpacity>
+
         <RBSheet
           ref={bottomSheetRef}
           height={hp("85%")}
@@ -305,16 +320,16 @@ export default function PasswordsScreen({ navigation }) {
             container: {
               borderTopLeftRadius: hp("3%"),
               borderTopRightRadius: hp("3%"),
-              backgroundColor: colors.secondaryColor2,
+              backgroundColor: colors.lightColor2,
             },
             mask: {
               backgroundColor: "rgba(0, 0, 0, 0.5)",
             },
           }}
         >
-          <AddPasswordSheet />
+          <AddPasswordSheet bottomSheetRef={bottomSheetRef} />
         </RBSheet>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -332,7 +347,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("10%"),
+    marginBottom: hp("1%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
@@ -415,6 +430,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
+  parentPassword: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: wp("5%"),
+  },
   passwordContainer: {
     width: "100%",
     height: hp("10%"),
@@ -427,7 +448,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   iconContainer: {
-    width: "17%",
+    width: wp("15%"),
     aspectRatio: 1,
     borderRadius: hp("50%"),
   },
@@ -446,7 +467,7 @@ const styles = StyleSheet.create({
   },
   passwordDetails: {
     justifyContent: "center",
-    marginRight: "18%",
+    marginRight: wp("5%"),
   },
   passwordName: {
     fontSize: hp("2.5%"),

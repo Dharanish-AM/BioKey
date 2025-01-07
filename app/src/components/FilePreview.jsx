@@ -383,27 +383,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("10%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
+    marginBottom: hp("3%"),
+    alignItems: "center",
   },
   topContent: {
     flexDirection: "row",
     alignItems: "center",
-    height: "70%",
     gap: wp("0.5%"),
-    width: "90%",
+    flexWrap: "wrap",
   },
   fileName: {
-    fontSize: hp("2%"),
+    fontSize: hp("2.1%"),
     color: colors.textColor3,
     fontFamily: "Montserrat-SemiBold",
   },
   backIconContainer: {
-    height: hp("4.5%"),
-    width: hp("4.5%"),
+    height: hp("4%"),
+    width: hp("4%"),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   },
   audioThumbnailContainer: {
     width: "90%",
-    aspectRatio:1
+    aspectRatio: 1,
   },
   audioTimeContainer: {
     width: "90%",

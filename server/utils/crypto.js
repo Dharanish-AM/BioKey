@@ -4,11 +4,11 @@ const dotenv = require("dotenv").config();
 if (!process.env.AES_KEY) {
   throw new Error("AES_KEY is required in .env");
 }
-
+ 
 const algorithm = "aes-256-cbc";
 
 const key = crypto.createHash("sha256").update(process.env.AES_KEY).digest();
-
+ 
 const encrypt = (text) => {
   const iv = crypto.randomBytes(16);
 
@@ -20,7 +20,7 @@ const encrypt = (text) => {
     content: encrypted.toString("hex"),
   };
 };
-
+ 
 const decrypt = (hash) => {
   if (!hash || !hash.iv || !hash.content) {
     throw new Error("Invalid hash format. Missing 'iv' or 'content'.");

@@ -24,6 +24,8 @@ export default function PasswordPreview({ navigation, route }) {
   const [username, setUsername] = useState(passwordData.userName);
   const [email, setEmail] = useState(passwordData.email);
   const [password, setPassword] = useState(passwordData.password);
+  const [website, setWebsite] = useState(passwordData.website);
+  const [note, setNote] = useState(passwordData.note);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -38,7 +40,7 @@ export default function PasswordPreview({ navigation, route }) {
           >
             <Image source={BackIcon} style={styles.backIcon} />
           </TouchableOpacity>
-          <Text style={styles.titleText}>Instagram</Text>
+          <Text style={styles.titleText}>{passwordData.name}</Text>
         </View>
         <View style={styles.center}>
           <View style={styles.passwordDetails}>
@@ -46,30 +48,33 @@ export default function PasswordPreview({ navigation, route }) {
               <Text style={styles.detailTitle}>Username:</Text>
               <TextInput
                 style={styles.inputField}
-                value={username}
+                value={username || ""}
                 onChangeText={setUsername}
+                placeholder={username ? "" : "No Username"}
               />
             </View>
+
             <View style={styles.detailRow}>
               <Text style={styles.detailTitle}>Email:</Text>
               <TextInput
                 style={styles.inputField}
-                value={email}
+                value={email || ""}
                 onChangeText={setEmail}
+                placeholder={email ? "" : "No Email"}
               />
             </View>
+
             <View style={styles.detailRow}>
               <Text style={styles.detailTitle}>Password:</Text>
               <View style={styles.passwordFieldContainer}>
                 <TextInput
                   style={styles.inputField}
-                  value={password}
+                  value={password || ""}
                   onChangeText={setPassword}
                   secureTextEntry={showPassword ? false : true}
                   autoCompleteType="off"
                   textContentType="none"
                 />
-
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeIconContainer}
@@ -81,8 +86,30 @@ export default function PasswordPreview({ navigation, route }) {
                 </TouchableOpacity>
               </View>
             </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailTitle}>Website:</Text>
+              <TextInput
+                style={styles.inputField}
+                value={website || ""}
+                onChangeText={setWebsite}
+                placeholder={website ? "" : "No Website"}
+              />
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailTitle}>Note:</Text>
+              <TextInput
+                style={styles.inputField}
+                value={note || ""}
+                onChangeText={setNote}
+                placeholder={note ? "" : "No Note"}
+              />
+            </View>
           </View>
+
           <View style={styles.securityContainer}></View>
+
           <View style={styles.optionsContainer}>
             <View style={styles.editContainer}></View>
             <View style={styles.linkContainer}></View>
@@ -107,7 +134,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("10%"),
+    height: hp("8%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
@@ -134,9 +161,10 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     paddingHorizontal: wp("3.5%"),
     justifyContent: "space-between",
+    gap: hp("2.5%"),
   },
   passwordDetails: {
-    height: "55%",
+    height: "65%",
     width: "100%",
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
@@ -147,8 +175,8 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: "column",
-    marginBottom: hp("3%"),
     width: "100%",
+    marginBottom: hp("2%"),
   },
   detailTitle: {
     fontSize: hp("2.5%"),
@@ -163,7 +191,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "rgba(166, 173, 186, 0.25)",
     borderBottomWidth: wp("0.2%"),
     padding: 0,
-    marginBottom: hp("1.5%"),
+    marginBottom: hp("0%"),
     fontFamily: "Afacad-Regular",
   },
   passwordFieldContainer: {
@@ -188,7 +216,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   securityContainer: {
-    height: "25%",
+    flex: 1,
     width: "100%",
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),

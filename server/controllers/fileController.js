@@ -107,25 +107,48 @@ const createThumbnail = async (filePath, userId, fileCategory, fileName) => {
             const albumArt = tag.tags["APIC"];
             if (albumArt?.data) {
               try {
-                const imageBuffer = Buffer.from(albumArt.data);
+                let imageBuffer;
+                if (Buffer.isBuffer(albumArt.data)) {
+                  imageBuffer = albumArt.data;
+                } else if (Array.isArray(albumArt.data)) {
+                  imageBuffer = Buffer.from(albumArt.data);
+                } else if (typeof albumArt.data === "object") {
+                  imageBuffer = Buffer.from(albumArt.data.data || []);
+                } else {
+                  throw new Error("Invalid album art data format");
+                }
+
                 const resizedBuffer = await sharp(imageBuffer)
                   .resize(500, 500)
                   .webp()
                   .toBuffer();
+
+                await fs.promises.mkdir(path.dirname(thumbnailPath), {
+                  recursive: true,
+                });
+
                 await fs.promises.writeFile(thumbnailPath, resizedBuffer);
+
                 resolve(thumbnailPath);
               } catch (error) {
+                console.error("Error resizing audio thumbnail:", error);
                 reject({
                   error: "Error resizing audio thumbnail",
-                  details: error,
+                  details: error.message,
                 });
               }
             } else {
+              console.log("No album art found in audio file.");
               resolve(null);
             }
           },
-          onError: (error) =>
-            reject({ error: "Error reading audio metadata", details: error }),
+          onError: (error) => {
+            console.error("Error reading audio metadata:", error);
+            reject({
+              error: "Error reading audio metadata",
+              details: error.message,
+            });
+          },
         });
       });
     } else {
@@ -206,48 +229,70 @@ const uploadFile = (req, res) => {
           const uniqueFileName = getUniqueFilePath(targetDir, fileName);
           const uniqueTargetPath = path.join(targetDir, uniqueFileName);
 
-          await fs.promises.mkdir(targetDir, { recursive: true });
+          let thumbnailPath = null;
 
-          await fs.promises.copyFile(file.filepath, uniqueTargetPath);
+          try {
+            await fs.promises.mkdir(targetDir, { recursive: true });
+            await fs.promises.copyFile(file.filepath, uniqueTargetPath);
 
-          const thumbnailPath = await createThumbnail(
-            uniqueTargetPath,
-            userId,
-            fileCategory,
-            fileName
-          );
+            thumbnailPath = await createThumbnail(
+              uniqueTargetPath,
+              userId,
+              fileCategory,
+              fileName
+            );
 
-          const fileMetadata = new File({
-            name: uniqueFileName,
-            path: path.join(fileCategory, uniqueFileName),
-            type: fileCategory,
-            thumbnail: thumbnailPath
-              ? path.join(
-                  "thumbnails",
-                  fileCategory,
-                  path.basename(thumbnailPath)
-                )
-              : null,
-            size: file.size,
-            owner: userId,
-          });
+            const fileMetadata = new File({
+              name: uniqueFileName,
+              path: path.join(fileCategory, uniqueFileName),
+              type: fileCategory,
+              thumbnail: thumbnailPath
+                ? path.join(
+                    "thumbnails",
+                    fileCategory,
+                    path.basename(thumbnailPath)
+                  )
+                : null,
+              size: file.size,
+              owner: userId,
+            });
 
-          await fileMetadata.save();
+            await fileMetadata.save();
+            await deleteTempFile(file.filepath);
 
-          await deleteTempFile(file.filepath);
+            return {
+              fileName: uniqueFileName,
+              filePath: path.join(fileCategory, uniqueFileName),
+              thumbnailPath: thumbnailPath
+                ? path.join(
+                    "thumbnails",
+                    fileCategory,
+                    path.basename(thumbnailPath)
+                  )
+                : null,
+              category: fileCategory,
+            };
+          } catch (fileError) {
+            console.error("Error processing file:", fileError.message);
 
-          return {
-            fileName: uniqueFileName,
-            filePath: path.join(fileCategory, uniqueFileName),
-            thumbnailPath: thumbnailPath
-              ? path.join(
-                  "thumbnails",
-                  fileCategory,
-                  path.basename(thumbnailPath)
-                )
-              : null,
-            category: fileCategory,
-          };
+            console.error("File path:", uniqueTargetPath);
+            console.error("Thumbnail path:", thumbnailPath);
+
+            if (fs.existsSync(uniqueTargetPath)) {
+              await fs.promises.unlink(uniqueTargetPath);
+              console.log(`Deleted file: ${uniqueTargetPath}`);
+            }
+
+            if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+              await fs.promises.unlink(thumbnailPath);
+              console.log(`Deleted thumbnail: ${thumbnailPath}`);
+            }
+
+            return {
+              error: fileError.message,
+              details: fileError.stack,
+            };
+          }
         })
       );
 
@@ -259,10 +304,12 @@ const uploadFile = (req, res) => {
         .map((result) => result.reason);
 
       if (errors.length > 0) {
+        console.error("Upload errors:", errors);
+
         res.status(207).json({
           message: "Some files failed to upload",
           successes,
-          errors,
+          errors: errors.map((error) => error.error),
         });
       } else {
         res.status(200).json({

@@ -43,7 +43,6 @@ import AudioFileIcon from "../../../assets/images/audiofile_icon.png";
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
 
-  
   const { audios } = useSelector(
     (state) => ({
       audios: state.files.audios,
@@ -176,19 +175,18 @@ export default function PhotosScreen({ navigation }) {
         const files = result;
         console.log("Files selected:", files);
 
-        const mediaType = files[0].type;
+        const mediaType = files[0]?.type;
         let category = "";
 
-        if (mediaType.includes("image")) {
-          category = "images";
-        } else if (mediaType.includes("audio")) {
-          category = "audios";
-        } else if (mediaType.includes("audio")) {
-          category = "audio";
-        } else {
-          category = "documents";
+        if (mediaType) {
+          if (mediaType.includes("image")) {
+            category = "images";
+          } else if (mediaType.includes("audio")) {
+            category = "audios";
+          } else {
+            category = "documents";
+          }
         }
-
         Alert.alert(
           "Confirm Upload",
           `You have selected ${files.length} ${category}(s). Do you want to upload them?`,
@@ -443,7 +441,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
-    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -451,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("10%"),
+    marginBottom: hp("2%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
@@ -552,7 +549,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   fallBackFileIcon: {
-    tintColor: colors.textColor2,
+    height: "60%",
+    width: "60%",
+    resizeMode: "contain",
   },
   fileThumbnail: {
     height: "100%",

@@ -130,12 +130,6 @@ export default function FoldersScreen() {
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.top}>
-          <TouchableOpacity
-            style={styles.backIconContainer}
-            onPress={() => navigation.goBack()}
-          >
-            <Image source={BackIcon} style={styles.backIcon} />
-          </TouchableOpacity>
           <Text style={styles.screenTitle}>Folders</Text>
 
           <View style={styles.filterContainer}>
@@ -185,7 +179,7 @@ export default function FoldersScreen() {
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={{
               width: wp("100%"),
-              paddingHorizontal: wp("2.5%"),
+              paddingHorizontal: wp("1.5%"),
             }}
           />
         </View>
@@ -211,23 +205,8 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("1%"),
-  },
-  backIconContainer: {
-    height: hp("4.5%"),
-    width: hp("4.5%"),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backIcon: {
-    flex: 1,
-    aspectRatio: 1,
-    resizeMode: "contain",
-  },
-  title: {
-    fontSize: hp("4%"),
-    fontFamily: "Afacad-SemiBold",
-    color: colors.textColor3,
+    paddingHorizontal: wp("4%"),
+    justifyContent: "space-between",
   },
   screenTitle: {
     fontSize: hp("4%"),

@@ -437,7 +437,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
-    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -445,12 +444,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    height: hp("10%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
+    marginBottom: hp("2%"),
   },
   titleContainer: {
     justifyContent: "center",

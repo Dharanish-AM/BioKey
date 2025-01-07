@@ -1,7 +1,13 @@
 import axios from "axios";
 import { setPasswords } from "../redux/actions";
+import store from "../redux/store";
 
-const API_URL = "http://192.168.1.5:8000/api/passwords";
+const getIP = () => {
+  const state = store.getState();
+  return state.appConfig.API_IP;
+};
+
+const API_URL = `http://${getIP()}:8000/api/passwords`;
 
 export const addPassword = async (
   userId,
@@ -10,7 +16,8 @@ export const addPassword = async (
   email,
   password,
   website,
-  note
+  note,
+  dispatch
 ) => {
   try {
     const response = await axios.post(`${API_URL}/addpassword`, {
@@ -24,18 +31,28 @@ export const addPassword = async (
     });
 
     if (response.status === 201) {
-      console.log("Password added successfully:", response.data);
-      return response.data;
+      getAllPasswords(userId, dispatch);
+      return {
+        status: true,
+        message: response.data.message || "Password added successfully!",
+      };
     } else {
-      console.error("Failed to add password:", response.data);
-      throw new Error("Failed to add password");
+      console.error("Unexpected response status:", response.status);
+      return {
+        status: false,
+        message:
+          response.data.message || "Failed to add password. Please try again.",
+      };
     }
   } catch (error) {
     console.error(
       "Error adding password:",
       error.response ? error.response.data : error.message
     );
-    throw new Error("An error occurred while adding the password.");
+    return {
+      status: false,
+      message: "An error occurred while adding the password. Please try again.",
+    };
   }
 };
 

@@ -1,8 +1,14 @@
 import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
+import store from "../redux/store";
 
-const API_URL = "http://192.168.1.5:8000/api/files";
+const getIP = () => {
+  const state = store.getState();
+  return state.appConfig.API_IP;
+};
+
+const API_URL = `http://${getIP()}:8000/api/files`;
 
 export const uploadMedia = async (fileUri, fileName) => {
   const formData = new FormData();
@@ -23,8 +29,16 @@ export const uploadMedia = async (fileUri, fileName) => {
     });
 
     if (response.status >= 200 && response.status < 300) {
+      if (response.data.errors && response.data.errors.length > 0) {
+        console.error("Some files failed to upload:", response.data.errors);
+        return {
+          success: false,
+          message: `Some files failed to upload: ${response.data.errors.join(
+            ", "
+          )}`,
+        };
+      }
       console.log("Upload successful", response.data);
-
       return { success: true, message: "Upload successful and files updated" };
     } else {
       console.error("Upload failed with status code:", response.status);
@@ -146,4 +160,3 @@ export const previewAudio = (userId, fileId) => {
     return null;
   }
 };
-

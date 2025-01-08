@@ -1005,8 +1005,8 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   audioImage: {
-    width: "60%",
-    height: "60%",
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
   },
   videoFileWithPlayContainer: {

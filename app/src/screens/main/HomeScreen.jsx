@@ -131,7 +131,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       try {
-        const uploadResponse = await uploadMedia(fileUri, fileName);
+        const uploadResponse = await uploadMedia(fileUri, fileName,dispatch);
         if (uploadResponse.success) {
           successCount++;
           console.log(`File ${fileName} uploaded successfully.`);
@@ -437,12 +437,21 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.profileImageContainer}>
               {user.profileImage ? (
                 <Image
+                  source={ProfileIcon}
+                  style={{
+                    ...styles.profileIcon,
+                  }}
+                  resizeMode="cover"
+                  onLoadEnd={() => setProfileLoaded(true)}
+                />
+              ) : (
+                <Image
                   source={{ uri: user.profileImage }}
                   style={styles.profileIcon}
                   resizeMode="cover"
                   onLoadEnd={() => setProfileLoaded(true)}
                 />
-              ) : null}
+              )}
             </View>
 
             <Image
@@ -724,7 +733,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   profileIcon: {
     height: "100%",
     width: "100%",

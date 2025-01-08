@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchFilesByCategory } from "../../../services/fileOperations";
+import { fetchFilesByCategory, fetchRecentFiles } from "../../../services/fileOperations";
 import { shallowEqual } from "react-redux";
 import {
   widthPercentageToDP as wp,
@@ -219,7 +219,6 @@ export default function OthersScreen({ navigation }) {
                   const uploadResponse = await uploadMedia(
                     fileUri,
                     fileName,
-                    category,
                     dispatch
                   );
 
@@ -452,29 +451,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    marginBottom: hp("2%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
+    marginBottom: hp("2%"),
   },
-  titleContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    textAlignVertical: "center",
-    alignSelf: "center",
-    height: "80%",
-  },
-  backIconContainer: {
-    height: hp("4.5%"),
-    width: hp("4.5%"),
+ backIconContainer: {
+    height: hp("6%"),
+    width: hp("6%"),
     justifyContent: "center",
     alignItems: "center",
   },
   backIcon: {
-    flex: 1,
+   width:"80%",
+   height:"80%",
     aspectRatio: 1,
     resizeMode: "contain",
   },
@@ -482,7 +474,6 @@ const styles = StyleSheet.create({
     fontSize: hp("4%"),
     fontFamily: "Afacad-SemiBold",
     color: colors.textColor3,
-    width: "40%",
   },
   filterContainer: {
     flexDirection: "row",
@@ -491,15 +482,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     marginRight: wp("1%"),
-    height: "80%",
   },
   searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
+    height: hp("3.2%"),
+    aspectRatio: 1,
   },
   searchIcon: {
-    height: hp("3.7%"),
-    aspectRatio: 1,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
     tintColor: colors.textColor3,
   },
@@ -510,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("2%"),
     paddingHorizontal: hp("2%"),
     overflow: "hidden",
-    height: "70%",
+    height: hp("6%"),
   },
   textInput: {
     height: "100%",
@@ -522,10 +514,12 @@ const styles = StyleSheet.create({
   filterIconContainer: {
     alignItems: "center",
     justifyContent: "center",
+    height: hp("3.2%"),
+    aspectRatio: 1,
   },
   filterIcon: {
-    height: hp("4.7%"),
-    aspectRatio: 1,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
     tintColor: colors.textColor3,
   },

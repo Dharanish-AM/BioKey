@@ -10,7 +10,7 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/files`;
 
-export const uploadMedia = async (fileUri, fileName) => {
+export const uploadMedia = async (fileUri, fileName, dispatch) => {
   const formData = new FormData();
   const file = {
     uri: fileUri,
@@ -39,6 +39,9 @@ export const uploadMedia = async (fileUri, fileName) => {
         };
       }
       console.log("Upload successful", response.data);
+
+      await fetchUsedSpace(dispatch);
+
       return { success: true, message: "Upload successful and files updated" };
     } else {
       console.error("Upload failed with status code:", response.status);

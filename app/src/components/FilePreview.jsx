@@ -386,9 +386,6 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("1%"),
-    marginBottom: hp("3%"),
-    alignItems: "center",
   },
   topContent: {
     flexDirection: "row",
@@ -397,18 +394,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   fileName: {
-    fontSize: hp("2.1%"),
+    fontSize: hp("2.4%"),
     color: colors.textColor3,
     fontFamily: "Montserrat-SemiBold",
   },
   backIconContainer: {
-    height: hp("4%"),
-    width: hp("4%"),
+    height: hp("6%"),
+    width: hp("6%"),
     justifyContent: "center",
     alignItems: "center",
   },
   backIcon: {
-    flex: 1,
+    width: "75%",
+    height: "75%",
     aspectRatio: 1,
     resizeMode: "contain",
   },

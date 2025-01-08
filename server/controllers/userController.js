@@ -209,6 +209,10 @@ const setProfile = async (req, res) => {
     form.uploadDir = TEMP_DIR;
     form.keepExtensions = true;
 
+    if (!fs.existsSync(TEMP_DIR)) {
+      fs.mkdirSync(TEMP_DIR, { recursive: true });
+    }
+
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error(err);
@@ -220,6 +224,10 @@ const setProfile = async (req, res) => {
       }
 
       const file = files.profile[0];
+
+      if (file.size === 0) {
+        return res.status(400).json({ message: "Uploaded file is empty." });
+      }
 
       const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
       if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -237,13 +245,13 @@ const setProfile = async (req, res) => {
       );
       const tempFilePath = path.join("assets", `profile${fileExtension}`);
 
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+      }
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
 
       fs.renameSync(file.filepath, filePath);

@@ -131,7 +131,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       try {
-        const uploadResponse = await uploadMedia(fileUri, fileName,dispatch);
+        const uploadResponse = await uploadMedia(fileUri, fileName, dispatch);
         if (uploadResponse.success) {
           successCount++;
           console.log(`File ${fileName} uploaded successfully.`);
@@ -582,7 +582,12 @@ export default function HomeScreen({ navigation }) {
             </View>
             <View style={styles.secondRowIcons}>
               <View style={styles.optionsIcons}>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity
+                  style={styles.optionsIconContainer}
+                  onPress={() => {
+                    navigation.navigate("MapView");
+                  }}
+                >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.optionsIconContainer}>
@@ -702,6 +707,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
+    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,

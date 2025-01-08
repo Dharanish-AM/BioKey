@@ -75,3 +75,45 @@ export const getAllPasswords = async (userId, dispatch) => {
     throw new Error("An error occurred while retrieving the passwords.");
   }
 };
+
+export const deletePassword = async (userId, passwordId, dispatch) => {
+  try {
+    const response = await axios.delete(`${API_URL}/deletepassword`, {
+      params: {
+        userId,
+        passwordId,
+      },
+    });
+
+    if (response.status === 200) {
+     
+      getAllPasswords(userId, dispatch);
+
+      return {
+        status: true,
+        message: response.data.message || "Password deleted successfully.",
+      };
+    } else {
+      console.error("Unexpected response status:", response.status);
+      return {
+        status: false,
+        message:
+          response.data.message ||
+          "Failed to delete password. Please try again.",
+      };
+    }
+  } catch (error) {
+    console.error(
+      "Error deleting password:",
+      error.response ? error.response.data : error.message
+    );
+
+    return {
+      status: false,
+      message: error.response
+        ? error.response.data.error ||
+          "An error occurred while deleting the password."
+        : "An error occurred while deleting the password. Please try again.",
+    };
+  }
+};

@@ -354,15 +354,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     
   },
- backIconContainer: {
+  backIconContainer: {
     height: hp("6%"),
-    width: hp("6%"),
-    justifyContent: "center",
+    width: hp("4.5%"),
+    flexDirection: "row",
     alignItems: "center",
   },
   backIcon: {
-   width:"80%",
-   height:"80%",
+    flex: 1,
     aspectRatio: 1,
     resizeMode: "contain",
   },

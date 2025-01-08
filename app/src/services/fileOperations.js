@@ -163,3 +163,51 @@ export const previewAudio = (userId, fileId) => {
     return null;
   }
 };
+
+export const deleteFile = async (userId, fileId, type, dispatch) => {
+  try {
+    const response = await axios.delete(`${API_URL}/delete`, {
+      data: {
+        userId,
+        fileId,
+      },
+    });
+
+    console.log("File deleted successfully:", response.data);
+
+    fetchFilesByCategory(userId, type, dispatch);
+
+    return {
+      success: true,
+      message: "File deleted successfully.",
+      data: response.data,
+    };
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        "Server Error:",
+        error.response.data.message || error.response.data
+      );
+      console.error("Status Code:", error.response.status);
+      return {
+        success: false,
+        message: error.response.data.message || "Server error occurred.",
+      };
+    } else if (error.request) {
+      console.error(
+        "No response received from server. Check network connectivity."
+      );
+      return {
+        success: false,
+        message:
+          "No response from server. Please check your internet connection.",
+      };
+    } else {
+      console.error("Request Error:", error.message);
+      return {
+        success: false,
+        message: error.message || "An unknown error occurred.",
+      };
+    }
+  }
+};

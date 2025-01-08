@@ -5,12 +5,12 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
-import { setTabBarVisible } from "../redux/actions";
-import colors from "../constants/colors";
+import colors from "../../../constants/colors";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -20,17 +20,18 @@ import {
   previewImage,
   previewVideo,
   previewAudio,
-} from "../services/fileOperations";
+  deleteFile,
+} from "../../../services/fileOperations";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Audio } from "expo-av";
-import PlayButtonIcon from "../assets/images/play-button.png";
-import PauseButtonicon from "../assets/images/pause-icon.png";
+import PlayButtonIcon from "../../../assets/images/play-button.png";
+import PauseButtonicon from "../../../assets/images/pause-icon.png";
 import Slider from "@react-native-community/slider";
-import FavIcon from "../assets/images/heart_bottom_icon.png";
-import ShareIcon from "../assets/images/share_bottom_icon.png";
-import AddFolder from "../assets/images/addfolder_bottom_icon.png";
-import BinIcon from "../assets/images/trash_bottom_icon.png";
-import InfoIcon from "../assets/images/info_bottom_icon.png";
+import FavIcon from "../../../assets/images/heart_bottom_icon.png";
+import ShareIcon from "../../../assets/images/share_bottom_icon.png";
+import AddFolder from "../../../assets/images/addfolder_bottom_icon.png";
+import BinIcon from "../../../assets/images/trash_bottom_icon.png";
+import InfoIcon from "../../../assets/images/info_bottom_icon.png";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { fileName, fileId, type, thumbnail } = route.params;
@@ -41,6 +42,10 @@ export default function FilePreviewScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const userId = "676aee09b3f0d752bbbe58f7";
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    console.log(fileName, fileId, type);
+  }, []);
 
   useEffect(() => {
     const fetchFilePreview = async () => {
@@ -58,15 +63,7 @@ export default function FilePreviewScreen({ route, navigation }) {
             const audioUrl = previewAudio(userId, fileId);
             setAudioData(audioUrl);
             break;
-          // case "others":
-          //   const docResponse = await previewDocument(
-          //     userId,
-          //     category,
-          //     fileName,
-          //     folder
-          //   );
-          //   setDocumentData(docResponse);
-          //   break;
+
           default:
             console.warn("Unknown category:", type);
         }
@@ -79,6 +76,40 @@ export default function FilePreviewScreen({ route, navigation }) {
 
     fetchFilePreview();
   }, []);
+
+  const handleDelete = (fileName, fileId, type) => {
+    Alert.alert(
+      "Confirm Deletion",
+      `Are you sure you want to delete the file "${fileName}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const result = await deleteFile(userId, fileId, type, dispatch);
+
+            if (result.success === false) {
+              Alert.alert("Error", `Error deleting file: ${result.message}`, [
+                { text: "OK" },
+              ]);
+            } else {
+              Alert.alert("Success", "File deleted successfully.", [
+                {
+                  text: "OK",
+                  onPress: () => navigation.goBack(),
+                },
+              ]);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const ImagePreview = ({ fileData }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -321,7 +352,7 @@ export default function FilePreviewScreen({ route, navigation }) {
               onPress={() => navigation.goBack()}
             >
               <Image
-                source={require("../assets/images/back_icon.png")}
+                source={require("../../../assets/images/back_icon.png")}
                 style={styles.backIcon}
               />
             </TouchableOpacity>
@@ -352,16 +383,15 @@ export default function FilePreviewScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => console.log("Bin Icon Pressed")}
+            onPress={() => {
+              handleDelete(fileName, fileId, type);
+            }}
             style={styles.opticonContainer}
           >
             <Image source={BinIcon} style={styles.opticon} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => console.log("Info Icon Pressed")}
-            style={styles.opticonContainer}
-          >
+          <TouchableOpacity style={styles.opticonContainer}>
             <Image source={InfoIcon} style={styles.opticon} />
           </TouchableOpacity>
         </View>
@@ -386,27 +416,29 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: hp("1.5%"),
   },
   topContent: {
     flexDirection: "row",
     alignItems: "center",
     gap: wp("0.5%"),
     flexWrap: "wrap",
+    paddingRight: wp("2%"),
   },
   fileName: {
     fontSize: hp("2.4%"),
     color: colors.textColor3,
     fontFamily: "Montserrat-SemiBold",
+    flex: 1,
   },
   backIconContainer: {
     height: hp("6%"),
-    width: hp("6%"),
-    justifyContent: "center",
+    width: hp("4.5%"),
+    flexDirection: "row",
     alignItems: "center",
   },
   backIcon: {
-    width: "75%",
-    height: "75%",
+    flex: 1,
     aspectRatio: 1,
     resizeMode: "contain",
   },
@@ -419,7 +451,7 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "contain",
+    resizeMode: "cover",
   },
   imageContainer: {
     width: "100%",
@@ -470,7 +502,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: wp("6%"),
+    paddingHorizontal: wp("3.5%"),
   },
   audioContainer: {
     width: "100%",
@@ -520,11 +552,14 @@ const styles = StyleSheet.create({
     tintColor: colors.textColor3,
   },
   opticonContainer: {
-    width: hp("3.2%"),
-    height: hp("3.2%"),
+    width: hp("5%"),
+    height: hp("5%"),
+    alignItems: "center",
+    justifyContent: "center",
   },
   opticon: {
-    flex: 1,
+    width: "70%",
+    height: "70%",
     aspectRatio: 1,
     resizeMode: "contain",
     tintColor: colors.textColor3,

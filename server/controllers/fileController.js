@@ -339,44 +339,47 @@ const getUniqueFilePath = (dir, fileName) => {
   return path.basename(filePath);
 };
 
-const deleteFile = (req, res) => {
-  const { userId, fileName, category } = req.body;
+const deleteFile = async (req, res) => {
+  const { userId, fileId } = req.body;
 
-  if (!userId || !fileName || !category) {
-    return res
-      .status(400)
-      .json({ message: "Missing userId, fileName, or category" });
+  if (!userId || !fileId) {
+    return res.status(400).json({ message: "Missing userId or fileId" });
   }
 
-  const targetDir = path.join(TARGET_DIR, userId, category);
-  const filePath = path.join(targetDir, fileName);
-
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.error("Error deleting file from local storage:", err.message);
-      return res
-        .status(500)
-        .json({ message: "Error deleting file from local storage" });
+  try {
+    const file = await File.findOne({ _id: fileId, owner: userId });
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
     }
 
-    File.findOneAndDelete({ name: fileName, owner: userId, type: category })
-      .then((deletedFile) => {
-        if (!deletedFile) {
-          return res
-            .status(404)
-            .json({ message: "File not found in database" });
-        }
+    const filePath = path.join(TARGET_DIR, file.path);
+    const thumbnailPath = file.thumbnail
+      ? path.join(TARGET_DIR, file.thumbnail)
+      : null;
 
-        res.status(200).json({ message: "File deleted successfully" });
-      })
-      .catch((err) => {
-        console.error(
-          "Error deleting file metadata from database:",
-          err.message
-        );
-        res.status(500).json({ message: "Error deleting file from database" });
-      });
-  });
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+      console.log(`Deleted file: ${filePath}`);
+    }
+
+    if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+      await fs.promises.unlink(thumbnailPath);
+      console.log(`Deleted thumbnail: ${thumbnailPath}`);
+    }
+
+    await File.deleteOne({ _id: fileId });
+    console.log(`Deleted file metadata with ID: ${fileId}`);
+
+    res.status(200).json({
+      message: "File and its metadata deleted successfully",
+      fileId,
+    });
+  } catch (error) {
+    console.error("Error deleting file:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error deleting file", error: error.message });
+  }
 };
 
 const getRecentFiles = async (req, res) => {

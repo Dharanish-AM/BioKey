@@ -10,7 +10,7 @@ const initialState = {
     othersScreen: true,
     passwordsScreen:true
   },
-  API_IP:"10.57.1.149"
+  API_IP:"192.168.1.5" 
 };
  
 export const appConfigReducer = (state = initialState, action) => {

@@ -62,6 +62,7 @@ export default function PhotosScreen({ navigation }) {
   const [opacity] = useState(new Animated.Value(0));
   const [iconsOpacity] = useState(new Animated.Value(1));
   const [isUploading, setIsUploading] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const fetchData = async () => {
     setIsInitialLoading(true);
@@ -161,9 +162,12 @@ export default function PhotosScreen({ navigation }) {
   };
 
   const handleVideosPick = async () => {
-    if (isUploading) return;
+    if (isUploading || isSelecting) return;
+    setIsSelecting(true);
     try {
       const result = await pickMedia("video");
+
+      setIsSelecting(false);
 
       if (result === "cancelled") {
         setIsUploading(false);
@@ -277,6 +281,7 @@ export default function PhotosScreen({ navigation }) {
       );
     } finally {
       setIsUploading(false);
+      setIsSelecting(false);
     }
   };
 
@@ -323,6 +328,16 @@ export default function PhotosScreen({ navigation }) {
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
       <SpinnerOverlay2 visible={isUploading} />
+      {isSelecting && (
+        <ActivityIndicator
+          size="large"
+          style={{
+            position: "absolute",
+            zIndex: 999,
+            alignSelf: "center",
+          }}
+        />
+      )}
       <View style={styles.innerContainer}>
         <View style={styles.top}>
           <TouchableOpacity
@@ -437,6 +452,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
+    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -451,15 +467,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: hp("2%"),
   },
- backIconContainer: {
+  backIconContainer: {
     height: hp("6%"),
-    width: hp("6%"),
-    justifyContent: "center",
+    width: hp("4.5%"),
+    flexDirection: "row",
     alignItems: "center",
   },
   backIcon: {
-   width:"80%",
-   height:"80%",
+    flex: 1,
     aspectRatio: 1,
     resizeMode: "contain",
   },

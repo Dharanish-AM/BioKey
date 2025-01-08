@@ -222,7 +222,9 @@ const uploadFile = (req, res) => {
       const results = await Promise.allSettled(
         uploadedFiles.map(async (file) => {
           const fileName =
-            file.originalFilename || `default_filename_${Date.now()}`;
+            file.originalFilename ||
+            file.name ||
+            `default_filename_${Date.now()}`;
           const fileCategory = getFileCategory(fileName);
 
           const targetDir = path.join(TARGET_DIR, userId, fileCategory);
@@ -274,9 +276,6 @@ const uploadFile = (req, res) => {
             };
           } catch (fileError) {
             console.error("Error processing file:", fileError.message);
-
-            console.error("File path:", uniqueTargetPath);
-            console.error("Thumbnail path:", thumbnailPath);
 
             if (fs.existsSync(uniqueTargetPath)) {
               await fs.promises.unlink(uniqueTargetPath);

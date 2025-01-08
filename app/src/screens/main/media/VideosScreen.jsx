@@ -164,6 +164,7 @@ export default function PhotosScreen({ navigation }) {
   const handleVideosPick = async () => {
     if (isUploading || isSelecting) return;
     setIsSelecting(true);
+
     try {
       const result = await pickMedia("video");
 
@@ -206,60 +207,33 @@ export default function PhotosScreen({ navigation }) {
               text: "OK",
               onPress: async () => {
                 setIsUploading(true);
-                let successCount = 0;
 
-                for (const file of files) {
-                  const fileUri = file.uri;
-                  const fileName = file.fileName || file.name;
+                const uploadResponse = await uploadMedia(files, dispatch);
 
-                  if (!fileUri) {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} missing URI.`
-                    );
-                    continue;
-                  }
-
-                  const uploadResponse = await uploadMedia(
-                    fileUri,
-                    fileName,
-                    dispatch
+                if (uploadResponse.success) {
+                  console.log(
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    } uploaded successfully`
                   );
-
-                  if (uploadResponse.success) {
-                    successCount++;
-                    console.log(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} uploaded successfully`
-                    );
-                  } else {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} upload failed:`,
-                      uploadResponse.message
-                    );
-                  }
-                }
-
-                setIsUploading(false);
-
-                if (successCount > 0) {
                   Alert.alert(
                     "Upload Success",
-                    `${successCount} ${category}(s) uploaded successfully!`,
+                    `${files.length} ${category}(s) uploaded successfully!`,
                     [{ text: "OK" }]
                   );
                 } else {
-                  Alert.alert(
-                    "Upload Failed",
-                    "No files were uploaded successfully.",
-                    [{ text: "OK" }]
+                  console.error(
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    } upload failed:`,
+                    uploadResponse.message
                   );
+                  Alert.alert("Upload Failed", uploadResponse.message, [
+                    { text: "OK" },
+                  ]);
                 }
 
+                setIsUploading(false);
                 refreshData();
                 console.log("Upload finished...");
               },

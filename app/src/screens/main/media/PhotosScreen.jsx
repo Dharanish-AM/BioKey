@@ -207,59 +207,23 @@ export default function PhotosScreen({ navigation }) {
               text: "OK",
               onPress: async () => {
                 setIsUploading(true);
-                let successCount = 0;
+                const uploadResponse = await uploadMedia(files, dispatch);
 
-                for (const file of files) {
-                  const fileUri = file.uri;
-                  const fileName = file.fileName || file.name;
-
-                  if (!fileUri) {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} missing URI.`
-                    );
-                    continue;
-                  }
-
-                  const uploadResponse = await uploadMedia(
-                    fileUri,
-                    fileName,
-                    dispatch
-                  );
-
-                  if (uploadResponse.success) {
-                    successCount++;
-                    console.log(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} uploaded successfully`
-                    );
-                  } else {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} upload failed:`,
-                      uploadResponse.message
-                    );
-                  }
-                }
-
-                setIsUploading(false);
-
-                if (successCount > 0) {
+                if (uploadResponse.success) {
+                  console.log("All files uploaded successfully");
                   Alert.alert(
                     "Upload Success",
-                    `${successCount} ${category}(s) uploaded successfully!`,
+                    `${files.length} ${category}(s) uploaded successfully!`,
                     [{ text: "OK" }]
                   );
                 } else {
-                  Alert.alert(
-                    "Upload Failed",
-                    "No files were uploaded successfully.",
-                    [{ text: "OK" }]
-                  );
+                  console.error("Upload failed:", uploadResponse.message);
+                  Alert.alert("Upload Failed", uploadResponse.message, [
+                    { text: "OK" },
+                  ]);
                 }
+
+                setIsUploading(false);
                 refreshData();
                 console.log("Upload finished...");
               },

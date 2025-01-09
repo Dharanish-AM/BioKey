@@ -37,7 +37,6 @@ export default function DrawerView() {
                 source={{ uri: user.profileImage }}
                 style={styles.profileIcon}
                 resizeMode="cover"
-          
               />
             )}
           </View>

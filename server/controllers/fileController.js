@@ -219,92 +219,94 @@ const uploadFile = (req, res) => {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
-      const results = await Promise.allSettled(
-        uploadedFiles.map(async (file) => {
-          const fileName =
-            file.originalFilename ||
-            file.name ||
-            `default_filename_${Date.now()}`;
-          const fileCategory = getFileCategory(fileName);
+      const filePromises = uploadedFiles.map(async (file) => {
+        const fileName =
+          file.originalFilename ||
+          file.name ||
+          `default_filename_${Date.now()}`;
+        const fileCategory = getFileCategory(fileName);
 
-          const targetDir = path.join(TARGET_DIR, userId, fileCategory);
-          const uniqueFileName = getUniqueFilePath(targetDir, fileName);
-          const uniqueTargetPath = path.join(targetDir, uniqueFileName);
+        const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+        const uniqueFileName = getUniqueFilePath(targetDir, fileName);
+        const uniqueTargetPath = path.join(targetDir, uniqueFileName);
 
-          let thumbnailPath = null;
+        let thumbnailPath = null;
 
-          try {
-            await fs.promises.mkdir(targetDir, { recursive: true });
-            await fs.promises.copyFile(file.filepath, uniqueTargetPath);
+        try {
+          await fs.promises.mkdir(targetDir, { recursive: true });
+          await fs.promises.copyFile(file.filepath, uniqueTargetPath);
 
-            thumbnailPath = await createThumbnail(
-              uniqueTargetPath,
-              userId,
-              fileCategory,
-              fileName
-            );
+          thumbnailPath = await createThumbnail(
+            uniqueTargetPath,
+            userId,
+            fileCategory,
+            fileName
+          );
 
-            const fileMetadata = new File({
-              name: uniqueFileName,
-              path: path.join(fileCategory, uniqueFileName),
-              type: fileCategory,
-              thumbnail: thumbnailPath
-                ? path.join(
-                    "thumbnails",
-                    fileCategory,
-                    path.basename(thumbnailPath)
-                  )
-                : null,
-              size: file.size,
-              owner: userId,
-            });
+          const fileMetadata = new File({
+            name: uniqueFileName,
+            path: path.join(fileCategory, uniqueFileName),
+            type: fileCategory,
+            thumbnail: thumbnailPath
+              ? path.join(
+                  "thumbnails",
+                  fileCategory,
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            size: file.size,
+            owner: userId,
+          });
 
-            await fileMetadata.save();
-            await deleteTempFile(file.filepath);
+          await fileMetadata.save();
+          await deleteTempFile(file.filepath);
 
-            return {
-              fileName: uniqueFileName,
-              filePath: path.join(fileCategory, uniqueFileName),
-              thumbnailPath: thumbnailPath
-                ? path.join(
-                    "thumbnails",
-                    fileCategory,
-                    path.basename(thumbnailPath)
-                  )
-                : null,
-              category: fileCategory,
-            };
-          } catch (fileError) {
-            console.error("Error processing file:", fileError.message);
+          return {
+            fileName: uniqueFileName,
+            filePath: path.join(fileCategory, uniqueFileName),
+            thumbnailPath: thumbnailPath
+              ? path.join(
+                  "thumbnails",
+                  fileCategory,
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            category: fileCategory,
+          };
+        } catch (fileError) {
+          console.error("Error processing file:", fileError.message);
 
-            if (fs.existsSync(uniqueTargetPath)) {
-              await fs.promises.unlink(uniqueTargetPath);
-              console.log(`Deleted file: ${uniqueTargetPath}`);
-            }
-
-            if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-              await fs.promises.unlink(thumbnailPath);
-              console.log(`Deleted thumbnail: ${thumbnailPath}`);
-            }
-
-            return {
-              error: fileError.message,
-              details: fileError.stack,
-            };
+          // Cleanup
+          if (fs.existsSync(uniqueTargetPath)) {
+            await fs.promises.unlink(uniqueTargetPath);
+            console.log(`Deleted file: ${uniqueTargetPath}`);
           }
-        })
-      );
+
+          if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+            await fs.promises.unlink(thumbnailPath);
+            console.log(`Deleted thumbnail: ${thumbnailPath}`);
+          }
+
+          return {
+            error: fileError.message,
+            details: fileError.stack,
+          };
+        }
+      });
+
+      // Execute all file upload promises concurrently
+      const results = await Promise.allSettled(filePromises);
 
       const successes = results
         .filter((result) => result.status === "fulfilled")
         .map((result) => result.value);
+
       const errors = results
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason);
 
       if (errors.length > 0) {
         console.error("Upload errors:", errors);
-
         res.status(207).json({
           message: "Some files failed to upload",
           successes,

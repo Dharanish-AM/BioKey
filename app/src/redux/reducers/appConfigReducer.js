@@ -10,7 +10,7 @@ const initialState = {
     othersScreen: true,
     passwordsScreen:true
   },
-  API_IP:"192.168.1.5" 
+  API_IP:"172.20.10.2" 
 };
  
 export const appConfigReducer = (state = initialState, action) => {
@@ -22,7 +22,7 @@ export const appConfigReducer = (state = initialState, action) => {
       };
     case SET_FIRST_RENDER:
       return {
-        ...state,
+        ...state, 
         isFirstRender: {
           ...state.isFirstRender,
           [action.screen]: false,

@@ -219,93 +219,94 @@ const uploadFile = (req, res) => {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
-      const results = await Promise.allSettled(
-        uploadedFiles.map(async (file) => {
-          const fileName =
-            file.originalFilename || `default_filename_${Date.now()}`;
-          const fileCategory = getFileCategory(fileName);
+      const filePromises = uploadedFiles.map(async (file) => {
+        const fileName =
+          file.originalFilename ||
+          file.name ||
+          `default_filename_${Date.now()}`;
+        const fileCategory = getFileCategory(fileName);
 
-          const targetDir = path.join(TARGET_DIR, userId, fileCategory);
-          const uniqueFileName = getUniqueFilePath(targetDir, fileName);
-          const uniqueTargetPath = path.join(targetDir, uniqueFileName);
+        const targetDir = path.join(TARGET_DIR, userId, fileCategory);
+        const uniqueFileName = getUniqueFilePath(targetDir, fileName);
+        const uniqueTargetPath = path.join(targetDir, uniqueFileName);
 
-          let thumbnailPath = null;
+        let thumbnailPath = null;
 
-          try {
-            await fs.promises.mkdir(targetDir, { recursive: true });
-            await fs.promises.copyFile(file.filepath, uniqueTargetPath);
+        try {
+          await fs.promises.mkdir(targetDir, { recursive: true });
+          await fs.promises.copyFile(file.filepath, uniqueTargetPath);
 
-            thumbnailPath = await createThumbnail(
-              uniqueTargetPath,
-              userId,
-              fileCategory,
-              fileName
-            );
+          thumbnailPath = await createThumbnail(
+            uniqueTargetPath,
+            userId,
+            fileCategory,
+            fileName
+          );
 
-            const fileMetadata = new File({
-              name: uniqueFileName,
-              path: path.join(fileCategory, uniqueFileName),
-              type: fileCategory,
-              thumbnail: thumbnailPath
-                ? path.join(
-                    "thumbnails",
-                    fileCategory,
-                    path.basename(thumbnailPath)
-                  )
-                : null,
-              size: file.size,
-              owner: userId,
-            });
+          const fileMetadata = new File({
+            name: uniqueFileName,
+            path: path.join(fileCategory, uniqueFileName),
+            type: fileCategory,
+            thumbnail: thumbnailPath
+              ? path.join(
+                  "thumbnails",
+                  fileCategory,
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            size: file.size,
+            owner: userId,
+          });
 
-            await fileMetadata.save();
-            await deleteTempFile(file.filepath);
+          await fileMetadata.save();
+          await deleteTempFile(file.filepath);
 
-            return {
-              fileName: uniqueFileName,
-              filePath: path.join(fileCategory, uniqueFileName),
-              thumbnailPath: thumbnailPath
-                ? path.join(
-                    "thumbnails",
-                    fileCategory,
-                    path.basename(thumbnailPath)
-                  )
-                : null,
-              category: fileCategory,
-            };
-          } catch (fileError) {
-            console.error("Error processing file:", fileError.message);
+          return {
+            fileName: uniqueFileName,
+            filePath: path.join(fileCategory, uniqueFileName),
+            thumbnailPath: thumbnailPath
+              ? path.join(
+                  "thumbnails",
+                  fileCategory,
+                  path.basename(thumbnailPath)
+                )
+              : null,
+            category: fileCategory,
+          };
+        } catch (fileError) {
+          console.error("Error processing file:", fileError.message);
 
-            console.error("File path:", uniqueTargetPath);
-            console.error("Thumbnail path:", thumbnailPath);
-
-            if (fs.existsSync(uniqueTargetPath)) {
-              await fs.promises.unlink(uniqueTargetPath);
-              console.log(`Deleted file: ${uniqueTargetPath}`);
-            }
-
-            if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-              await fs.promises.unlink(thumbnailPath);
-              console.log(`Deleted thumbnail: ${thumbnailPath}`);
-            }
-
-            return {
-              error: fileError.message,
-              details: fileError.stack,
-            };
+          // Cleanup
+          if (fs.existsSync(uniqueTargetPath)) {
+            await fs.promises.unlink(uniqueTargetPath);
+            console.log(`Deleted file: ${uniqueTargetPath}`);
           }
-        })
-      );
+
+          if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+            await fs.promises.unlink(thumbnailPath);
+            console.log(`Deleted thumbnail: ${thumbnailPath}`);
+          }
+
+          return {
+            error: fileError.message,
+            details: fileError.stack,
+          };
+        }
+      });
+
+      // Execute all file upload promises concurrently
+      const results = await Promise.allSettled(filePromises);
 
       const successes = results
         .filter((result) => result.status === "fulfilled")
         .map((result) => result.value);
+
       const errors = results
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason);
 
       if (errors.length > 0) {
         console.error("Upload errors:", errors);
-
         res.status(207).json({
           message: "Some files failed to upload",
           successes,
@@ -339,44 +340,47 @@ const getUniqueFilePath = (dir, fileName) => {
   return path.basename(filePath);
 };
 
-const deleteFile = (req, res) => {
-  const { userId, fileName, category } = req.body;
+const deleteFile = async (req, res) => {
+  const { userId, fileId } = req.body;
 
-  if (!userId || !fileName || !category) {
-    return res
-      .status(400)
-      .json({ message: "Missing userId, fileName, or category" });
+  if (!userId || !fileId) {
+    return res.status(400).json({ message: "Missing userId or fileId" });
   }
 
-  const targetDir = path.join(TARGET_DIR, userId, category);
-  const filePath = path.join(targetDir, fileName);
-
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.error("Error deleting file from local storage:", err.message);
-      return res
-        .status(500)
-        .json({ message: "Error deleting file from local storage" });
+  try {
+    const file = await File.findOne({ _id: fileId, owner: userId });
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
     }
 
-    File.findOneAndDelete({ name: fileName, owner: userId, type: category })
-      .then((deletedFile) => {
-        if (!deletedFile) {
-          return res
-            .status(404)
-            .json({ message: "File not found in database" });
-        }
+    const filePath = path.join(TARGET_DIR, file.path);
+    const thumbnailPath = file.thumbnail
+      ? path.join(TARGET_DIR, file.thumbnail)
+      : null;
 
-        res.status(200).json({ message: "File deleted successfully" });
-      })
-      .catch((err) => {
-        console.error(
-          "Error deleting file metadata from database:",
-          err.message
-        );
-        res.status(500).json({ message: "Error deleting file from database" });
-      });
-  });
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+      console.log(`Deleted file: ${filePath}`);
+    }
+
+    if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+      await fs.promises.unlink(thumbnailPath);
+      console.log(`Deleted thumbnail: ${thumbnailPath}`);
+    }
+
+    await File.deleteOne({ _id: fileId });
+    console.log(`Deleted file metadata with ID: ${fileId}`);
+
+    res.status(200).json({
+      message: "File and its metadata deleted successfully",
+      fileId,
+    });
+  } catch (error) {
+    console.error("Error deleting file:", error.message);
+    res
+      .status(500)
+      .json({ message: "Error deleting file", error: error.message });
+  }
 };
 
 const getRecentFiles = async (req, res) => {

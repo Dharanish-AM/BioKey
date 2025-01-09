@@ -13,7 +13,10 @@ import {
 } from "react-native";
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchFilesByCategory } from "../../../services/fileOperations";
+import {
+  fetchFilesByCategory,
+  fetchRecentFiles,
+} from "../../../services/fileOperations";
 import { shallowEqual } from "react-redux";
 import {
   widthPercentageToDP as wp,
@@ -58,6 +61,7 @@ export default function OthersScreen({ navigation }) {
   const [opacity] = useState(new Animated.Value(0));
   const [iconsOpacity] = useState(new Animated.Value(1));
   const [isUploading, setIsUploading] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const fetchData = async () => {
     setIsInitialLoading(true);
@@ -158,10 +162,13 @@ export default function OthersScreen({ navigation }) {
   };
 
   const handleothersPick = async () => {
-    if (isUploading) return;
+    if (isUploading || isSelecting) return;
+    setIsSelecting(true);
+
     try {
       const result = await pickMedia("others");
 
+      setIsSelecting(false);
       console.log(result);
 
       if (!result) {
@@ -201,61 +208,34 @@ export default function OthersScreen({ navigation }) {
               text: "OK",
               onPress: async () => {
                 setIsUploading(true);
-                let successCount = 0;
 
-                for (const file of files) {
-                  const fileUri = file.uri;
-                  const fileName = file.fileName || file.name;
+                // Upload all files at once
+                const uploadResponse = await uploadMedia(files, dispatch);
 
-                  if (!fileUri) {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} missing URI.`
-                    );
-                    continue;
-                  }
-
-                  const uploadResponse = await uploadMedia(
-                    fileUri,
-                    fileName,
-                    category,
-                    dispatch
+                if (uploadResponse.success) {
+                  console.log(
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    } uploaded successfully`
                   );
-
-                  if (uploadResponse.success) {
-                    successCount++;
-                    console.log(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} uploaded successfully`
-                    );
-                  } else {
-                    console.error(
-                      `${
-                        category.charAt(0).toUpperCase() + category.slice(1)
-                      } ${fileName} upload failed:`,
-                      uploadResponse.message
-                    );
-                  }
-                }
-
-                setIsUploading(false);
-
-                if (successCount > 0) {
                   Alert.alert(
                     "Upload Success",
-                    `${successCount} ${category}(s) uploaded successfully!`,
+                    `${files.length} ${category}(s) uploaded successfully!`,
                     [{ text: "OK" }]
                   );
                 } else {
-                  Alert.alert(
-                    "Upload Failed",
-                    "No files were uploaded successfully.",
-                    [{ text: "OK" }]
+                  console.error(
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    } upload failed:`,
+                    uploadResponse.message
                   );
+                  Alert.alert("Upload Failed", uploadResponse.message, [
+                    { text: "OK" },
+                  ]);
                 }
 
+                setIsUploading(false);
                 refreshData();
                 console.log("Upload finished...");
               },
@@ -277,6 +257,7 @@ export default function OthersScreen({ navigation }) {
       );
     } finally {
       setIsUploading(false);
+      setIsSelecting(false);
     }
   };
 
@@ -284,7 +265,7 @@ export default function OthersScreen({ navigation }) {
     <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => {
-        handlePress(item._id, item.name, item.type);
+        handlePress(item.fileId, item.name, item.type);
       }}
     >
       <View
@@ -331,6 +312,16 @@ export default function OthersScreen({ navigation }) {
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
       <SpinnerOverlay2 visible={isUploading} />
+      {isSelecting && (
+        <ActivityIndicator
+          size="large"
+          style={{
+            position: "absolute",
+            zIndex: 999,
+            alignSelf: "center",
+          }}
+        />
+      )}
       <View style={styles.innerContainer}>
         <View style={styles.top}>
           <TouchableOpacity
@@ -445,6 +436,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
+    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -452,25 +444,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   top: {
-    marginBottom: hp("2%"),
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
-  },
-  titleContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    textAlignVertical: "center",
-    alignSelf: "center",
-    height: "80%",
+    marginBottom: hp("2%"),
   },
   backIconContainer: {
-    height: hp("4.5%"),
+    height: hp("6%"),
     width: hp("4.5%"),
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
   },
   backIcon: {
@@ -482,7 +466,6 @@ const styles = StyleSheet.create({
     fontSize: hp("4%"),
     fontFamily: "Afacad-SemiBold",
     color: colors.textColor3,
-    width: "40%",
   },
   filterContainer: {
     flexDirection: "row",
@@ -491,15 +474,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     marginRight: wp("1%"),
-    height: "80%",
   },
   searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
+    height: hp("3.2%"),
+    aspectRatio: 1,
   },
   searchIcon: {
-    height: hp("3.7%"),
-    aspectRatio: 1,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
     tintColor: colors.textColor3,
   },
@@ -510,7 +494,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("2%"),
     paddingHorizontal: hp("2%"),
     overflow: "hidden",
-    height: "70%",
+    height: hp("6%"),
   },
   textInput: {
     height: "100%",
@@ -522,10 +506,12 @@ const styles = StyleSheet.create({
   filterIconContainer: {
     alignItems: "center",
     justifyContent: "center",
+    height: hp("3.2%"),
+    aspectRatio: 1,
   },
   filterIcon: {
-    height: hp("4.7%"),
-    aspectRatio: 1,
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
     tintColor: colors.textColor3,
   },

@@ -10,9 +10,9 @@ const initialState = {
     othersScreen: true,
     passwordsScreen:true
   },
-  API_IP:"172.20.10.2"
+  API_IP:"172.20.10.2" 
 };
-
+ 
 export const appConfigReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_TAB_BAR_VISIBLE:
@@ -22,7 +22,7 @@ export const appConfigReducer = (state = initialState, action) => {
       };
     case SET_FIRST_RENDER:
       return {
-        ...state,
+        ...state, 
         isFirstRender: {
           ...state.isFirstRender,
           [action.screen]: false,

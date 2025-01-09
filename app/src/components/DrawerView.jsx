@@ -25,11 +25,20 @@ export default function DrawerView() {
           <View style={styles.profileImageContainer}>
             {user.profileImage ? (
               <Image
+                source={ProfileIcon}
+                style={{
+                  ...styles.profileIcon,
+                  backgroundColor: "red",
+                }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
                 source={{ uri: user.profileImage }}
                 style={styles.profileIcon}
                 resizeMode="cover"
               />
-            ) : null}
+            )}
           </View>
 
           <View style={styles.bottomDetails}>
@@ -94,7 +103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     justifyContent: "center",
   },
-  
+
   profileImageContainer: {
     height: hp("10%"),
     width: hp("10%"),

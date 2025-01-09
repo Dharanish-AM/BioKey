@@ -16,9 +16,10 @@ import PhotosScreen from "../screens/main/media/PhotosScreen";
 import VideosScreen from "../screens/main/media/VideosScreen";
 import AudiosScreen from "../screens/main/media/AudiosScreen";
 import OthersScreen from "../screens/main/media/OthersScreen";
-import FilePreviewScreen from "../components/FilePreview";
+import FilePreviewScreen from "../screens/main/helper/FilePreview";
 import PasswordsScreen from "../screens/main/media/PasswordsScreen";
-import PasswordPreview from "../components/PasswordPreview";
+import PasswordPreview from "../screens/main/helper/PasswordPreview";
+import MapView from "../screens/main/helper/MapView";
 
 const Stack = createStackNavigator();
 
@@ -102,6 +103,7 @@ function HomeStack() {
       <Stack.Screen name="OthersScreen" component={OthersScreen} />
       <Stack.Screen name="PasswordsScreen" component={PasswordsScreen} />
       <Stack.Screen name="PasswordPreview" component={PasswordPreview} />
+      <Stack.Screen name="MapView" component={MapView} />
     </Stack.Navigator>
   );
 }

@@ -10,16 +10,23 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/files`;
 
-export const uploadMedia = async (fileUri, fileName) => {
+export const uploadMedia = async (files, dispatch) => {
   const formData = new FormData();
-  const file = {
-    uri: fileUri,
-    name: fileName,
-  };
-
   let userId = "676aee09b3f0d752bbbe58f7";
   formData.append("userId", userId);
-  formData.append("file", file);
+
+  console.log("Files to upload:", files);
+
+  files.forEach((file) => {
+    const { uri, fileName, name } = file;
+    const fileNameToUse = fileName || name;
+    console.log("Appending file:", { fileName: fileNameToUse, uri });
+
+    formData.append("file", {
+      uri,
+      name: fileNameToUse,
+    });
+  });
 
   try {
     const response = await axios.post(`${API_URL}/upload`, formData, {
@@ -39,6 +46,9 @@ export const uploadMedia = async (fileUri, fileName) => {
         };
       }
       console.log("Upload successful", response.data);
+
+      await fetchUsedSpace(userId, dispatch);
+
       return { success: true, message: "Upload successful and files updated" };
     } else {
       console.error("Upload failed with status code:", response.status);
@@ -98,12 +108,10 @@ export const fetchRecentFiles = async (dispatch) => {
   }
 };
 
-export const fetchUsedSpace = async (dispatch) => {
+export const fetchUsedSpace = async (userId, dispatch) => {
   const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   try {
-    const response = await axios.get(
-      `${API_URL}/usedspace?userId=676aee09b3f0d752bbbe58f7`
-    );
+    const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
 
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
@@ -158,5 +166,55 @@ export const previewAudio = (userId, fileId) => {
   } catch (error) {
     console.error("Error generating URL:", error.message);
     return null;
+  }
+};
+
+export const deleteFile = async (userId, fileId, type, dispatch) => {
+  try {
+    const response = await axios.delete(`${API_URL}/delete`, {
+      data: {
+        userId,
+        fileId,
+      },
+    });
+
+    console.log("File deleted successfully:", response.data);
+
+    fetchFilesByCategory(userId, type, dispatch);
+    fetchRecentFiles(dispatch);
+    fetchUsedSpace(userId, dispatch);
+
+    return {
+      success: true,
+      message: "File deleted successfully.",
+      data: response.data,
+    };
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        "Server Error:",
+        error.response.data.message || error.response.data
+      );
+      console.error("Status Code:", error.response.status);
+      return {
+        success: false,
+        message: error.response.data.message || "Server error occurred.",
+      };
+    } else if (error.request) {
+      console.error(
+        "No response received from server. Check network connectivity."
+      );
+      return {
+        success: false,
+        message:
+          "No response from server. Please check your internet connection.",
+      };
+    } else {
+      console.error("Request Error:", error.message);
+      return {
+        success: false,
+        message: error.message || "An unknown error occurred.",
+      };
+    }
   }
 };

@@ -68,6 +68,7 @@ export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
   const [isProfileLoaded, setProfileLoaded] = useState(false);
   const [usedSpace, setUsedSpace] = useState(0);
+  const userId = "676aee09b3f0d752bbbe58f7";
 
   const recentFilesFromRedux = useSelector(
     (state) => state.files.recents,
@@ -89,7 +90,7 @@ export default function HomeScreen({ navigation }) {
     const fetchData = async () => {
       try {
         await fetchRecentFiles(dispatch);
-        fetchUsedSpace(dispatch);
+        fetchUsedSpace(userId, dispatch);
       } catch (error) {
         console.error("Error in useEffect:", error);
       } finally {
@@ -119,34 +120,24 @@ export default function HomeScreen({ navigation }) {
   };
 
   const uploadFiles = async (files) => {
-    let successCount = 0;
+    const fileData = files.map((file) => ({
+      uri: file.uri,
+      fileName: file.fileName || file.name,
+    }));
 
-    for (const file of files) {
-      const fileUri = file.uri;
-      const fileName = file.fileName || file.name;
-
-      if (!fileUri) {
-        console.error(`File ${fileName} missing URI.`);
-        continue;
+    try {
+      const uploadResponse = await uploadMedia(fileData, dispatch);
+      if (uploadResponse.success) {
+        console.log(`${files.length} file(s) uploaded successfully.`);
+        return files.length;
+      } else {
+        console.error("Upload failed:", uploadResponse.message);
+        return 0;
       }
-
-      try {
-        const uploadResponse = await uploadMedia(fileUri, fileName);
-        if (uploadResponse.success) {
-          successCount++;
-          console.log(`File ${fileName} uploaded successfully.`);
-        } else {
-          console.error(
-            `File ${fileName} upload failed:`,
-            uploadResponse.message
-          );
-        }
-      } catch (error) {
-        console.error(`Error uploading ${fileName}:`, error);
-      }
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return 0;
     }
-
-    return successCount;
   };
 
   const handleImageVideoPick = async () => {
@@ -170,6 +161,8 @@ export default function HomeScreen({ navigation }) {
             const successCount = await uploadFiles(files);
 
             if (successCount > 0) {
+              fetchFilesByCategory(userId, "images", dispatch);
+              fetchFilesByCategory(userId, "videos", dispatch);
               Alert.alert(
                 "Upload Success",
                 `${successCount} file(s) uploaded successfully!`,
@@ -211,14 +204,11 @@ export default function HomeScreen({ navigation }) {
 
     try {
       const result = await pickMedia("others");
+      console.log("Picked Media Result:", result);
 
-      if (result === "cancelled") {
-        setIsUploading(false);
-        return;
-      }
+      if (Array.isArray(result) && result.length > 0) {
+        const files = result;
 
-      if (result?.assets?.length > 0) {
-        const files = result.assets;
         showAlert(
           "Confirm Upload",
           `You have selected ${files.length} file(s). Do you want to upload them?`,
@@ -226,6 +216,7 @@ export default function HomeScreen({ navigation }) {
             const successCount = await uploadFiles(files);
 
             if (successCount > 0) {
+              fetchFilesByCategory(userId, "others", dispatch);
               Alert.alert(
                 "Upload Success",
                 `${successCount} file(s) uploaded successfully!`,
@@ -245,9 +236,6 @@ export default function HomeScreen({ navigation }) {
         );
       } else {
         console.log("No files selected or invalid data");
-        Alert.alert("No Selection", "Please select valid files to upload.", [
-          { text: "OK" },
-        ]);
       }
     } catch (error) {
       console.error(
@@ -262,7 +250,7 @@ export default function HomeScreen({ navigation }) {
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchRecentFiles(dispatch);
-    await fetchUsedSpace(dispatch);
+    await fetchUsedSpace(userId, dispatch);
     setRefreshing(false);
   };
 
@@ -347,7 +335,8 @@ export default function HomeScreen({ navigation }) {
         }}
       >
         <View style={styles.recentFileImageContainer}>
-          {item.type === "pdf" ? (
+          {item.type === "pdf" ||
+          (item.type === "others" && item.name.includes("pdf")) ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>
@@ -437,12 +426,21 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.profileImageContainer}>
               {user.profileImage ? (
                 <Image
+                  source={ProfileIcon}
+                  style={{
+                    ...styles.profileIcon,
+                  }}
+                  resizeMode="cover"
+                  onLoadEnd={() => setProfileLoaded(true)}
+                />
+              ) : (
+                <Image
                   source={{ uri: user.profileImage }}
                   style={styles.profileIcon}
                   resizeMode="cover"
                   onLoadEnd={() => setProfileLoaded(true)}
                 />
-              ) : null}
+              )}
             </View>
 
             <Image
@@ -573,7 +571,12 @@ export default function HomeScreen({ navigation }) {
             </View>
             <View style={styles.secondRowIcons}>
               <View style={styles.optionsIcons}>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity
+                  style={styles.optionsIconContainer}
+                  onPress={() => {
+                    navigation.navigate("MapView");
+                  }}
+                >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.optionsIconContainer}>
@@ -693,6 +696,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.secondaryColor1,
     alignItems: "center",
+    justifyContent: "center",
   },
   innerContainer: {
     flex: 1,
@@ -724,7 +728,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   profileIcon: {
     height: "100%",
     width: "100%",

@@ -115,9 +115,10 @@ const getTabBarDisplay = (route) => {
     routeName === "FilePreviewScreen" ||
     routeName === "VideosScreen" ||
     routeName === "AudiosScreen" ||
-    routeName === "OthersScreen" || 
+    routeName === "OthersScreen" ||
     routeName === "PasswordsScreen" ||
-    routeName === "PasswordPreview" 
+    routeName === "PasswordPreview" ||
+    routeName === "MapView"
   ) {
     return "none";
   }

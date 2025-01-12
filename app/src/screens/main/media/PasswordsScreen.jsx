@@ -279,9 +279,6 @@ export default function PasswordsScreen({ navigation }) {
             data={filteredPasswords}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No passwords found.</Text>
-            }
             contentContainerStyle={{
               flexGrow: 1,
               paddingHorizontal: wp("3.5%"),
@@ -352,7 +349,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
-    
   },
   backIconContainer: {
     height: hp("6%"),

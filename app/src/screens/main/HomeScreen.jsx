@@ -424,18 +424,16 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigation.openDrawer()}
           >
             <View style={styles.profileImageContainer}>
-              {user.profileImage ? (
+              {user.profileImage && user.profileImage !== "" ? (
                 <Image
-                  source={ProfileIcon}
-                  style={{
-                    ...styles.profileIcon,
-                  }}
+                  source={{ uri: user.profileImage }}
+                  style={styles.profileIcon}
                   resizeMode="cover"
                   onLoadEnd={() => setProfileLoaded(true)}
                 />
               ) : (
                 <Image
-                  source={{ uri: user.profileImage }}
+                  source={ProfileIcon}
                   style={styles.profileIcon}
                   resizeMode="cover"
                   onLoadEnd={() => setProfileLoaded(true)}

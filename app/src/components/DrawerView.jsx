@@ -23,18 +23,15 @@ export default function DrawerView() {
       <View style={styles.header}>
         <View style={styles.profileContent}>
           <View style={styles.profileImageContainer}>
-            {user.profileImage ? (
+            {user.profileImage && user.profileImage !== "" ? (
               <Image
-                source={ProfileIcon}
-                style={{
-                  ...styles.profileIcon,
-                  backgroundColor: "red",
-                }}
+                source={{ uri: user.profileImage }}
+                style={styles.profileIcon}
                 resizeMode="cover"
               />
             ) : (
               <Image
-                source={{ uri: user.profileImage }}
+                source={ProfileIcon}
                 style={styles.profileIcon}
                 resizeMode="cover"
               />
@@ -184,23 +181,24 @@ const styles = StyleSheet.create({
     height: "10%",
     width: "100%",
     marginBottom: hp("3%"),
-    paddingHorizontal: wp("4%"),
     flexDirection: "row",
     alignItems: "center",
+    paddingLeft: wp("5%"),
   },
   logout: {
     flexDirection: "row",
-    gap: wp("2%"),
+    gap: wp("2.5%"),
     alignItems: "center",
   },
   logoutIcon: {
-    width: wp("6%"),
-    height: wp("6%"),
+    aspectRatio: 1,
+    width: wp("7%"),
+    height: hp("7%"),
     resizeMode: "contain",
     tintColor: colors.textColor2,
   },
   logoutText: {
-    fontSize: hp("2.3%"),
+    fontSize: hp("2.5%"),
     color: colors.textColor2,
     fontFamily: "Afacad-Regular",
   },

@@ -26,7 +26,7 @@ const Stack = createStackNavigator();
 
 function NewUserStack() {
   return (
-    <Stack.Navigator initialRouteName="FingerprintScanScreen">
+    <Stack.Navigator initialRouteName="FailureScreen">
       <Stack.Screen
         name="LandingScreen"
         component={LandingScreen}

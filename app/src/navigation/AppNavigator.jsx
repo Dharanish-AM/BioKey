@@ -3,8 +3,8 @@ import React from "react";
 import DrawerNavigator from "./DrawerNavigator";
 import { AuthStack, NewUserStack } from "./StackNavigator";
 
-const isNewUser = false;
-const isLoggedIn = true;
+const isNewUser = true;
+const isLoggedIn = false;
 
 export default function AppNavigator() {
   if (isNewUser == true && isLoggedIn == false) {

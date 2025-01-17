@@ -20,12 +20,13 @@ import FilePreviewScreen from "../screens/main/helper/FilePreview";
 import PasswordsScreen from "../screens/main/media/PasswordsScreen";
 import PasswordPreview from "../screens/main/helper/PasswordPreview";
 import MapView from "../screens/main/helper/MapView";
+import UserFormScreen from "../screens/auth/UserFormScreen";
 
 const Stack = createStackNavigator();
 
 function NewUserStack() {
   return (
-    <Stack.Navigator initialRouteName="LandingScreen">
+    <Stack.Navigator initialRouteName="FingerprintScanScreen">
       <Stack.Screen
         name="LandingScreen"
         component={LandingScreen}
@@ -34,6 +35,11 @@ function NewUserStack() {
       <Stack.Screen
         name="DevicePairingScreen"
         component={DevicePairingScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="UserFormScreen"
+        component={UserFormScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -66,6 +72,11 @@ function AuthStack() {
       <Stack.Screen
         name="DevicePairingScreen"
         component={DevicePairingScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="UserFormScreen"
+        component={UserFormScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

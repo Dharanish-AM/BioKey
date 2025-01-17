@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import colors from "../../constants/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { moderateScale } from "react-native-size-matters";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -12,7 +11,12 @@ import Logo from "../../assets/images/BioKey_Logo.png";
 import illustration from "../../assets/images/landing-illustration.png";
 import SupportIcon from "../../assets/images/support_icon.png";
 
-export default function LandingScreen() {
+export default function LandingScreen({navigation}) {
+
+  const handleGetStarted = () => {
+      navigation.navigate("DevicePairingScreen")
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -32,7 +36,7 @@ export default function LandingScreen() {
           <Text style={styles.quoteText}>
             “Your identity, your access, your security”
           </Text>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity onPress={handleGetStarted} style={styles.button}>
             <Text style={styles.buttonText}>Get Started</Text>
           </TouchableOpacity>
           <Text style={styles.tcText}>Terms and Conditions </Text>
@@ -71,7 +75,7 @@ const styles = StyleSheet.create({
     width: "40%",
   },
   logoText: {
-    fontSize: moderateScale(34),
+    fontSize: hp("4%"),
     fontFamily: "Afacad-Bold",
     color: "#E0E3F8",
   },
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
     width: "50%",
     justifyContent: "flex-end",
     alignItems: "flex-end",
-    marginBottom: "1%",
+    marginBottom: "2%",
   },
   SupportIcon: {
     height: "40%",
@@ -97,39 +101,38 @@ const styles = StyleSheet.create({
   },
   illustration: {
     width: "98%",
-    height: "95%",
+    height: "90%",
     resizeMode: "stretch",
   },
   bottom: {
     width: wp("100%"),
     height: hp("20%"),
-    justifyContent: "space-evenly",
+    justifyContent: "space-between",
     flexDirection: "column",
     alignItems: "center",
   },
   quoteText: {
-    fontSize: moderateScale(22),
+    fontSize: hp("2.7%"),
     textAlign: "center",
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBoldItalic",
     width: "100%",
   },
   button: {
-    width: "60%",
+    width: "55%",
     height: "35%",
-    //marginTop: "6%",
     backgroundColor: colors.primaryColor,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: hp("5%"),
   },
   buttonText: {
-    fontSize: moderateScale(22),
+    fontSize: hp("3%"),
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
   },
   tcText: {
-    fontSize: moderateScale(15),
+    fontSize: hp("2%"),
     //marginTop: "7%",
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",

@@ -94,12 +94,9 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("audiosScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileId, fileName, type, thumbnail) => {
+  const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      fileId,
-      fileName,
-      type,
-      thumbnail,
+      file
     });
   };
 
@@ -213,8 +210,7 @@ export default function PhotosScreen({ navigation }) {
 
                 if (uploadResponse.success) {
                   console.log(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } uploaded successfully`
                   );
                   Alert.alert(
@@ -224,8 +220,7 @@ export default function PhotosScreen({ navigation }) {
                   );
                 } else {
                   console.error(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
                     uploadResponse.message
                   );
@@ -264,7 +259,7 @@ export default function PhotosScreen({ navigation }) {
     <TouchableOpacity
       style={styles.fileContainer}
       onPress={() =>
-        handlePress(item.fileId, item.name, item.type, item.thumbnail)
+        handlePress(item)
       }
     >
       {item.thumbnail ? (

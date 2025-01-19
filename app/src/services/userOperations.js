@@ -1,5 +1,5 @@
 import axios from "axios";
-import { setUser } from "../redux/actions";
+import { setUser, updateFileLikes } from "../redux/actions";
 import store from "../redux/store";
 
 const getIP = () => {
@@ -16,5 +16,33 @@ export const loadProfile = async (userId, dispatch) => {
     await dispatch(setUser(response.data.user));
   } catch (error) {
     console.error("Error fetching profile:", error);
+  }
+};
+
+export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
+  try {
+    const response = await axios.post(`${API_URL}/likeorunlikefile`, {
+      userId,
+      fileId,
+    });
+
+    if (response.status === 200 && response.data.success) {
+      dispatch(updateFileLikes(fileId, response.data.isLiked, type));
+      return {
+        success: true,
+        isLiked: response.data.isLiked,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Failed to like/unlike file",
+    };
+  } catch (error) {
+    console.error("Error in likeOrUnlikeFile:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "An error occurred",
+    };
   }
 };

@@ -6,6 +6,7 @@ import {
   SET_TAB_BAR_VISIBLE,
   SET_USER,
   SET_PASSWORD,
+  UPDATE_FILE_LIKE_STATUS
 } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
@@ -56,5 +57,17 @@ export const setUser = (user) => ({
 
 export const setPasswords = (passwords) => ({
   type: SET_PASSWORD,
-  payload: passwords, 
+  payload: passwords,
 });
+
+
+export const updateFileLikes = (fileId, isLiked,type) => {
+  return {
+    type: UPDATE_FILE_LIKE_STATUS,
+    payload: {
+      fileId,
+      isLiked,
+      type
+    }
+  };
+};

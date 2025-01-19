@@ -32,19 +32,20 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
-    favorite: {
+    likedFiles: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "File",
       default: [],
     },
-    folder: [
+    folders: [
       {
         name: {
           type: String,
+          required: true,
         },
         files: [
           {
-            type: [mongoose.Schema.Types.ObjectId],
+            type: mongoose.Schema.Types.ObjectId,
             ref: "File",
             default: [],
           },
@@ -60,6 +61,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
 
 userSchema.index({ email: 1 });
 userSchema.index({ phone: 1 });

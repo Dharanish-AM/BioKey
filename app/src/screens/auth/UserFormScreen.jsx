@@ -34,8 +34,8 @@ export default function UserFormScreen({ navigation }) {
     });
 
     const [isFormFilled, setIsFormFilled] = useState(false);
-    const [passwordError, setPasswordError] = useState("");
-    const [confirmPasswordError, setConfirmPasswordError] = useState("");
+    const [formError, setFormError] = useState("");
+
 
     const [submitted, setSubmitted] = useState(false);
 
@@ -55,25 +55,29 @@ export default function UserFormScreen({ navigation }) {
     const handleSubmit = () => {
         setSubmitted(true);
         Keyboard.dismiss();
-        console.log("Form submitted:", form);
-        navigation.navigate("FingerprintScanScreen")
-    };
 
-    useEffect(() => {
-        if (submitted) {
-            if (form.password.length < 8) {
-                setPasswordError("Password must be at least 8 characters.");
-            } else {
-                setPasswordError("");
-            }
+        const allFieldsFilled = Object.values(form).every((field) => field.trim() !== "");
+        const isPasswordValid = form.password.length >= 8;
+        const isPasswordMatching = form.password === form.confirmPassword;
 
-            if (form.password !== form.confirmPassword) {
-                setConfirmPasswordError("Passwords do not match.");
-            } else {
-                setConfirmPasswordError("");
+        if (!allFieldsFilled) {
+            setFormError("Please fill all fields.");
+        } else if (!isPasswordValid) {
+            setFormError("Password must be at least 8 characters.");
+        } else if (!isPasswordMatching) {
+            setFormError("Passwords do not match.");
+        } else {
+            setFormError("");
+
+            if (allFieldsFilled && isPasswordValid && isPasswordMatching) {
+                console.log("Account created:", form);
+                navigation.navigate("FingerprintScanScreen");
             }
         }
-    }, [submitted, form.password, form.confirmPassword]);
+    };
+
+
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -82,7 +86,14 @@ export default function UserFormScreen({ navigation }) {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
 
-                <View style={styles.top}>
+                <View
+                    style={[
+                        styles.top,
+                        {
+                            height: formError ? hp("8%") : hp("10%"),
+                        },
+                    ]}
+                >
                     <View style={styles.deviceDetails}>
                         <Image source={DeviceIcon} style={styles.deviceIcon} />
                         <Text style={styles.deviceName}>{device.name}</Text>
@@ -94,6 +105,9 @@ export default function UserFormScreen({ navigation }) {
 
                 <ScrollView contentContainerStyle={styles.center} keyboardShouldPersistTaps="handled">
                     <Text style={styles.formTitle}>Enter your details</Text>
+                    {submitted && formError ? (
+                        <Text style={styles.errorText}>{formError}</Text>
+                    ) : null}
                     <View style={styles.inputContainer}>
 
                         <Text style={styles.label}>Name</Text>
@@ -130,9 +144,7 @@ export default function UserFormScreen({ navigation }) {
                             value={form.password}
                             onChangeText={(value) => handleChange("password", value)}
                         />
-                        {submitted && passwordError ? (
-                            <Text style={styles.errorText}>{passwordError}</Text>
-                        ) : null}
+
 
                         <Text style={styles.label}>Confirm Password</Text>
                         <TextInput
@@ -142,17 +154,15 @@ export default function UserFormScreen({ navigation }) {
                             value={form.confirmPassword}
                             onChangeText={(value) => handleChange("confirmPassword", value)}
                         />
-                        {submitted && confirmPasswordError ? (
-                            <Text style={styles.errorText}>{confirmPasswordError}</Text>
-                        ) : null}
+
                     </View>
 
+
                     <TouchableOpacity
-                        style={[styles.button, !isFormFilled ? styles.formNotFilledButton : styles.formFilledButton]}
-                        disabled={!isFormFilled}
+                        style={styles.button}
                         onPress={handleSubmit}
                     >
-                        <Text style={styles.buttonText}>Submit</Text>
+                        <Text style={styles.buttonText}>Create Account</Text>
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -172,7 +182,7 @@ const styles = StyleSheet.create({
     },
     top: {
         width: wp("100%"),
-        height: hp("10%"),
+
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: wp("3%"),
@@ -214,7 +224,7 @@ const styles = StyleSheet.create({
         marginBottom: hp("1%"),
     },
     inputContainer: {
-        marginBottom: hp("2.5%"),
+        marginBottom: hp("1.5%")
     },
     label: {
         fontSize: hp("2.7%"),
@@ -231,14 +241,16 @@ const styles = StyleSheet.create({
         marginBottom: hp("1%"),
         fontFamily: "Afacad-Medium",
         color: colors.textColor3,
+
     },
     button: {
-        width: "50%",
+        width: "55%",
         height: "9%",
         justifyContent: "center",
         alignItems: "center",
         borderRadius: hp("5%"),
         alignSelf: "center",
+        backgroundColor: colors.primaryColor,
     },
     buttonText: {
         fontSize: hp("3%"),

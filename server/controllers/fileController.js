@@ -249,10 +249,10 @@ const uploadFile = (req, res) => {
             type: fileCategory,
             thumbnail: thumbnailPath
               ? path.join(
-                  "thumbnails",
-                  fileCategory,
-                  path.basename(thumbnailPath)
-                )
+                "thumbnails",
+                fileCategory,
+                path.basename(thumbnailPath)
+              )
               : null,
             size: file.size,
             owner: userId,
@@ -266,17 +266,17 @@ const uploadFile = (req, res) => {
             filePath: path.join(fileCategory, uniqueFileName),
             thumbnailPath: thumbnailPath
               ? path.join(
-                  "thumbnails",
-                  fileCategory,
-                  path.basename(thumbnailPath)
-                )
+                "thumbnails",
+                fileCategory,
+                path.basename(thumbnailPath)
+              )
               : null,
             category: fileCategory,
           };
         } catch (fileError) {
           console.error("Error processing file:", fileError.message);
 
-          // Cleanup
+
           if (fs.existsSync(uniqueTargetPath)) {
             await fs.promises.unlink(uniqueTargetPath);
             console.log(`Deleted file: ${uniqueTargetPath}`);
@@ -294,7 +294,7 @@ const uploadFile = (req, res) => {
         }
       });
 
-      // Execute all file upload promises concurrently
+
       const results = await Promise.allSettled(filePromises);
 
       const successes = results
@@ -342,6 +342,7 @@ const getUniqueFilePath = (dir, fileName) => {
 
 const deleteFile = async (req, res) => {
   const { userId, fileId } = req.body;
+  console.log(userId, fileId)
 
   if (!userId || !fileId) {
     return res.status(400).json({ message: "Missing userId or fileId" });
@@ -403,7 +404,7 @@ const getRecentFiles = async (req, res) => {
     const files = await File.find({ owner: userId })
       .sort({ updatedAt: -1 })
       .limit(7)
-      .select("name type size createdAt thumbnail _id");
+      .select("name type size createdAt thumbnail isLiked _id");
 
     if (!files.length) {
       return res.status(200).json({
@@ -423,12 +424,13 @@ const getRecentFiles = async (req, res) => {
               "base64"
             )}`;
             return {
-              fileId: file._id,
+              _id: file._id,
               name: file.name,
               type: file.type,
               size: file.size,
               createdAt: file.createdAt,
               thumbnail: base64File,
+              isLiked: file.isLiked,
             };
           } catch (err) {
             console.error(
@@ -442,6 +444,7 @@ const getRecentFiles = async (req, res) => {
               size: file.size,
               createdAt: file.createdAt,
               thumbnail: null,
+              isLiked: file.isLiked,
             };
           }
         } else {
@@ -452,6 +455,7 @@ const getRecentFiles = async (req, res) => {
             size: file.size,
             createdAt: file.createdAt,
             thumbnail: null,
+            isLiked: file.isLiked,
           };
         }
       })
@@ -466,6 +470,7 @@ const getRecentFiles = async (req, res) => {
     res.status(500).json({ message: "Error retrieving recent files" });
   }
 };
+
 
 const getUsedSpace = async (req, res) => {
   const userId = req.query.userId;
@@ -547,7 +552,7 @@ const listFile = async (req, res) => {
     const query = { owner: userId };
     if (category) query.type = category;
 
-    const files = await File.find(query, "name type size thumbnail _id");
+    const files = await File.find(query, "name type size thumbnail createdAt isLiked _id"); // Added `isLiked`
     if (!files || files.length === 0) {
       return res.status(200).json({ message: "No files found", files: [] });
     }
@@ -572,11 +577,13 @@ const listFile = async (req, res) => {
         }
 
         return {
-          fileId: file._id,
+          _id: file._id,
           name: file.name,
           type: file.type,
           size: file.size,
+          createdAt: file.createdAt,
           thumbnail: base64Thumbnail,
+          isLiked: file.isLiked, // Added `isLiked`
         };
       })
     );
@@ -590,6 +597,8 @@ const listFile = async (req, res) => {
     return res.status(500).json({ message: "Error retrieving files" });
   }
 };
+
+
 
 const loadImage = async (req, res) => {
   const { userId, fileId } = req.query;
@@ -787,47 +796,74 @@ const loadAudio = async (req, res) => {
     return res.status(500).json({ message: "Error loading audio file." });
   }
 };
-const addFavorite = async (req, res) => {
+
+
+const ListFolderFiles = async (req, res) => {
   try {
-    const { userId, fileId } = req.body;
+    const { userId, folderName } = req.body;
+
+
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId format" });
+    }
+
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.favorite.includes(fileId)) {
-      return res.status(400).json({ message: "File is already in favorites." });
+
+    const folder = user.folders.find((folder) => folder.name === folderName);
+    if (!folder) {
+      return res.status(404).json({ message: "Folder not found" });
     }
 
-    user.favorite.push(fileId);
-    await user.save();
 
-    res.status(200).json({ message: "File added to favorites." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error adding file to favorites." });
-  }
-};
-
-const removeFavorite = async (req, res) => {
-  try {
-    const { userId, fileId } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
+    const files = await File.find({ _id: { $in: folder.files } }).select("name type size thumbnail createdAt _id");
+    if (!files || files.length === 0) {
+      return res.status(200).json({ message: "No files found in the folder", files: [] });
     }
 
-    user.favorite = user.favorite.filter(
-      (favoriteId) => favoriteId.toString() !== fileId
+
+    const processedFiles = await Promise.all(
+      files.map(async (file) => {
+        let base64Thumbnail = null;
+        if (file.thumbnail) {
+          const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
+          try {
+            await fs.promises.access(thumbnailPath);
+            const thumbnailData = await fs.promises.readFile(thumbnailPath);
+            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString("base64")}`;
+          } catch (err) {
+            console.error(`Error reading thumbnail for file ${file.name}:`, err.message);
+          }
+        }
+
+        return {
+          _id: file._id,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          createdAt: file.createdAt,
+          thumbnail: base64Thumbnail,
+        };
+      })
     );
-    await user.save();
 
-    res.status(200).json({ message: "File removed from favorites." });
+
+    return res.status(200).json({
+      message: "Files retrieved successfully from folder",
+      files: processedFiles,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error removing file from favorites." });
+    console.error("Error listing folder files:", error.message);
+    return res.status(500).json({ message: "Error retrieving files from folder" });
   }
 };
 

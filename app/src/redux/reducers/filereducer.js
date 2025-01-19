@@ -3,6 +3,7 @@ import {
   FETCH_USED_SPACE,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
+  UPDATE_FILE_LIKE_STATUS
 } from "../types";
 
 const initialState = {
@@ -92,6 +93,28 @@ const fileReducer = (state = initialState, action) => {
         tabBarVisible: action.payload,
       };
 
+    case UPDATE_FILE_LIKE_STATUS:
+      const { fileId, isLiked, type } = action.payload;
+
+      const updateFiles = (files) => {
+        return files.map(file =>
+          file._id === fileId ? { ...file, isLiked } : file
+        );
+      };
+
+
+      const updatedTypeFiles = updateFiles(state[type]);
+
+
+      const updatedRecents = state.recents.map(file =>
+        file._id === fileId ? { ...file, isLiked } : file
+      );
+
+      return {
+        ...state,
+        [type]: updatedTypeFiles,
+        recents: updatedRecents,
+      };
     default:
       return state;
   }

@@ -327,16 +327,13 @@ export default function HomeScreen({ navigation }) {
         key={item.id || item.name}
         onPress={() => {
           navigation.navigate("FilePreviewScreen", {
-            fileName: item.name,
-            type: item.type,
-            fileId: item.fileId,
-            thumbnail: item.type === "audios" ? item.thumbnail : null,
+            file: item
           });
         }}
       >
         <View style={styles.recentFileImageContainer}>
           {item.type === "pdf" ||
-          (item.type === "others" && item.name.includes("pdf")) ? (
+            (item.type === "others" && item.name.includes("pdf")) ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>

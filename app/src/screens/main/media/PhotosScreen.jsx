@@ -93,11 +93,9 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("imagesScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileId, fileName, type) => {
+  const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      fileId,
-      fileName,
-      type,
+      file
     });
   };
 
@@ -252,7 +250,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileId, item.name, item.type)}
+      onPress={() => handlePress(item)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>

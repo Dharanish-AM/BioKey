@@ -7,3 +7,5 @@ export const SET_FIRST_RENDER = "SET_FIRST_RENDER";
 export const SET_USER = "SET_USER";
 
 export const SET_PASSWORD = "SET_PASSWORD";
+
+export const UPDATE_FILE_LIKE_STATUS = "UPDATE_FILE_LIKE_STATUS"

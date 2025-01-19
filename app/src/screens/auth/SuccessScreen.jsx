@@ -31,7 +31,7 @@ export default function SuccessScreen({ navigation }) {
         <View style={styles.center}>
 
           <View style={styles.successContainer}>
-            <LottieView style={styles.successAnimation} source={SuccessAnimation} autoPlay={true} loop={true} />
+            <LottieView style={styles.successAnimation} source={SuccessAnimation} autoPlay={true} loop={false} />
             <Text style={styles.infoText}>Fingerprint Registered Successfully!</Text>
           </View>
 
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Medium",
     color: colors.textColor1,
     textAlign: "center",
-    width:"90%"
+    width: "90%"
   },
   bottom: {
     width: wp("100%"),

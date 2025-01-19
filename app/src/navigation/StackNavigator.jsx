@@ -26,7 +26,7 @@ const Stack = createStackNavigator();
 
 function NewUserStack() {
   return (
-    <Stack.Navigator initialRouteName="FailureScreen">
+    <Stack.Navigator initialRouteName="LandingScreen">
       <Stack.Screen
         name="LandingScreen"
         component={LandingScreen}

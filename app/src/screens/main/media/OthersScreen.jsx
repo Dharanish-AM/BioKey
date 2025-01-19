@@ -94,11 +94,9 @@ export default function OthersScreen({ navigation }) {
     dispatch(setFirstRender("othersScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileId, fileName, type) => {
+  const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      fileId,
-      fileName,
-      type,
+      file
     });
   };
 
@@ -214,8 +212,7 @@ export default function OthersScreen({ navigation }) {
 
                 if (uploadResponse.success) {
                   console.log(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } uploaded successfully`
                   );
                   Alert.alert(
@@ -225,8 +222,7 @@ export default function OthersScreen({ navigation }) {
                   );
                 } else {
                   console.error(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
                     uploadResponse.message
                   );
@@ -265,7 +261,7 @@ export default function OthersScreen({ navigation }) {
     <TouchableOpacity
       style={styles.fileContainer}
       onPress={() => {
-        handlePress(item.fileId, item.name, item.type);
+        handlePress(item);
       }}
     >
       <View
@@ -279,8 +275,8 @@ export default function OthersScreen({ navigation }) {
             item.thumbnail
               ? { uri: item.thumbnail }
               : item.name.includes("pdf")
-              ? PdfIcon
-              : DocsFileIcon
+                ? PdfIcon
+                : DocsFileIcon
           }
           style={[styles.fileThumbnail, !item.thumbnail && styles.fallbackIcon]}
         />

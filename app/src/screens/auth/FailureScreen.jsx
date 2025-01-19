@@ -31,7 +31,7 @@ export default function FailureScreen({ navigation }) {
         <View style={styles.center}>
 
           <View style={styles.failureContainer}>
-            <LottieView style={styles.failureAnimation} source={FailureAnimation} autoPlay={true} loop={true} />
+            <LottieView style={styles.failureAnimation} source={FailureAnimation} autoPlay={true} loop={false} />
             <Text style={styles.infoText}>Error While Registering
               Fingerprint!</Text>
           </View>

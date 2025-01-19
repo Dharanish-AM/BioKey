@@ -1,4 +1,5 @@
 const User = require("../models/userSchema");
+const File = require("../models/fileSchema")
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
@@ -270,10 +271,121 @@ const setProfile = async (req, res) => {
   }
 };
 
+const createFolder = async (req, res) => {
+  const { userId, folderName } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (!user.folders) {
+      user.folders = [];
+    }
+
+    const existingFolder = user.folders.find(folder => folder.name === folderName);
+    if (existingFolder) {
+      return res.status(400).json({ success: false, message: "Folder already exists" });
+    }
+
+    const newFolder = { name: folderName, files: [] };
+    user.folders.push(newFolder);
+    await user.save();
+
+    return res.status(201).json({ success: true, folder: newFolder });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Error creating folder" });
+  }
+};
+
+
+const addFilesToFolder = async (req, res) => {
+  const { userId, folderName, fileId } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const folder = user.folders.find(f => f.name === folderName);
+    if (!folder) {
+      return res.status(404).json({ success: false, message: "Folder not found" });
+    }
+
+    if (folder.files.includes(fileId)) {
+      return res.status(400).json({ success: false, message: "File already in the folder" });
+    }
+
+    folder.files.push(fileId);
+    await user.save();
+
+    return res.status(200).json({ success: true, folder });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Error adding file to folder" });
+  }
+};
+
+
+
+const likeOrUnlikeFile = async (req, res) => {
+  const { userId, fileId } = req.body;
+  try {
+    const user = await User.findById(userId);
+    const file = await File.findById(fileId);
+
+    if (!user || !file) {
+      return res.status(404).json({ success: false, message: "User or File not found" });
+    }
+
+    file.isLiked = !file.isLiked;
+
+    if (file.isLiked) {
+      if (!user.likedFiles) {
+        user.likedFiles = [];
+      }
+      user.likedFiles.push(fileId);
+    } else {
+      user.likedFiles = user.likedFiles.filter((id) => id.toString() !== fileId);
+    }
+
+    await file.save();
+    await user.save();
+
+    return res.status(200).json({ success: true, isLiked: file.isLiked });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Error liking/unliking file" });
+  }
+};
+
+
+const ListFolder = async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const user = await User.findById(userId).select("folders");
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, folders: user.folders });
+  } catch (error) {
+    console.error("Error fetching folders: ", error);
+    return res.status(500).json({ success: false, message: "Error fetching folders" });
+  }
+};
+
+
 module.exports = {
   register,
   login,
   deleteUser,
   getUser,
   setProfile,
+  createFolder,
+  addFilesToFolder,
+  likeOrUnlikeFile,
+  ListFolder
 };

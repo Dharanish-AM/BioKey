@@ -10,6 +10,6 @@ router.get("/list", fileController.listFile);
 router.get("/previewimage", fileController.loadImage);
 router.get("/previewvideo", fileController.loadVideo);
 router.get("/previewaudio", fileController.loadAudio);
-// router.post("/newfolder", fileController.createSaveFolder);
+
 
 module.exports = router;

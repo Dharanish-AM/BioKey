@@ -29,13 +29,16 @@ const fileSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isLiked: {
+      type: Boolean,
+      default: false, 
+    },
   },
   {
-    timestamps: true,
+    timestamps: true, 
   }
 );
 
-fileSchema.index({ owner: 1, createdAt: -1 });
- 
-module.exports = mongoose.model("File", fileSchema); 
-  
+fileSchema.index({ owner: 1, createdAt: -1 }); 
+
+module.exports = mongoose.model("File", fileSchema);

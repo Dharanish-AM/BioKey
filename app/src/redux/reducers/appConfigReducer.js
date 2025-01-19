@@ -11,7 +11,7 @@ const initialState = {
     passwordsScreen: true,
     filePreviewScreen: true
   },
-  API_IP: "192.168.1.5"
+  API_IP: "biokey.duckdns.org"
 };
 
 export const appConfigReducer = (state = initialState, action) => {

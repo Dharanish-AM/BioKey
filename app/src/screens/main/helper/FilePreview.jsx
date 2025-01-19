@@ -36,8 +36,7 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import { likeOrUnlikeFile } from "../../../services/userOperations";
 import LikedHeartIcon from "../../../assets/images/like-heart.png";
-import { setFirstRender } from "../../../redux/actions";
-import { useSelector } from "react-redux";
+import * as Share from 'expo-share';
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
@@ -91,7 +90,18 @@ export default function FilePreviewScreen({ route, navigation }) {
     }
   }, [file.isLiked]);
 
-
+  const handleShare = async () => {
+    try {
+      await Share.shareAsync({
+        message: 'Check out this awesome content!',
+        url: 'https://www.example.com',
+        title: 'Awesome Content',
+      });
+      console.log('Content shared successfully!');
+    } catch (error) {
+      console.error('Error sharing content:', error);
+    }
+  };
 
   const handleLikeOrUnlike = async () => {
     if (isProcessing) return;
@@ -413,8 +423,9 @@ export default function FilePreviewScreen({ route, navigation }) {
 
 
           <TouchableOpacity
-            onPress={() => console.log("Share Icon Pressed")}
+            onPress={handleShare}
             style={styles.opticonContainer}
+
           >
             <Image source={ShareIcon} style={styles.opticon} />
           </TouchableOpacity>

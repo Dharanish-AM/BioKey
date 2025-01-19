@@ -10,6 +10,8 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/users`;
 
+console.log(API_URL);  
+
 export const loadProfile = async (userId, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/details?userId=${userId}`);

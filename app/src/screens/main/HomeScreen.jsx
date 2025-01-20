@@ -569,7 +569,7 @@ export default function HomeScreen({ navigation }) {
                 <TouchableOpacity
                   style={styles.optionsIconContainer}
                   onPress={() => {
-                    navigation.navigate("MapView");
+                    navigation.navigate("FavouritesScreen");
                   }}
                 >
                   <Image style={styles.optionIcon} source={HeartIcon} />

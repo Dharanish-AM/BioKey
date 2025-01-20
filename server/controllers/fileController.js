@@ -552,7 +552,7 @@ const listFile = async (req, res) => {
     const query = { owner: userId };
     if (category) query.type = category;
 
-    const files = await File.find(query, "name type size thumbnail createdAt isLiked _id"); // Added `isLiked`
+    const files = await File.find(query, "name type size thumbnail createdAt isLiked _id");
     if (!files || files.length === 0) {
       return res.status(200).json({ message: "No files found", files: [] });
     }
@@ -583,7 +583,7 @@ const listFile = async (req, res) => {
           size: file.size,
           createdAt: file.createdAt,
           thumbnail: base64Thumbnail,
-          isLiked: file.isLiked, // Added `isLiked`
+          isLiked: file.isLiked,
         };
       })
     );
@@ -867,6 +867,73 @@ const ListFolderFiles = async (req, res) => {
   }
 };
 
+const listLiked = async (req, res) => {
+  const { userId } = req.query;
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId format" });
+    }
+
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+
+    const likedFiles = await File.find({
+      _id: { $in: user.likedFiles },
+      owner: userId,
+    }, "name type size thumbnail createdAt _id isLiked");
+
+    if (!likedFiles || likedFiles.length === 0) {
+      return res.status(200).json({ message: "No liked files found", files: [] });
+    }
+
+
+    const processedFiles = await Promise.all(
+      likedFiles.map(async (file) => {
+        let base64Thumbnail = null;
+        if (file.thumbnail) {
+          const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
+          try {
+            await fs.promises.access(thumbnailPath);
+            const thumbnailData = await fs.promises.readFile(thumbnailPath);
+            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString("base64")}`;
+          } catch (err) {
+            console.error(`Error reading thumbnail for file ${file.name}:`, err.message);
+          }
+        }
+
+        return {
+          _id: file._id,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          createdAt: file.createdAt,
+          thumbnail: base64Thumbnail,
+          isLiked:file.isLiked
+        };
+      })
+    );
+
+    return res.status(200).json({
+      message: "Liked files retrieved successfully",
+      files: processedFiles,
+    });
+  } catch (error) {
+    console.error("Error retrieving liked files:", error.message);
+    return res.status(500).json({ message: "Error retrieving liked files" });
+  }
+};
+
+
+
+
 module.exports = {
   uploadFile,
   getRecentFiles,
@@ -876,4 +943,5 @@ module.exports = {
   loadAudio,
   listFile,
   deleteFile,
+  listLiked
 };

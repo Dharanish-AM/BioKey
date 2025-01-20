@@ -1,5 +1,6 @@
 import {
   FETCH_FILES_REQUEST,
+  FETCH_LIKED_FILES,
   FETCH_USED_SPACE,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
@@ -20,6 +21,7 @@ const initialState = {
   },
   searchQuery: "",
   filteredFiles: [],
+  likedFiles: []
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -115,6 +117,13 @@ const fileReducer = (state = initialState, action) => {
         [type]: updatedTypeFiles,
         recents: updatedRecents,
       };
+
+    case FETCH_LIKED_FILES:
+      return {
+        ...state,
+        likedFiles: action.payload
+      };
+
     default:
       return state;
   }

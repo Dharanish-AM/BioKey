@@ -10,6 +10,8 @@ router.get("/list", fileController.listFile);
 router.get("/previewimage", fileController.loadImage);
 router.get("/previewvideo", fileController.loadVideo);
 router.get("/previewaudio", fileController.loadAudio);
+router.get("/listfavourite",fileController.listLiked)
 
 
-module.exports = router;
+module.exports = router;  
+ 

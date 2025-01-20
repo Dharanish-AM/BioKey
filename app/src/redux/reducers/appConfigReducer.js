@@ -9,7 +9,8 @@ const initialState = {
     audiosScreen: true,
     othersScreen: true,
     passwordsScreen: true,
-    filePreviewScreen: true
+    filePreviewScreen: true,
+    favouritesScreen:true
   },
   API_IP: "biokey.duckdns.org"
 };

@@ -8,6 +8,7 @@ import {
   Linking,
   Clipboard,
   Alert,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -94,7 +95,7 @@ export default function PasswordPreview({ navigation, route }) {
               Alert.alert(
                 "Error",
                 response.message ||
-                  "Failed to delete the password. Please try again.",
+                "Failed to delete the password. Please try again.",
                 [{ text: "OK" }]
               );
             }
@@ -198,9 +199,13 @@ export default function PasswordPreview({ navigation, route }) {
             </View>
           </View>
 
-          <View style={styles.securityContainer}></View>
+          <View style={styles.securityContainer
+          }></View>
 
-          <View style={styles.optionsContainer}>
+          <View style={[styles.optionsContainer,
+          {
+            marginBottom: Platform.OS == "android" ? hp("2%") : 0
+          }]}>
             <TouchableOpacity
               style={styles.editContainer}
               onPress={handleEditPress}
@@ -272,7 +277,6 @@ const styles = StyleSheet.create({
     gap: hp("2.5%"),
   },
   passwordDetails: {
-    flex: 1,
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
     padding: hp("2.5%"),
@@ -323,13 +327,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   securityContainer: {
-    flex: 0.4,
+    flex: 1,
     width: "100%",
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
   },
   optionsContainer: {
-    flex: 0.15,
+    height: "9%",
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",

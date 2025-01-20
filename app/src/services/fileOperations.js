@@ -1,5 +1,5 @@
 import axios from "axios";
-import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
+import { fetchFilesAction, fetchUsedSpaceAction, setLikedFiles } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
 
@@ -137,7 +137,7 @@ export const fetchUsedSpace = async (userId, dispatch) => {
 };
 
 export const previewImage = async (userId, fileId) => {
- 
+
   let url = "";
   try {
     url = `${API_URL}/previewimage?userId=${userId}&fileId=${fileId}`;
@@ -217,5 +217,26 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
         message: error.message || "An unknown error occurred.",
       };
     }
+  }
+};
+
+
+export const fetchLikedFiles = async (userId, dispatch) => {
+  console.log("Called")
+  try {
+    const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
+
+    const files = response.data?.files || [];
+
+    dispatch(setLikedFiles(files));
+
+    return files;
+  } catch (error) {
+    console.error('Error fetching liked files:', error.message);
+
+
+    dispatch(setLikedFiles([]));
+
+    return [];
   }
 };

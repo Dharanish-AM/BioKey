@@ -137,6 +137,7 @@ export const fetchUsedSpace = async (userId, dispatch) => {
 };
 
 export const previewImage = async (userId, fileId) => {
+ 
   let url = "";
   try {
     url = `${API_URL}/previewimage?userId=${userId}&fileId=${fileId}`;

@@ -36,7 +36,9 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import { likeOrUnlikeFile } from "../../../services/userOperations";
 import LikedHeartIcon from "../../../assets/images/like-heart.png";
-import * as Share from 'expo-share';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
@@ -49,8 +51,10 @@ export default function FilePreviewScreen({ route, navigation }) {
   const dispatch = useDispatch();
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPinching, setIsPinching] = useState(false)
 
   const [isLiked, setIsLike] = useState(false)
+
 
   useEffect(() => {
     const fetchFilePreview = async () => {
@@ -79,7 +83,9 @@ export default function FilePreviewScreen({ route, navigation }) {
     };
 
     if (!imageData && !videoData && !audioData) {
+      console.log("first")
       fetchFilePreview();
+
     }
 
   }, [file, imageData, videoData, audioData]);
@@ -92,16 +98,68 @@ export default function FilePreviewScreen({ route, navigation }) {
 
   const handleShare = async () => {
     try {
-      await Share.shareAsync({
-        message: 'Check out this awesome content!',
-        url: 'https://www.example.com',
-        title: 'Awesome Content',
+
+      let filePath = "";
+
+
+      switch (true) {
+        case file.type.includes("image"):
+          filePath = imageData;
+          break;
+        case file.type.includes("video"):
+          filePath = videoData;
+          break;
+        case file.type.includes("audio"):
+          filePath = audioData;
+          break;
+        default:
+          filePath = documentData;
+          break;
+      }
+
+
+      const isSharingAvailable = await Sharing.isAvailableAsync();
+      if (!isSharingAvailable) {
+        Alert.alert('Sharing not available', 'Your device does not support sharing.');
+        return;
+      }
+
+
+      if (!filePath || typeof filePath !== 'string') {
+        Alert.alert('Invalid file path', 'The file path is missing or invalid.');
+        return;
+      }
+
+
+      const tempFilePath = FileSystem.cacheDirectory + file.name;
+
+
+      const downloadedFile = await FileSystem.downloadAsync(filePath, tempFilePath);
+
+
+      await Sharing.shareAsync(downloadedFile.uri, {
+        mimeType: file.type,
+        dialogTitle: `Share ${file.name}`,
       });
-      console.log('Content shared successfully!');
+
+      console.log('File shared successfully!');
+
+
+      await FileSystem.deleteAsync(downloadedFile.uri);
+      console.log('Temporary file deleted after sharing');
     } catch (error) {
-      console.error('Error sharing content:', error);
+
+      if (error.message.includes('Network')) {
+        Alert.alert('Network error', 'Unable to share the file due to a network issue.');
+      } else if (error.message.includes('canceled')) {
+        console.log('User canceled the sharing process.');
+      } else {
+        Alert.alert('Error sharing file', 'An unexpected error occurred while sharing the file.');
+        console.error('Error sharing file:', error.message);
+      }
     }
   };
+
 
   const handleLikeOrUnlike = async () => {
     if (isProcessing) return;
@@ -164,13 +222,24 @@ export default function FilePreviewScreen({ route, navigation }) {
   const ImagePreview = ({ fileData }) => {
     const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+      console.log("loading")
+    }, [isLoading])
+
+    useEffect(() => {
+      console.log(fileData)
+    }, [fileData])
+
     return (
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: fileData }}
+        <ImageZoom
+          uri={fileData || ""}
           style={styles.image}
           onLoadStart={() => setIsLoading(true)}
           onLoad={() => setIsLoading(false)}
+          isPanEnabled={false}
+          onPinchStart={() => setIsPinching(true)}
+          onPinchEnd={() => setIsPinching(false)}
         />
         {isLoading && (
           <ActivityIndicator size="large" style={styles.activityIndicator} />
@@ -368,6 +437,7 @@ export default function FilePreviewScreen({ route, navigation }) {
   );
 
   const renderFilePreview = () => {
+    console.log("first")
     switch (file.type) {
       case "images":
         return imageData ? (
@@ -411,7 +481,9 @@ export default function FilePreviewScreen({ route, navigation }) {
             <Text style={styles.fileName}>{file.name}</Text>
           </View>
         </View>
-        <View style={styles.center}>{renderFilePreview()}</View>
+        <View style={styles.center}>{
+          renderFilePreview()
+        }</View>
         <View style={styles.bottom}>
           <TouchableOpacity onPress={handleLikeOrUnlike} disabled={isProcessing} style={styles.opticonContainer}>
             {isLiked ? (

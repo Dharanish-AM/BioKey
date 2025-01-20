@@ -33,12 +33,12 @@ const fileSchema = new mongoose.Schema(
       type: Boolean,
       default: false, 
     },
-  },
+  }, 
   {
     timestamps: true, 
   }
 );
-
+ 
 fileSchema.index({ owner: 1, createdAt: -1 }); 
 
 module.exports = mongoose.model("File", fileSchema);

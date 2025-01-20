@@ -42,13 +42,13 @@ export default function FoldersScreen() {
   );
 
   const fetchData = async () => {
-    setIsLoading(true);  
+    setIsLoading(true);
     try {
-      await fetchFolderList(userId, dispatch); 
+      await fetchFolderList(userId, dispatch);
     } catch (error) {
       console.error("Error fetching folders:", error);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
@@ -60,13 +60,13 @@ export default function FoldersScreen() {
 
   useEffect(() => {
     const fetchDataEffect = async () => {
-      await fetchData();  
+      await fetchData();
     };
     fetchDataEffect();
   }, [userId, dispatch]);
 
   useEffect(() => {
-    setFilteredFolders(folders);  
+    setFilteredFolders(folders);
   }, [folders]);
 
   const handleSearchIconClick = () => {
@@ -145,11 +145,6 @@ export default function FoldersScreen() {
             <Animated.View
               style={[styles.filterContainer, { opacity: iconsOpacity }]}
             >
-              {!isSearchActive && (
-                <TouchableOpacity style={styles.filterIconContainer}>
-                  <Image source={FilterIcon} style={styles.filterIcon} />
-                </TouchableOpacity>
-              )}
 
               {!isSearchActive && (
                 <TouchableOpacity
@@ -223,7 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   screenTitle: {
-    fontSize: hp("5%"),
+    fontSize: hp("4%"),
     fontFamily: "Afacad-SemiBold",
     color: colors.textColor3,
   },
@@ -236,7 +231,7 @@ const styles = StyleSheet.create({
     marginRight: wp("1%"),
     height: "80%",
   },
- searchIconContainer: {
+  searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
     height: hp("3.2%"),
@@ -281,6 +276,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     width: wp("100%"),
+    paddingTop: hp("2%")
   },
   columnWrapper: {
     marginBottom: hp("2%"),
@@ -290,7 +286,6 @@ const styles = StyleSheet.create({
     width: wp("45%"),
     height: hp("21%"),
     overflow: "hidden",
-    borderRadius: hp("1.5%"),
     justifyContent: "center",
     alignItems: "center",
     shadowOffset: { width: 0, height: 2 },
@@ -312,8 +307,8 @@ const styles = StyleSheet.create({
   },
   folderName: {
     color: colors.textColor3,
-    fontSize: hp("2%"),
+    fontSize: hp("2.3%"),
     textAlign: "center",
-    fontFamily: "Afacad-Regular",
+    fontFamily: "Afacad-Medium",
   },
 });

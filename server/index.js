@@ -21,10 +21,9 @@ connectToDB();
 
 app.use("/api/files", fileRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/passwords",passwordRoutes);
+app.use("/api/passwords", passwordRoutes);
 // app.use("/api/devices");
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-  

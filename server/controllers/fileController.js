@@ -479,56 +479,38 @@ const getUsedSpace = async (req, res) => {
     return res.status(400).json({ message: "userId is required" });
   }
 
-  const userFolderPath = path.join(TARGET_DIR, userId);
-
-  const getFolderSize = async (dir) => {
-    let totalSize = 0;
-
-    try {
-      const files = await fs.promises.readdir(dir, { withFileTypes: true });
-
-      const fileStatsPromises = files.map(async (file) => {
-        const filePath = path.join(dir, file.name);
-
-        if (file.isDirectory()) {
-          return getFolderSize(filePath);
-        } else {
-          const stats = await fs.promises.stat(filePath);
-          return stats.size;
-        }
-      });
-
-      const fileSizes = await Promise.all(fileStatsPromises);
-      totalSize = fileSizes.reduce((acc, size) => acc + size, 0);
-    } catch (err) {
-      console.error("Error reading folder:", err.message);
-    }
-
-    return totalSize;
-  };
-
   try {
-    const stats = await fs.promises.stat(userFolderPath);
 
-    if (!stats.isDirectory()) {
-      return res
-        .status(400)
-        .json({ message: "Provided path is not a directory." });
+    const files = await File.find({ owner: userId });
+
+
+    if (!files || files.length === 0) {
+      return res.json({
+        usedSpace: 0,
+      });
     }
 
-    const usedSpace = await getFolderSize(userFolderPath);
+
+    const totalSize = files.reduce((acc, file) => {
+      if (file.size && typeof file.size === "number") {
+        return acc + file.size;
+      }
+      return acc;
+    }, 0);
+
 
     res.json({
-      userId,
-      usedSpace,
+      usedSpace: totalSize,
     });
   } catch (err) {
-    console.error("Error accessing folder:", err.message);
+    console.error("Error fetching files:", err.message);
     return res
       .status(500)
-      .json({ message: `Error accessing folder: ${err.message}` });
+      .json({ message: `Error fetching files: ${err.message}` });
   }
 };
+
+
 
 const listFile = async (req, res) => {
   try {
@@ -602,6 +584,8 @@ const listFile = async (req, res) => {
 
 const loadImage = async (req, res) => {
   const { userId, fileId } = req.query;
+
+
 
   if (!userId || !fileId) {
     console.error("Missing required parameters");
@@ -797,6 +781,74 @@ const loadAudio = async (req, res) => {
   }
 };
 
+const loadOther = async (req, res) => {
+  const { userId, fileId } = req.query;
+
+  if (!userId || !fileId) {
+    console.error("Missing required parameters");
+    return res.status(400).json({ message: "Missing userId or fileId" });
+  }
+
+  try {
+    const fileRecord = await File.findOne({
+      _id: fileId,
+      owner: userId,
+    });
+
+    if (!fileRecord) {
+      console.error("File not found in database");
+      return res.status(404).json({ message: "File not found in database" });
+    }
+
+    const filePath = path.resolve(TARGET_DIR, userId, fileRecord.path);
+
+    try {
+      await fs.promises.access(filePath, fs.constants.F_OK);
+    } catch (accessErr) {
+      console.error("File not found on disk:", filePath, accessErr);
+      return res.status(404).json({ message: "File not found on disk" });
+    }
+
+    const stats = await fs.promises.stat(filePath);
+
+    const fileExt = path.extname(fileRecord.name).slice(1).toLowerCase();
+
+
+    const mimeTypes = {
+      pdf: "application/pdf",
+      doc: "application/msword",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      xls: "application/vnd.ms-excel",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      csv: "text/csv",
+      txt: "text/plain",
+      ppt: "application/vnd.ms-powerpoint",
+      pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    };
+
+    const contentType = mimeTypes[fileExt] || "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Length", stats.size);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${fileRecord.name}"`
+    );
+
+    const readStream = fs.createReadStream(filePath);
+    readStream.pipe(res);
+
+    readStream.on("error", (err) => {
+      console.error("Read stream error:", err);
+      res.status(500).json({ message: "Error retrieving file data" });
+    });
+  } catch (err) {
+    console.error("Error retrieving file:", err);
+    res.status(500).json({ message: "Error retrieving file data" });
+  }
+};
+
+
 
 const ListFolderFiles = async (req, res) => {
   try {
@@ -916,7 +968,7 @@ const listLiked = async (req, res) => {
           size: file.size,
           createdAt: file.createdAt,
           thumbnail: base64Thumbnail,
-          isLiked:file.isLiked
+          isLiked: file.isLiked
         };
       })
     );
@@ -943,5 +995,6 @@ module.exports = {
   loadAudio,
   listFile,
   deleteFile,
-  listLiked
+  listLiked,
+  loadOther
 };

@@ -5,13 +5,11 @@ import { fetchLikedFiles } from "./fileOperations";
 
 const getIP = () => {
   const state = store.getState();
-  console.log(state.appConfig.API_IP);
   return state.appConfig.API_IP;
 };
 
 const API_URL = `http://${getIP()}:8000/api/users`;
 
-console.log(API_URL);
 
 export const loadProfile = async (userId, dispatch) => {
   try {
@@ -69,4 +67,4 @@ export const fetchFolderList = async (userId, dispatch) => {
     console.error("Error fetching folder list:", error.message);
     dispatch(setFolders([]));
   }
-};
+};  

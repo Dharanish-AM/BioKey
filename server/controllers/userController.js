@@ -272,36 +272,40 @@ const setProfile = async (req, res) => {
 };
 
 const createFolder = async (req, res) => {
-  const { userId, folderName } = req.body;
+  const { userId, folderName } = req.query;
 
-  
   if (!userId || !folderName) {
     return res.status(400).json({ success: false, message: "User ID and folder name are required" });
   }
 
   try {
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    
+
     if (!user.folders) {
       user.folders = [];
     }
 
-    
-    const existingFolder = user.folders.find(folder => folder.name === folderName);
+
+    const existingFolder = user.folders.find(folder => folder.name.trim().toLowerCase() === folderName.trim().toLowerCase());
+
     if (existingFolder) {
       return res.status(400).json({ success: false, message: "Folder already exists" });
     }
 
-    
+
     const newFolder = { name: folderName, files: [] };
+
+
     user.folders.push(newFolder);
 
-    
+
     await user.save();
+
 
     return res.status(201).json({ success: true, folder: newFolder });
   } catch (error) {
@@ -309,7 +313,6 @@ const createFolder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Error creating folder" });
   }
 };
-
 
 
 const addFilesToFolder = async (req, res) => {
@@ -351,21 +354,21 @@ const likeOrUnlikeFile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User or File not found" });
     }
 
-    
+
     file.isLiked = !file.isLiked;
 
-    
+
     if (file.isLiked) {
       if (!user.likedFiles) {
         user.likedFiles = [];
       }
       user.likedFiles.push(fileId);
     } else {
-      
+
       user.likedFiles = user.likedFiles.filter((id) => id.toString() !== fileId);
     }
 
-    
+
     await file.save();
     await user.save();
 

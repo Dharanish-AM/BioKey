@@ -113,8 +113,10 @@ export const fetchUsedSpace = async (userId, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
 
+
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
+      console.log(usedSpaceBytes)
       const usedSpacePercentage = (
         (usedSpaceBytes / TOTAL_SPACE) *
         100
@@ -148,7 +150,7 @@ export const previewImage = async (userId, fileId) => {
   }
 };
 
-export const previewVideo = (userId, fileId) => {
+export const previewVideo = async (userId, fileId) => {
   let url = "";
   try {
     url = `${API_URL}/previewvideo?userId=${userId}&fileId=${fileId}`;
@@ -159,7 +161,7 @@ export const previewVideo = (userId, fileId) => {
   }
 };
 
-export const previewAudio = (userId, fileId) => {
+export const previewAudio = async (userId, fileId) => {
   let url = "";
   try {
     url = `${API_URL}/previewaudio?userId=${userId}&fileId=${fileId}`;
@@ -169,6 +171,18 @@ export const previewAudio = (userId, fileId) => {
     return null;
   }
 };
+
+export const previewOther = async (userId, fileId) => {
+  let url = "";
+  try {
+    url = `${API_URL}/previewother?userId=${userId}&fileId=${fileId}`
+    return url;
+  } catch (error) {
+    console.error("Error generating URL:", error.message);
+    return null;
+  }
+
+}
 
 export const deleteFile = async (userId, fileId, type, dispatch) => {
   try {

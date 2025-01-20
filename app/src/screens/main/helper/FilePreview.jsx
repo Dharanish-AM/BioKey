@@ -15,18 +15,13 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   previewImage,
   previewVideo,
   previewAudio,
   deleteFile,
+  previewOther,
 } from "../../../services/fileOperations";
-import { useVideoPlayer, VideoView } from "expo-video";
-import { Audio } from "expo-av";
-import PlayButtonIcon from "../../../assets/images/play-button.png";
-import PauseButtonicon from "../../../assets/images/pause-icon.png";
-import Slider from "@react-native-community/slider";
 import FavIcon from "../../../assets/images/heart_bottom_icon.png";
 import ShareIcon from "../../../assets/images/share_bottom_icon.png";
 import AddFolder from "../../../assets/images/addfolder_bottom_icon.png";
@@ -36,23 +31,24 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import { likeOrUnlikeFile } from "../../../services/userOperations";
 import LikedHeartIcon from "../../../assets/images/like-heart.png";
-import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import ImagePreview from '../../../components/preview/ImagePreview';
+import VideoPreview from '../../../components/preview/VideoPreview';
+import AudioPreview from '../../../components/preview/AudioPreview';
+import OtherPreview from '../../../components/preview/OtherPreview';
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
   const [imageData, setImageData] = useState(null);
   const [videoData, setVideoData] = useState(null);
   const [audioData, setAudioData] = useState(null);
-  const [documentData, setDocumentData] = useState(null);
+  const [otherData, setOtherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const userId = "676aee09b3f0d752bbbe58f7";
   const dispatch = useDispatch();
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPinching, setIsPinching] = useState(false)
-
   const [isLiked, setIsLike] = useState(false)
 
 
@@ -72,6 +68,10 @@ export default function FilePreviewScreen({ route, navigation }) {
             const audioUrl = await previewAudio(userId, file._id);
             setAudioData(audioUrl);
             break;
+          case "others":
+            const otherUrl = await previewOther(userId, file.fileId);
+            setOtherData(otherUrl);
+            break;
           default:
             console.warn("Unknown category:", file.type);
         }
@@ -82,13 +82,9 @@ export default function FilePreviewScreen({ route, navigation }) {
       }
     };
 
-    if (!imageData && !videoData && !audioData) {
-      console.log("first")
-      fetchFilePreview();
+    fetchFilePreview();
+  }, [file]);
 
-    }
-
-  }, [file, imageData, videoData, audioData]);
 
   useEffect(() => {
     if (file.isLiked !== undefined) {
@@ -98,9 +94,7 @@ export default function FilePreviewScreen({ route, navigation }) {
 
   const handleShare = async () => {
     try {
-
       let filePath = "";
-
 
       switch (true) {
         case file.type.includes("image"):
@@ -113,10 +107,9 @@ export default function FilePreviewScreen({ route, navigation }) {
           filePath = audioData;
           break;
         default:
-          filePath = documentData;
+          filePath = otherData;
           break;
       }
-
 
       const isSharingAvailable = await Sharing.isAvailableAsync();
       if (!isSharingAvailable) {
@@ -124,18 +117,14 @@ export default function FilePreviewScreen({ route, navigation }) {
         return;
       }
 
-
       if (!filePath || typeof filePath !== 'string') {
         Alert.alert('Invalid file path', 'The file path is missing or invalid.');
         return;
       }
 
-
       const tempFilePath = FileSystem.cacheDirectory + file.name;
 
-
       const downloadedFile = await FileSystem.downloadAsync(filePath, tempFilePath);
-
 
       await Sharing.shareAsync(downloadedFile.uri, {
         mimeType: file.type,
@@ -144,11 +133,9 @@ export default function FilePreviewScreen({ route, navigation }) {
 
       console.log('File shared successfully!');
 
-
       await FileSystem.deleteAsync(downloadedFile.uri);
       console.log('Temporary file deleted after sharing');
     } catch (error) {
-
       if (error.message.includes('Network')) {
         Alert.alert('Network error', 'Unable to share the file due to a network issue.');
       } else if (error.message.includes('canceled')) {
@@ -159,7 +146,6 @@ export default function FilePreviewScreen({ route, navigation }) {
       }
     }
   };
-
 
   const handleLikeOrUnlike = async () => {
     if (isProcessing) return;
@@ -185,6 +171,7 @@ export default function FilePreviewScreen({ route, navigation }) {
       setIsProcessing(false);
     }
   };
+
   const handleDelete = () => {
     Alert.alert(
       "Confirm Deletion",
@@ -201,7 +188,7 @@ export default function FilePreviewScreen({ route, navigation }) {
             const result = await deleteFile(userId, file._id, file.type, dispatch);
 
             if (result.success === false) {
-              Alert.alert("Error", `Error deleting file: ${result.message}`, [
+              Alert.alert(`Error`, `Error deleting file: ${result.message}`, [
                 { text: "OK" },
               ]);
             } else {
@@ -219,248 +206,17 @@ export default function FilePreviewScreen({ route, navigation }) {
     );
   };
 
-  const ImagePreview = ({ fileData }) => {
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-      console.log("loading")
-    }, [isLoading])
-
-    useEffect(() => {
-      console.log(fileData)
-    }, [fileData])
-
-    return (
-      <View style={styles.imageContainer}>
-        <ImageZoom
-          uri={fileData || ""}
-          style={styles.image}
-          onLoadStart={() => setIsLoading(true)}
-          onLoad={() => setIsLoading(false)}
-          isPanEnabled={false}
-          onPinchStart={() => setIsPinching(true)}
-          onPinchEnd={() => setIsPinching(false)}
-        />
-        {isLoading && (
-          <ActivityIndicator size="large" style={styles.activityIndicator} />
-        )}
-      </View>
-    );
-  };
-
-  const VideoPreview = () => {
-    const player = useVideoPlayer(videoData, (player) => {
-      player.loop = true;
-      player.play();
-    });
-
-    useFocusEffect(
-      React.useCallback(() => {
-        return () => {
-          if (player) {
-            player.pause();
-          }
-        };
-      }, [player])
-    );
-
-    return (
-      <View style={styles.videoContainer}>
-        <VideoView
-          style={styles.video}
-          player={player}
-          shouldPlay
-          allowsFullscreen
-          allowsPictureInPicture
-          fullscreen={true}
-          resizeMode="contain"
-          contentFit="cover"
-          nativeControls={true}
-
-        />
-      </View>
-    );
-  };
-
-  const AudioPreview = ({ fileData = "", thumbnail = "" }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [sound, setSound] = useState(null);
-    const [position, setPosition] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    useEffect(() => {
-      const loadAudio = async () => {
-        try {
-          const { sound: newSound } = await Audio.Sound.createAsync(
-            { uri: fileData },
-            { shouldPlay: false, isLooping: true },
-            updateStatus
-          );
-          setSound(newSound);
-          setIsLoaded(true);
-        } catch (error) {
-          console.error("Error loading audio:", error);
-        }
-      };
-
-      if (fileData) {
-        loadAudio();
-      }
-
-      return () => {
-        if (sound) {
-          sound.unloadAsync().catch((error) => {
-            console.error("Error unloading audio during cleanup:", error);
-          });
-        }
-      };
-    }, [fileData]);
-
-    useFocusEffect(
-      React.useCallback(() => {
-        return () => {
-          if (sound) {
-            sound.stopAsync();
-          }
-        };
-      }, [sound])
-    );
-
-    const updateStatus = (status) => {
-      if (status.isLoaded) {
-        setDuration(status.durationMillis || 0);
-        setPosition(status.positionMillis || 0);
-        setIsPlaying(status.isPlaying || false);
-      } else if (status.error) {
-        console.error("Audio playback error:", status.error);
-      }
-    };
-
-    const playAudio = async () => {
-      try {
-        if (sound) {
-          await sound.playAsync();
-          setIsPlaying(true);
-        }
-      } catch (error) {
-        console.error("Error playing audio:", error);
-      }
-    };
-
-    const pauseAudio = async () => {
-      try {
-        if (sound) {
-          await sound.pauseAsync();
-          setIsPlaying(false);
-        }
-      } catch (error) {
-        console.error("Error pausing audio:", error);
-      }
-    };
-
-    const handleSlidingComplete = async (value) => {
-      if (sound) {
-        try {
-          await sound.setPositionAsync(value);
-          setPosition(value);
-
-          if (value === 0) {
-            await sound.pauseAsync();
-            setIsPlaying(false);
-          } else {
-            await sound.playAsync();
-            setIsPlaying(true);
-          }
-        } catch (error) {
-          console.error("Error during slider interaction:", error);
-        }
-      }
-    };
-
-    const formatTime = (timeInMillis) => {
-      const minutes = Math.floor(timeInMillis / 60000);
-      const seconds = Math.floor((timeInMillis % 60000) / 1000);
-      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-    };
-
-    return (
-      <View style={styles.audioContainer}>
-        <View style={styles.audioThumbnailContainer}>
-          <Image source={{ uri: thumbnail }} style={styles.audioThumbnail} />
-        </View>
-        <View style={styles.audioControls}>
-          <Slider
-            value={position}
-            minimumValue={0}
-            maximumValue={duration}
-            style={styles.slider}
-            onSlidingComplete={handleSlidingComplete}
-            disabled={!isLoaded}
-            tapToSeek={true}
-            minimumTrackTintColor={colors.primaryColor}
-          />
-          <View style={styles.audioTimeContainer}>
-            <Text style={styles.audioText}>{formatTime(position)} </Text>
-            <Text style={styles.audioText}>{formatTime(duration)} </Text>
-          </View>
-          {isPlaying ? (
-            <TouchableOpacity onPress={pauseAudio}>
-              <Image source={PauseButtonicon} style={styles.pauseButton} />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={playAudio}>
-              <Image source={PlayButtonIcon} style={styles.playButton} />
-            </TouchableOpacity>
-          )}
-        </View>
-        {!isLoaded && (
-          <ActivityIndicator size="large" style={styles.activityIndicator} />
-        )}
-      </View>
-    );
-  };
-
-  const DocumentPreview = ({ fileData }) => (
-    <View style={styles.documentContainer}>
-      <Text style={styles.documentText}>
-        Document Preview: {fileData.name || "Unnamed Document"}
-      </Text>
-      <Text style={styles.documentText}>
-        Size: {fileData.size || "Unknown"} bytes
-      </Text>
-    </View>
-  );
-
-  const NoPreviewAvailable = () => (
-    <Text style={styles.noPreviewText}>No Preview Available</Text>
-  );
 
   const renderFilePreview = () => {
-    console.log("first")
     switch (file.type) {
       case "images":
-        return imageData ? (
-          <ImagePreview fileData={imageData} />
-        ) : (
-          <NoPreviewAvailable />
-        );
+        return imageData ? <ImagePreview fileData={imageData} /> : <NoPreviewAvailable />;
       case "videos":
-        return videoData ? <VideoPreview /> : <NoPreviewAvailable />;
+        return videoData ? <VideoPreview fileData={videoData} /> : <NoPreviewAvailable />;
       case "audios":
-        return audioData ? (
-          <AudioPreview fileData={audioData} thumbnail={file.thumbnail} />
-        ) : (
-          <NoPreviewAvailable />
-        );
-      case "documents":
-        return documentData ? (
-          <DocumentPreview fileData={documentData} />
-        ) : (
-          <NoPreviewAvailable />
-        );
+        return audioData ? <AudioPreview thumbnail={file.thumbnail} fileData={audioData} /> : <NoPreviewAvailable />;
       default:
-        return <NoPreviewAvailable />;
+        return <OtherPreview name={file.name} fileData={otherData} />;
     }
   };
 
@@ -632,54 +388,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  imageContainer: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  activityIndicator: {
-    position: "absolute",
-    alignSelf: "center",
-  },
-  videoContainer: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  video: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
-  },
-  documentContainer: {
-    padding: 20,
-    backgroundColor: colors.secondaryColor2,
-    borderRadius: 10,
-  },
-  documentText: {
-    fontSize: hp("2%"),
-    color: colors.textColor3,
-  },
-  noPreviewText: {
-    fontSize: hp("2%"),
-    color: colors.textColor3,
-    fontStyle: "italic",
-  },
-  loadingIndicator: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: [{ translateX: -25 }, { translateY: -25 }],
-  },
   bottom: {
     height: hp("10%"),
     width: wp("100%"),
@@ -688,53 +396,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("3.5%"),
   },
-  audioContainer: {
-    width: "100%",
-    height: "100%",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.secondaryColor2,
-  },
-  audioThumbnailContainer: {
-    width: "90%",
-    aspectRatio: 1,
-  },
-  audioTimeContainer: {
-    width: "90%",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  audioText: {
-    fontSize: hp("1.8%"),
-    color: colors.textColor2,
-    fontFamily: "Afacad-Regular",
-  },
-  audioThumbnail: {
-    aspectRatio: 1,
-    resizeMode: "contain",
-    borderRadius: hp("2%"),
-  },
-  slider: {
-    width: "90%",
-  },
-  audioControls: {
-    width: "100%",
-    flexDirection: "column",
-    marginTop: hp("3%"),
-    alignItems: "center",
-  },
-  pauseButton: {
-    width: hp("7%"),
-    height: hp("7%"),
-    tintColor: colors.textColor3,
-  },
-  playButton: {
-    width: hp("7%"),
-    height: hp("7%"),
-    tintColor: colors.textColor3,
-  },
+
   opticonContainer: {
     width: hp("5%"),
     height: hp("5%"),

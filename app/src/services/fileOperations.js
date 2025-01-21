@@ -10,7 +10,7 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/files`;
 
-export const uploadMedia = async (userId,files, dispatch) => {
+export const uploadMedia = async (userId, files, dispatch) => {
   const formData = new FormData();
   formData.append("userId", userId);
 
@@ -90,7 +90,7 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
   }
 };
 
-export const fetchRecentFiles = async (userId,dispatch) => {
+export const fetchRecentFiles = async (userId, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
 
@@ -134,50 +134,16 @@ export const fetchUsedSpace = async (userId, dispatch) => {
   }
 };
 
-export const previewImage = async (userId, fileId) => {
 
+export const previewFile = async (userId, fileId) => {
   let url = "";
   try {
-    url = `${API_URL}/previewimage?userId=${userId}&fileId=${fileId}`;
+    url = `${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`
     return url;
   } catch (error) {
     console.error("Error generating URL:", error.message);
     return null;
   }
-};
-
-export const previewVideo = async (userId, fileId) => {
-  let url = "";
-  try {
-    url = `${API_URL}/previewvideo?userId=${userId}&fileId=${fileId}`;
-    return url;
-  } catch (error) {
-    console.error("Error generating URL:", error.message);
-    return null;
-  }
-};
-
-export const previewAudio = async (userId, fileId) => {
-  let url = "";
-  try {
-    url = `${API_URL}/previewaudio?userId=${userId}&fileId=${fileId}`;
-    return url;
-  } catch (error) {
-    console.error("Error generating URL:", error.message);
-    return null;
-  }
-};
-
-export const previewOther = async (userId, fileId) => {
-  let url = "";
-  try {
-    url = `${API_URL}/previewother?userId=${userId}&fileId=${fileId}`
-    return url;
-  } catch (error) {
-    console.error("Error generating URL:", error.message);
-    return null;
-  }
-
 }
 
 export const deleteFile = async (userId, fileId, type, dispatch) => {

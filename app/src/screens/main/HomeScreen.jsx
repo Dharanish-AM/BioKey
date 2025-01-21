@@ -69,10 +69,6 @@ export default function HomeScreen({ navigation }) {
   const [isProfileLoaded, setProfileLoaded] = useState(false);
   const [usedSpace, setUsedSpace] = useState(0);
 
-  useEffect(() => {
-    console.log(userId)
-  }, [userId])
-
   const { userId } = useSelector(
     (state) => state.user,
     shallowEqual)

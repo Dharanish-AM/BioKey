@@ -1,7 +1,6 @@
 import {
   View,
   Text,
-  ActivityIndicator,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -16,11 +15,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import {
-  previewImage,
-  previewVideo,
-  previewAudio,
   deleteFile,
-  previewOther,
+  previewFile,
 } from "../../../services/fileOperations";
 import FavIcon from "../../../assets/images/heart_bottom_icon.png";
 import ShareIcon from "../../../assets/images/share_bottom_icon.png";
@@ -56,25 +52,21 @@ export default function FilePreviewScreen({ route, navigation }) {
   useEffect(() => {
     const fetchFilePreview = async () => {
       try {
+        const fileUrl = await previewFile(userId, file._id);
+
         switch (file.type) {
           case "images":
-            const imageResponse = await previewImage(userId, file._id);
-            setImageData(imageResponse);
+            setImageData(fileUrl);
             break;
           case "videos":
-            const videoUrl = await previewVideo(userId, file._id);
-            setVideoData(videoUrl);
+            setVideoData(fileUrl);
             break;
           case "audios":
-            const audioUrl = await previewAudio(userId, file._id);
-            setAudioData(audioUrl);
-            break;
-          case "others":
-            const otherUrl = await previewOther(userId, file._id);
-            setOtherData(otherUrl);
+            setAudioData(fileUrl);
             break;
           default:
-            console.warn("Unknown category:", file.type);
+            setOtherData(fileUrl);
+            break;
         }
       } catch (error) {
         console.error("Error fetching file preview:", error);
@@ -87,6 +79,7 @@ export default function FilePreviewScreen({ route, navigation }) {
   }, [file]);
 
 
+
   useEffect(() => {
     if (file.isLiked !== undefined) {
       setIsLike(file.isLiked);
@@ -96,6 +89,7 @@ export default function FilePreviewScreen({ route, navigation }) {
   const handleShare = async () => {
     try {
       let filePath = "";
+
 
       switch (true) {
         case file.type.includes("image"):
@@ -112,31 +106,41 @@ export default function FilePreviewScreen({ route, navigation }) {
           break;
       }
 
+
       const isSharingAvailable = await Sharing.isAvailableAsync();
       if (!isSharingAvailable) {
         Alert.alert('Sharing not available', 'Your device does not support sharing.');
         return;
       }
 
+
       if (!filePath || typeof filePath !== 'string') {
         Alert.alert('Invalid file path', 'The file path is missing or invalid.');
         return;
       }
 
-      const tempFilePath = FileSystem.cacheDirectory + file.name;
 
-      const downloadedFile = await FileSystem.downloadAsync(filePath, tempFilePath);
+      const tempFilePath = FileSystem.cacheDirectory + `${Date.now()}_${file.name}`;
 
-      await Sharing.shareAsync(downloadedFile.uri, {
+      console.log("File path:", filePath);
+      console.log("Temporary file path:", tempFilePath);
+
+
+      const { uri: downloadedUri } = await FileSystem.downloadAsync(filePath, tempFilePath);
+
+
+      await Sharing.shareAsync(downloadedUri, {
         mimeType: file.type,
         dialogTitle: `Share ${file.name}`,
       });
 
       console.log('File shared successfully!');
 
-      await FileSystem.deleteAsync(downloadedFile.uri);
+
+      await FileSystem.deleteAsync(downloadedUri);
       console.log('Temporary file deleted after sharing');
     } catch (error) {
+
       if (error.message.includes('Network')) {
         Alert.alert('Network error', 'Unable to share the file due to a network issue.');
       } else if (error.message.includes('canceled')) {
@@ -148,26 +152,22 @@ export default function FilePreviewScreen({ route, navigation }) {
     }
   };
 
+
   const handleLikeOrUnlike = async () => {
     if (isProcessing) return;
 
     setIsProcessing(true);
-
-    const newIsLiked = !isLiked;
-    setIsLike(newIsLiked);
+    const previousState = isLiked;
+    setIsLike(!previousState);
 
     try {
       const response = await likeOrUnlikeFile(userId, file._id, dispatch, file.type);
-      if (response.success) {
-        console.log("File like/unlike status updated successfully", response);
-      } else {
-        console.log("Error:", response.message);
-
-        setIsLike(isLiked);
+      if (!response.success) {
+        setIsLike(previousState);
       }
     } catch (error) {
-      console.error("Error occurred while liking/unliking file:", error);
-      setIsLike(isLiked);
+      console.error("Error updating like status:", error);
+      setIsLike(previousState);
     } finally {
       setIsProcessing(false);
     }
@@ -358,6 +358,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     height: hp("6%"),
+    marginBottom: hp("1%")
   },
   topContent: {
     flexDirection: "row",
@@ -367,9 +368,9 @@ const styles = StyleSheet.create({
     paddingRight: wp("2%"),
   },
   fileName: {
-    fontSize: hp("2.4%"),
+    fontSize: hp("3%"),
     color: colors.textColor3,
-    fontFamily: "Montserrat-SemiBold",
+    fontFamily: "Afacad-SemiBold",
     flex: 1,
   },
   backIconContainer: {

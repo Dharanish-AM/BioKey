@@ -12,6 +12,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const { exec } = require("child_process");
 const os = require("os");
 const mongoose = require("mongoose");
+const mime = require("mime-types");
 
 const TARGET_DIR = path.join(
   "D:",
@@ -581,10 +582,8 @@ const listFile = async (req, res) => {
 };
 
 
-
-const loadImage = async (req, res) => {
+const loadFile = async (req, res) => {
   const { userId, fileId } = req.query;
-
 
 
   if (!userId || !fileId) {
@@ -593,262 +592,73 @@ const loadImage = async (req, res) => {
   }
 
   try {
-    const fileRecord = await File.findOne({
-      _id: fileId,
-      owner: userId,
-    });
 
+    const fileRecord = await File.findOne({ _id: fileId, owner: userId });
     if (!fileRecord) {
       console.error("File not found in database");
       return res.status(404).json({ message: "File not found in database" });
     }
+
 
     const filePath = path.resolve(TARGET_DIR, userId, fileRecord.path);
 
+    let fileStats;
     try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch (accessErr) {
-      console.error("File not found on disk:", filePath, accessErr);
+      fileStats = await fs.promises.stat(filePath);
+    } catch (err) {
+      console.error("File not found on disk:", filePath, err);
       return res.status(404).json({ message: "File not found on disk" });
     }
 
-    const stats = await fs.promises.stat(filePath);
-
-    const fileExt = path.extname(fileRecord.name).slice(1).toLowerCase();
-    const mimeTypes = {
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      png: "image/png",
-      gif: "image/gif",
-      webp: "image/webp",
-    };
-
-    const contentType = mimeTypes[fileExt] || "application/octet-stream";
-
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Length", stats.size);
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${fileRecord.name}"`
-    );
-
-    const readStream = fs.createReadStream(filePath);
-    readStream.pipe(res);
-
-    readStream.on("error", (err) => {
-      console.error("Read stream error:", err);
-      res.status(500).json({ message: "Error retrieving file data" });
-    });
-  } catch (err) {
-    console.error("Error retrieving file:", err);
-    res.status(500).json({ message: "Error retrieving file data" });
-  }
-};
-
-const loadVideo = async (req, res) => {
-  const { userId, fileId } = req.query;
-
-  if (!userId || !fileId) {
-    console.error("Missing required parameters");
-    return res.status(400).json({ message: "Missing userId or fileId" });
-  }
-
-  try {
-    const fileRecord = await File.findOne({
-      _id: fileId,
-      owner: userId,
-    });
-
-    if (!fileRecord) {
-      console.error("File not found in database");
-      return res.status(404).json({ message: "File not found in database" });
-    }
-
-    const filePath = path.join(TARGET_DIR, userId, fileRecord.path);
-
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch (accessErr) {
-      console.error("File not found on disk:", filePath, accessErr);
-      return res.status(404).json({ message: "File not found on disk" });
-    }
-
-    const stat = await fs.promises.stat(filePath);
-    const fileSize = stat.size;
+    const fileSize = fileStats.size;
+    const contentType = mime.lookup(fileRecord.name) || "application/octet-stream";
     const range = req.headers.range;
 
-    if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      const chunkSize = end - start + 1;
 
-      if (start >= fileSize || end >= fileSize) {
+    if (range && (contentType.startsWith("video/") || contentType.startsWith("audio/"))) {
+      const [startPart, endPart] = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(startPart, 10) || 0;
+      const end = endPart ? parseInt(endPart, 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize || start > end) {
+        console.error("Invalid Range request");
         return res.status(416).json({ message: "Range not satisfiable" });
       }
 
-      const fileStream = fs.createReadStream(filePath, { start, end });
-
-      const head = {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunkSize,
-        "Content-Type": "video/mp4",
-      };
-
-      res.writeHead(206, head);
-      fileStream.pipe(res);
-    } else {
-      const head = {
-        "Content-Length": fileSize,
-        "Content-Type": "video/mp4",
-      };
-
-      res.writeHead(200, head);
-      fs.createReadStream(filePath).pipe(res);
-    }
-  } catch (err) {
-    console.error("Error loading video file:", err.message);
-    return res.status(500).json({ message: "Error loading video file." });
-  }
-};
-
-const loadAudio = async (req, res) => {
-  const { userId, fileId } = req.query;
-
-  if (!userId || !fileId) {
-    console.error("Missing required parameters");
-    return res.status(400).json({ message: "Missing userId or fileId" });
-  }
-
-  try {
-    const fileRecord = await File.findOne({
-      _id: fileId,
-      owner: userId,
-    });
-
-    if (!fileRecord) {
-      console.error("File not found in database");
-      return res.status(404).json({ message: "File not found in database" });
-    }
-
-    const filePath = path.join(TARGET_DIR, userId, fileRecord.path);
-
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch (accessErr) {
-      console.error("File not found on disk:", filePath, accessErr);
-      return res.status(404).json({ message: "File not found on disk" });
-    }
-
-    const stat = await fs.promises.stat(filePath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-
-    if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
-
-      if (start >= fileSize || end >= fileSize) {
-        return res.status(416).json({ message: "Range not satisfiable" });
-      }
-
-      const fileStream = fs.createReadStream(filePath, { start, end });
-
-      const head = {
+      const headers = {
         "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
         "Content-Length": chunkSize,
-        "Content-Type": "audio/mp3",
+        "Content-Type": contentType,
       };
 
-      res.writeHead(206, head);
-      fileStream.pipe(res);
-    } else {
-      const head = {
-        "Content-Length": fileSize,
-        "Content-Type": "audio/mp3",
-      };
+      res.writeHead(206, headers);
+      const fileStream = fs.createReadStream(filePath, { start, end });
+      fileStream.pipe(res).on("error", (err) => {
+        console.error("Read stream error:", err);
+        res.status(500).end("Error streaming file");
+      });
 
-      res.writeHead(200, head);
-      fs.createReadStream(filePath).pipe(res);
-    }
-  } catch (err) {
-    console.error("Error loading audio file:", err.message);
-    return res.status(500).json({ message: "Error loading audio file." });
-  }
-};
-
-const loadOther = async (req, res) => {
-  const { userId, fileId } = req.query;
-
-  if (!userId || !fileId) {
-    console.error("Missing required parameters");
-    return res.status(400).json({ message: "Missing userId or fileId" });
-  }
-
-  try {
-    const fileRecord = await File.findOne({
-      _id: fileId,
-      owner: userId,
-    });
-
-    if (!fileRecord) {
-      console.error("File not found in database");
-      return res.status(404).json({ message: "File not found in database" });
+      return;
     }
 
-    const filePath = path.resolve(TARGET_DIR, userId, fileRecord.path);
-
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch (accessErr) {
-      console.error("File not found on disk:", filePath, accessErr);
-      return res.status(404).json({ message: "File not found on disk" });
-    }
-
-    const stats = await fs.promises.stat(filePath);
-
-    const fileExt = path.extname(fileRecord.name).slice(1).toLowerCase();
-
-
-    const mimeTypes = {
-      pdf: "application/pdf",
-      doc: "application/msword",
-      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      xls: "application/vnd.ms-excel",
-      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      csv: "text/csv",
-      txt: "text/plain",
-      ppt: "application/vnd.ms-powerpoint",
-      pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    };
-
-    const contentType = mimeTypes[fileExt] || "application/octet-stream";
 
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Length", stats.size);
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="${fileRecord.name}"`
-    );
+    res.setHeader("Content-Length", fileSize);
+    res.setHeader("Content-Disposition", `inline; filename="${fileRecord.name}"`);
+
 
     const readStream = fs.createReadStream(filePath);
-    readStream.pipe(res);
-
-    readStream.on("error", (err) => {
+    readStream.pipe(res).on("error", (err) => {
       console.error("Read stream error:", err);
-      res.status(500).json({ message: "Error retrieving file data" });
+      res.status(500).end("Error retrieving file data");
     });
   } catch (err) {
-    console.error("Error retrieving file:", err);
+    console.error("Error retrieving file:", err.message);
     res.status(500).json({ message: "Error retrieving file data" });
   }
 };
-
-
 
 const ListFolderFiles = async (req, res) => {
   try {
@@ -990,11 +800,8 @@ module.exports = {
   uploadFile,
   getRecentFiles,
   getUsedSpace,
-  loadImage,
-  loadVideo,
-  loadAudio,
   listFile,
   deleteFile,
   listLiked,
-  loadOther
+  loadFile
 };

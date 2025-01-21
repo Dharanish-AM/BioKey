@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import * as FileSystem from "expo-file-system";
 
@@ -21,33 +21,28 @@ const getFileType = (name) => {
 
 export default function OtherPreview({ name, fileData }) {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [fileContent, setFileContent] = useState('');
   const [fileType, setFileType] = useState('');
+  const [webViewSource, setWebViewSource] = useState(null);
 
   useEffect(() => {
-    console.log("name :",name,"file :",fileData)
+    if(!fileData) return;
+    console.log(fileData)
+  }, [fileData]);
+
+  useEffect(() => {
     const type = getFileType(name);
     setFileType(type);
 
+    const loadSource = async () => {
+      let source = await getWebViewSource(fileData);
+      setWebViewSource(source);
+      setLoading(false); 
+    };
 
-    if (type === 'unknown') {
-      loadTextContent(fileData);
-    }
+    loadSource();
   }, [name, fileData]);
 
-  const loadTextContent = async (uri) => {
-    try {
-      const fileUri = await FileSystem.readAsStringAsync(uri);
-      setFileContent(fileUri);
-      setLoading(false);
-    } catch (error) {
-      setError(true);
-      setLoading(false);
-    }
-  };
-
-  const getWebViewSource = (url) => {
+  const getWebViewSource = async(url) => {
     switch (fileType) {
       case 'pdf':
         return { uri: `https://docs.google.com/viewer?url=${url}` };
@@ -65,23 +60,25 @@ export default function OtherPreview({ name, fileData }) {
     }
   };
 
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator
+          style={styles.loader}
+          size="large"
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Document Preview: {name || "Unnamed Document"}</Text>
-      {loading && !error && <ActivityIndicator size="large" />}
-      {error && <Text style={styles.errorText}>Failed to load file.</Text>}
-
-      {!loading && !error && fileType !== 'unknown' && (
+      {webViewSource && (
         <WebView
-          source={getWebViewSource(fileData)}
           style={styles.webview}
+          source={webViewSource}
         />
-      )}
-
-      {!loading && !error && fileType === 'unknown' && (
-        <View style={styles.textContainer}>
-          <Text style={styles.text}>{fileContent || 'Unable to display this file type.'}</Text>
-        </View>
       )}
     </View>
   );
@@ -90,33 +87,17 @@ export default function OtherPreview({ name, fileData }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  header: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    width: '100%',
+    height: '100%',
   },
   webview: {
     width: '100%',
     height: '100%',
   },
-  errorText: {
-    color: 'red',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  text: {
-    fontSize: 16,
-    color: 'black',
-    textAlign: 'center',
-    padding: 10,
+  loader: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -25 }],
   },
 });

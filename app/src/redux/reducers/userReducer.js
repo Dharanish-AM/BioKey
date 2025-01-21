@@ -1,7 +1,7 @@
 import { FETCH_FOLDERS, SET_USER } from "../types";
 
 const initialState = {
-  userId: "",
+  userId: "676aee09b3f0d752bbbe58f7",
   userName: "",
   userEmail: "",
   profileImage: "",

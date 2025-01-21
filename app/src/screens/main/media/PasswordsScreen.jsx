@@ -11,6 +11,7 @@ import {
   RefreshControl,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -52,18 +53,20 @@ export default function PasswordsScreen({ navigation }) {
   const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useDispatch();
   const bottomSheetRef = useRef();
+  const [filteredPasswords, setFilteredPasswords] = useState(passwords);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const userId = useSelector((state) => state.user.userId);
 
   const passwords = useSelector((state) => state.passwords.passwords);
+
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.passwordsScreen
   );
 
-  const [filteredPasswords, setFilteredPasswords] = useState(passwords);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   useEffect(() => {
     if (!isFirstRender) return;
-    getAllPasswords("676aee09b3f0d752bbbe58f7", dispatch);
+    getAllPasswords(userId, dispatch);
     dispatch(setFirstRender("passwordsScreen"));
   }, []);
 
@@ -73,7 +76,7 @@ export default function PasswordsScreen({ navigation }) {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    getAllPasswords("676aee09b3f0d752bbbe58f7", dispatch);
+    getAllPasswords(userId, dispatch);
     setIsRefreshing(false);
   };
 
@@ -275,25 +278,30 @@ export default function PasswordsScreen({ navigation }) {
           </View>
         </View>
         <View style={styles.center}>
-          <FlatList
-            data={filteredPasswords}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingHorizontal: wp("3.5%"),
-              paddingBottom: hp("3%"),
-            }}
-            style={{
-              width: wp("100%"),
-            }}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
+          {
+            !filteredPasswords ? (
+              <Text style={styles.noPasswordsText}>No passwords found</Text>
+            ) : (
+              <FlatList
+                data={filteredPasswords}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()}
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  paddingHorizontal: wp("3.5%"),
+                  paddingBottom: hp("3%"),
+                }}
+                style={{
+                  width: wp("100%"),
+                }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                  />
+                }
+              />)
+          }
         </View>
         <TouchableOpacity
           style={styles.addButton}
@@ -420,6 +428,14 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     alignItems: "center",
     justifyContent: "flex-start",
+  }, noPasswordsText: {
+    fontSize: hp("2.5%"),
+    color: colors.textColor3,
+    textAlign: "center",
+    top: "50%",
+    bottom: "50%",
+    fontFamily: "Afacad-Italic",
+    alignSelf: "center",
   },
   parentPassword: {
     flexDirection: "row",

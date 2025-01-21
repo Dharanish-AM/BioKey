@@ -41,17 +41,6 @@ import PdfIcon from "../../../assets/images/pdf_icon.png";
 
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
-
-  const { others } = useSelector(
-    (state) => ({
-      others: state.files.others,
-    }),
-    shallowEqual
-  );
-  const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.othersScreen
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -63,18 +52,37 @@ export default function OthersScreen({ navigation }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
 
+  const userId = useSelector((state) => state.user.userId);
+
+  const { others } = useSelector(
+    (state) => ({
+      others: state.files.others,
+    }),
+    shallowEqual
+  );
+  const isFirstRender = useSelector(
+    (state) => state.appConfig.isFirstRender.othersScreen
+  );
+
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "others", dispatch);
+    await fetchFilesByCategory(userId, "others", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "others", dispatch);
-    fetchRecentFiles(dispatch);
+    await fetchFilesByCategory(userId, "others", dispatch);
+    fetchRecentFiles(userId, dispatch);
     setRefreshing(false);
   };
+
+  useEffect(() => {
+    if (!isFirstRender) return;
+    fetchData();
+
+    dispatch(setFirstRender("othersScreen"));
+  }, [isFirstRender, dispatch]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -87,12 +95,7 @@ export default function OthersScreen({ navigation }) {
     }
   }, [others, searchTerm]);
 
-  useEffect(() => {
-    if (!isFirstRender) return;
-    fetchData();
 
-    dispatch(setFirstRender("othersScreen"));
-  }, [isFirstRender, dispatch]);
 
   const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
@@ -207,8 +210,8 @@ export default function OthersScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-                // Upload all files at once
-                const uploadResponse = await uploadMedia(files, dispatch);
+
+                const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log(

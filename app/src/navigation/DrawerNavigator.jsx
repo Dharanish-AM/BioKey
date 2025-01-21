@@ -9,6 +9,8 @@ import colors from "../constants/colors";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DrawerView from "../components/DrawerView";
+import Notifications from "../screens/main/drawer/Notifications";
+import MapView from "react-native-maps";
 
 const Drawer = createDrawerNavigator();
 
@@ -35,6 +37,8 @@ export default function DrawerNavigator() {
       }}
     >
       <Drawer.Screen name="TabNavigator" component={TabNavigator} />
+      <Drawer.Screen name="ActivityLogs" component={MapView} />
+      <Drawer.Screen name="Notifications" component={Notifications} />
     </Drawer.Navigator>
   );
 }

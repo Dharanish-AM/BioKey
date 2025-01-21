@@ -68,7 +68,14 @@ export default function HomeScreen({ navigation }) {
   const dispatch = useDispatch();
   const [isProfileLoaded, setProfileLoaded] = useState(false);
   const [usedSpace, setUsedSpace] = useState(0);
-  const userId = "676aee09b3f0d752bbbe58f7";
+
+  useEffect(() => {
+    console.log(userId)
+  }, [userId])
+
+  const { userId } = useSelector(
+    (state) => state.user,
+    shallowEqual)
 
   const recentFilesFromRedux = useSelector(
     (state) => state.files.recents,
@@ -89,7 +96,7 @@ export default function HomeScreen({ navigation }) {
     dispatch(setFirstRender("homeScreen"));
     const fetchData = async () => {
       try {
-        await fetchRecentFiles(dispatch);
+        await fetchRecentFiles(userId, dispatch);
         fetchUsedSpace(userId, dispatch);
       } catch (error) {
         console.error("Error in useEffect:", error);
@@ -99,7 +106,7 @@ export default function HomeScreen({ navigation }) {
     };
 
     const fetchUser = async () => {
-      await loadProfile("676aee09b3f0d752bbbe58f7", dispatch);
+      await loadProfile(userId, dispatch);
     };
 
     fetchUser();
@@ -126,7 +133,7 @@ export default function HomeScreen({ navigation }) {
     }));
 
     try {
-      const uploadResponse = await uploadMedia(fileData, dispatch);
+      const uploadResponse = await uploadMedia(userId, fileData, dispatch);
       if (uploadResponse.success) {
         console.log(`${files.length} file(s) uploaded successfully.`);
         return files.length;
@@ -249,7 +256,7 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRecentFiles(dispatch);
+    await fetchRecentFiles(userId, dispatch);
     await fetchUsedSpace(userId, dispatch);
     setRefreshing(false);
   };

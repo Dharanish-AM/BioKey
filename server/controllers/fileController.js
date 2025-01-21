@@ -438,7 +438,7 @@ const getRecentFiles = async (req, res) => {
               err.message
             );
             return {
-              fileId: file._id,
+              _id: file._id,
               name: file.name,
               type: file.type,
               size: file.size,
@@ -449,7 +449,7 @@ const getRecentFiles = async (req, res) => {
           }
         } else {
           return {
-            fileId: file._id,
+            _id: file._id,
             name: file.name,
             type: file.type,
             size: file.size,

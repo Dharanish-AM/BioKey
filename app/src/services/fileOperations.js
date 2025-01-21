@@ -10,9 +10,8 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/files`;
 
-export const uploadMedia = async (files, dispatch) => {
+export const uploadMedia = async (userId,files, dispatch) => {
   const formData = new FormData();
-  let userId = "676aee09b3f0d752bbbe58f7";
   formData.append("userId", userId);
 
   console.log("Files to upload:", files);
@@ -91,10 +90,8 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
   }
 };
 
-export const fetchRecentFiles = async (dispatch) => {
+export const fetchRecentFiles = async (userId,dispatch) => {
   try {
-    const userId = "676aee09b3f0d752bbbe58f7";
-
     const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
 
     if (response.status === 200) {
@@ -116,7 +113,6 @@ export const fetchUsedSpace = async (userId, dispatch) => {
 
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
-      console.log(usedSpaceBytes)
       const usedSpacePercentage = (
         (usedSpaceBytes / TOTAL_SPACE) *
         100

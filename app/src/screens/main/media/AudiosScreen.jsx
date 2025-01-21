@@ -42,17 +42,6 @@ import AudioFileIcon from "../../../assets/images/audiofile_icon.png";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
-
-  const { audios } = useSelector(
-    (state) => ({
-      audios: state.files.audios,
-    }),
-    shallowEqual
-  );
-  const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.audiosScreen
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -64,16 +53,29 @@ export default function PhotosScreen({ navigation }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
 
+  const userId = useSelector((state) => state.user.userId);
+
+  const { audios } = useSelector(
+    (state) => ({
+      audios: state.files.audios,
+    }),
+    shallowEqual
+  );
+  const isFirstRender = useSelector(
+    (state) => state.appConfig.isFirstRender.audiosScreen
+  );
+
+
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "audios", dispatch);
+    await fetchFilesByCategory(userId, "audios", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "audios", dispatch);
-    fetchRecentFiles(dispatch);
+    await fetchFilesByCategory(userId, "audios", dispatch);
+    fetchRecentFiles(userId,dispatch);
     setRefreshing(false);
   };
 
@@ -205,8 +207,8 @@ export default function PhotosScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-                // Send all files at once
-                const uploadResponse = await uploadMedia(files, dispatch);
+              
+                const uploadResponse = await uploadMedia(userId,files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log(

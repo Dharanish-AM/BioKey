@@ -16,6 +16,7 @@ import colors from "../constants/colors";
 import { addPassword } from "../services/passwordOperations";
 import { useDispatch } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
 
 export default function AddPasswordSheet({ bottomSheetRef }) {
   const [name, setName] = useState("");
@@ -27,7 +28,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
 
-  const userId = "676aee09b3f0d752bbbe58f7";
+  const userId = useSelector((state) => state.user.userId);
 
   const handleSubmit = async () => {
     const trimmedEmail = email.trim();
@@ -95,6 +96,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
     <SafeAreaView
       style={{
         flex: 1,
+        width: wp("100%"),
       }}
     >
       <KeyboardAwareScrollView
@@ -112,6 +114,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             value={name}
             onChangeText={setName}
             placeholder="Enter platform"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -122,6 +125,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             value={userName}
             onChangeText={setUserName}
             placeholder="Enter username"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -132,6 +136,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             value={email}
             onChangeText={setEmail}
             placeholder="Enter email"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -143,6 +148,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             onChangeText={setPassword}
             secureTextEntry
             placeholder="Enter password"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -153,6 +159,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             value={website}
             onChangeText={setWebsite}
             placeholder="Enter website"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -163,6 +170,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
             value={note}
             onChangeText={setNote}
             placeholder="Enter note"
+            placeholderTextColor={colors.textColor2}
           />
         </View>
 
@@ -189,7 +197,6 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     flexGrow: 1,
     justifyContent: "flex-start",
-    paddingBottom: hp("5%"),
     width: wp("100%"),
     paddingHorizontal: wp("3.5%"),
   },

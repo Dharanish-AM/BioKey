@@ -197,6 +197,8 @@ const styles = StyleSheet.create({
     tintColor: colors.textColor3,
   },
   activityIndicator: {
-    marginTop: hp("3%"),
+    position: "absolute",
+    top: "50%",
+    left: "50%",
   },
 });

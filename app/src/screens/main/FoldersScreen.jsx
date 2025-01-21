@@ -33,8 +33,9 @@ export default function FoldersScreen() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const dispatch = useDispatch();
-  const userId = "676aee09b3f0d752bbbe58f7";
   const [isLoading, setIsLoading] = useState(true)
+  const userId = useSelector((state) => state.user.userId);
+
 
   const folders = useSelector(
     (state) => state.user.folders,

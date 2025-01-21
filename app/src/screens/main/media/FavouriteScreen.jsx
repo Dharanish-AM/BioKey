@@ -15,9 +15,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    fetchFilesByCategory,
     fetchLikedFiles,
-    fetchRecentFiles,
 } from "../../../services/fileOperations";
 import { shallowEqual } from "react-redux";
 import {
@@ -40,21 +38,6 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 
 export default function FavouritesScreen({ navigation }) {
     const dispatch = useDispatch();
-
-    const { favourites } = useSelector(
-        (state) => ({
-            favourites: state.files.likedFiles,
-        }),
-        shallowEqual
-    );
-
-
-
-    const isFirstRender = useSelector(
-        (state) => state.appConfig.isFirstRender.favouritesScreen
-    );
-
-
     const [refreshing, setRefreshing] = useState(false);
     const [initialLoading, setIsInitialLoading] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
@@ -65,11 +48,23 @@ export default function FavouritesScreen({ navigation }) {
     const [iconsOpacity] = useState(new Animated.Value(1));
     const [isUploading, setIsUploading] = useState(false);
     const [isSelecting, setIsSelecting] = useState(false);
-    const user = "676aee09b3f0d752bbbe58f7"
+
+    const userId = useSelector((state) => state.user.userId);
+
+    const { favourites } = useSelector(
+        (state) => ({
+            favourites: state.files.likedFiles,
+        }),
+        shallowEqual
+    );
+
+    const isFirstRender = useSelector(
+        (state) => state.appConfig.isFirstRender.favouritesScreen
+    );
 
     const fetchData = async () => {
         setIsInitialLoading(true);
-        await fetchLikedFiles(user, dispatch);
+        await fetchLikedFiles(userId, dispatch);
         setIsInitialLoading(false);
     };
 
@@ -78,6 +73,12 @@ export default function FavouritesScreen({ navigation }) {
         await fetchLikedFiles(user, dispatch);
         setRefreshing(false);
     };
+
+    useEffect(() => {
+        if (!isFirstRender) return;
+        fetchData();
+        dispatch(setFirstRender("favouritesScreen"));
+    }, [isFirstRender, dispatch]);
 
     useEffect(() => {
         if (searchTerm) {
@@ -90,11 +91,7 @@ export default function FavouritesScreen({ navigation }) {
         }
     }, [favourites, searchTerm]);
 
-    useEffect(() => {
-        if (!isFirstRender) return;
-        fetchData();
-        dispatch(setFirstRender("favouritesScreen"));
-    }, [isFirstRender, dispatch]);
+
 
     const handlePress = async (file) => {
         await navigation.navigate("FilePreviewScreen", {
@@ -181,14 +178,14 @@ export default function FavouritesScreen({ navigation }) {
                     </View>
                 ) : (
                     <View style={styles.fileThumbnailContainer}>
-                      <Image 
-                      source={FileIcon}
-                      style={styles.FallBackFileThumbnail}
-                       />
+                        <Image
+                            source={FileIcon}
+                            style={styles.FallBackFileThumbnail}
+                        />
                     </View>
                 )}
 
-             
+
                 <View style={styles.fileDetails}>
                     <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
                         {item.name}
@@ -442,10 +439,10 @@ const styles = StyleSheet.create({
         width: "100%",
         resizeMode: "cover",
     },
-    FallBackFileThumbnail:{
-        resizeMode:"contain",
-         height: "70%",
-        aspectRatio:1
+    FallBackFileThumbnail: {
+        resizeMode: "contain",
+        height: "70%",
+        aspectRatio: 1
     },
     fileDetails: {
         alignItems: "center",

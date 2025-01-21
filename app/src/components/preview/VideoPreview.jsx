@@ -4,10 +4,18 @@ import { View, ActivityIndicator } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function VideoPreview({ fileData }) {
+
+  const [isLoading, setIsLoading] = useState(true);
   const player = useVideoPlayer(fileData, (player) => {
     player.loop = true;
     player.play();
   });
+
+  useEffect(() => {
+    if (player) {
+      setIsLoading(false);
+    }
+  }, [player])
 
   useFocusEffect(
     React.useCallback(() => {
@@ -38,7 +46,13 @@ export default function VideoPreview({ fileData }) {
         resizeMode="contain"
         contentFit="cover"
         nativeControls={true}
+
       />
+      {isLoading && <ActivityIndicator style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+      }} size="large" />}
     </View>
   );
 }

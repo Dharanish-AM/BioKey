@@ -37,6 +37,7 @@ import ImagePreview from '../../../components/preview/ImagePreview';
 import VideoPreview from '../../../components/preview/VideoPreview';
 import AudioPreview from '../../../components/preview/AudioPreview';
 import OtherPreview from '../../../components/preview/OtherPreview';
+import { useSelector } from "react-redux";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
@@ -45,12 +46,12 @@ export default function FilePreviewScreen({ route, navigation }) {
   const [audioData, setAudioData] = useState(null);
   const [otherData, setOtherData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const userId = "676aee09b3f0d752bbbe58f7";
   const dispatch = useDispatch();
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLiked, setIsLike] = useState(false)
 
+  const userId = useSelector((state) => state.user.userId);
 
   useEffect(() => {
     const fetchFilePreview = async () => {
@@ -69,7 +70,7 @@ export default function FilePreviewScreen({ route, navigation }) {
             setAudioData(audioUrl);
             break;
           case "others":
-            const otherUrl = await previewOther(userId, file.fileId);
+            const otherUrl = await previewOther(userId, file._id);
             setOtherData(otherUrl);
             break;
           default:
@@ -210,11 +211,11 @@ export default function FilePreviewScreen({ route, navigation }) {
   const renderFilePreview = () => {
     switch (file.type) {
       case "images":
-        return imageData ? <ImagePreview fileData={imageData} /> : <NoPreviewAvailable />;
+        return imageData && <ImagePreview fileData={imageData} />
       case "videos":
-        return videoData ? <VideoPreview fileData={videoData} /> : <NoPreviewAvailable />;
+        return videoData && <VideoPreview fileData={videoData} />
       case "audios":
-        return audioData ? <AudioPreview thumbnail={file.thumbnail} fileData={audioData} /> : <NoPreviewAvailable />;
+        return audioData && <AudioPreview thumbnail={file.thumbnail} fileData={audioData} />
       default:
         return <OtherPreview name={file.name} fileData={otherData} />;
     }
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: hp("1.5%"),
+    height: hp("6%"),
   },
   topContent: {
     flexDirection: "row",
@@ -372,8 +373,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backIconContainer: {
-    height: hp("6%"),
-    width: hp("4.5%"),
+    height: hp("4.7%"),
+    aspectRatio: 1,
     flexDirection: "row",
     alignItems: "center",
   },

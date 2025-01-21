@@ -38,7 +38,7 @@ export default function PasswordPreview({ navigation, route }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const dispatch = useDispatch();
-  const userId = "676aee09b3f0d752bbbe58f7";
+  const userId = useSelector((state) => state.user.userId);
 
   const handleEditPress = () => {
     setIsEditing(!isEditing);
@@ -252,7 +252,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
-    marginBottom: hp("1.5%"),
+  height: hp("6%"),
+  marginBottom: hp("1.5%"),
   },
   backIconContainer: {
     height: hp("5%"),

@@ -30,7 +30,7 @@ const decrypt = (hash) => {
     algorithm,
     key,
     Buffer.from(hash.iv, "hex")
-  );
+  ); 
 
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(hash.content, "hex")),

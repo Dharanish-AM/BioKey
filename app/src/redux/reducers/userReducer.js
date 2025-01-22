@@ -1,13 +1,14 @@
-import { SET_USER } from "../types";
+import { FETCH_FOLDERS, SET_USER } from "../types";
 
 const initialState = {
-  userId: "",
+  userId: "676aee09b3f0d752bbbe58f7",
   userName: "",
   userEmail: "",
   profileImage: "",
   deviceId: "",
   isUserLoggedIn: false,
   deviceName: "",
+  folders: []
 };
 
 export default function userReducer(state = initialState, action) {
@@ -23,6 +24,12 @@ export default function userReducer(state = initialState, action) {
         isUserLoggedIn: true,
         deviceName: action.payload.device,
       };
+
+    case FETCH_FOLDERS:
+      return {
+        ...state,
+        folders: action.payload
+      }
     default:
       return state;
   }

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { setPasswords } from "../redux/actions";
 import store from "../redux/store";
+import sha1 from 'crypto-js/sha1';
 
 const getIP = () => {
   const state = store.getState();
@@ -86,7 +87,7 @@ export const deletePassword = async (userId, passwordId, dispatch) => {
     });
 
     if (response.status === 200) {
-     
+
       getAllPasswords(userId, dispatch);
 
       return {
@@ -112,8 +113,33 @@ export const deletePassword = async (userId, passwordId, dispatch) => {
       status: false,
       message: error.response
         ? error.response.data.error ||
-          "An error occurred while deleting the password."
+        "An error occurred while deleting the password."
         : "An error occurred while deleting the password. Please try again.",
     };
   }
 };
+
+
+export const getPasswordBreachStatus = async (password) => {
+  const hashedPassword = sha1(password).toString();
+  const hashPrefix = hashedPassword.slice(0, 5);
+  const hashSuffix = hashedPassword.slice(5);
+
+  try {
+    const response = await axios.get(`https://api.pwnedpasswords.com/range/${hashPrefix}`);
+
+    const breachedPasswords = response.data.split('\r\n');
+    const matchedHash = breachedPasswords.find(entry => entry.startsWith(hashSuffix));
+
+    if (matchedHash) {
+      const breachCount = matchedHash.split(':')[1];
+      return { breached: true, breachCount: parseInt(breachCount, 10), message: `Password found in ${breachCount} breaches.` };
+    } else {
+      return { breached: false, breachCount: 0, message: "Password is safe, not found in any breach." };
+    }
+  } catch (error) {
+    console.error("Error occurred while checking password breach status:", error);
+    return { breached: false, breachCount: 0, message: "Error occurred while checking the breach status." };
+  }
+};
+

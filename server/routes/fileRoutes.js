@@ -7,9 +7,8 @@ router.delete("/delete", fileController.deleteFile);
 router.get("/recent", fileController.getRecentFiles);
 router.get("/usedspace", fileController.getUsedSpace);
 router.get("/list", fileController.listFile);
-router.get("/previewimage", fileController.loadImage);
-router.get("/previewvideo", fileController.loadVideo);
-router.get("/previewaudio", fileController.loadAudio);
-// router.post("/newfolder", fileController.createSaveFolder);
+router.get("/listfavourite", fileController.listLiked)
+router.get("/previewfile", fileController.loadFile)
+
 
 module.exports = router;

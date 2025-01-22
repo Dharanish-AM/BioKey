@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv").config();
 const cors = require("cors");
+const helmet = require("helmet");
+
+app.use(helmet());
 
 const PORT = process.env.PORT || 8000;
 
@@ -21,10 +24,9 @@ connectToDB();
 
 app.use("/api/files", fileRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/passwords",passwordRoutes);
+app.use("/api/passwords", passwordRoutes);
 // app.use("/api/devices");
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-  

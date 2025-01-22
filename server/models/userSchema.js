@@ -11,12 +11,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
-      unique: true,
+      unique: true, 
     },
     phone: {
       type: Number,
       required: true,
-      unique: true,
+      unique: true, 
     },
     password: {
       type: String,
@@ -32,19 +32,20 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
-    favorite: {
+    likedFiles: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "File",
       default: [],
     },
-    folder: [
+    folders: [
       {
         name: {
           type: String,
+          required: true,
         },
         files: [
           {
-            type: [mongoose.Schema.Types.ObjectId],
+            type: mongoose.Schema.Types.ObjectId,
             ref: "File",
             default: [],
           },
@@ -61,7 +62,5 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
 
 module.exports = mongoose.model("User", userSchema);

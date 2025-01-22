@@ -7,6 +7,10 @@ router.post("/login", userController.login);
 router.delete("/delete", userController.deleteUser);
 router.get("/details", userController.getUser);
 router.post("/setprofile", userController.setProfile);
+router.post("/createfolder", userController.createFolder);
+router.post("/addfilestofolder", userController.addFilesToFolder)
+router.post("/likeorunlikefile", userController.likeOrUnlikeFile)
+router.get("/listFolder", userController.ListFolder)
 
 module.exports = router;
-  
+ 

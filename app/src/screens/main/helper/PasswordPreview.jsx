@@ -6,16 +6,17 @@ import {
   TouchableOpacity,
   TextInput,
   Linking,
-  Clipboard,
   Alert,
+  Platform,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../../constants/colors";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import * as Clipboard from "expo-clipboard";
 
 import BackIcon from "../../../assets/images/back_icon.png";
 import EyeIcon from "../../../assets/images/eye.png";
@@ -24,7 +25,8 @@ import EditIcon from "../../../assets/images/pencil.png";
 import LinkIcon from "../../../assets/images/link.png";
 import BinIcon from "../../../assets/images/trash_bottom_icon.png";
 import { useDispatch } from "react-redux";
-import { deletePassword } from "../../../services/passwordOperations";
+import { deletePassword, getPasswordBreachStatus } from "../../../services/passwordOperations";
+import { useSelector } from "react-redux";
 
 export default function PasswordPreview({ navigation, route }) {
   const { passwordData } = route.params;
@@ -37,11 +39,43 @@ export default function PasswordPreview({ navigation, route }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const dispatch = useDispatch();
-  const userId = "676aee09b3f0d752bbbe58f7";
+  const [breachStatus, setBreachStatus] = useState();
+  const userId = useSelector((state) => state.user.userId);
+
+  useEffect(() => {
+    fetchPasswordBreachStatus();
+  }, [passwordData]);
+
 
   const handleEditPress = () => {
+    if (isEditing) {
+      const changes = {};
+
+      if (username.trim() !== passwordData.userName.trim()) {
+        changes.username = username;
+      }
+      if (email.trim() !== passwordData.email.trim()) {
+        changes.email = email;
+      }
+      if (password.trim() !== passwordData.password.trim()) {
+        changes.password = password;
+      }
+      if (website.trim() !== passwordData.website.trim()) {
+        changes.website = website;
+      }
+      if (note.trim() !== passwordData.note.trim()) {
+        changes.note = note;
+      }
+
+      if (Object.keys(changes).length > 0) {
+        console.log("Changes saved:", JSON.stringify(changes));
+      }
+    }
+
     setIsEditing(!isEditing);
   };
+
+
 
   const handleOpenLink = () => {
     let url = website;
@@ -94,7 +128,7 @@ export default function PasswordPreview({ navigation, route }) {
               Alert.alert(
                 "Error",
                 response.message ||
-                  "Failed to delete the password. Please try again.",
+                "Failed to delete the password. Please try again.",
                 [{ text: "OK" }]
               );
             }
@@ -105,8 +139,16 @@ export default function PasswordPreview({ navigation, route }) {
   };
 
   const handleCopyText = (text) => {
-    Clipboard.setString(text);
+    Clipboard.setStringAsync(text);
   };
+
+  const fetchPasswordBreachStatus = async () => {
+    if (passwordData.password) {
+      const response = await getPasswordBreachStatus(passwordData.password);
+      console.log(response)
+      setBreachStatus(response);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -198,9 +240,33 @@ export default function PasswordPreview({ navigation, route }) {
             </View>
           </View>
 
-          <View style={styles.securityContainer}></View>
+          <View style={styles.securityContainer}>
+            <View style={styles.securityLeft}>
 
-          <View style={styles.optionsContainer}>
+            </View>
+            <View style={styles.securityRight}>
+            <Text style={styles.securityTitle}>Breach Status</Text>
+              <Text style={styles.securityText}>
+                {breachStatus ? (
+                  breachStatus.breached ? (
+                    <Text style={styles.breachedText}>
+                      Password found in {breachStatus.breachCount} breaches.
+                    </Text>
+                  ) : (
+                    <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
+                  )
+                ) : (
+                  "No breach status available"
+                )}
+              </Text>
+            </View>
+          </View>
+
+
+          <View style={[styles.optionsContainer,
+          {
+            marginBottom: Platform.OS == "android" ? hp("2%") : 0
+          }]}>
             <TouchableOpacity
               style={styles.editContainer}
               onPress={handleEditPress}
@@ -247,6 +313,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
+    height: hp("6%"),
     marginBottom: hp("1.5%"),
   },
   backIconContainer: {
@@ -272,7 +339,6 @@ const styles = StyleSheet.create({
     gap: hp("2.5%"),
   },
   passwordDetails: {
-    flex: 1,
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
     padding: hp("2.5%"),
@@ -323,13 +389,48 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   securityContainer: {
-    flex: 0.4,
+    flex: 1,
     width: "100%",
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
+    flexDirection: "row",
+    alignItems: "center",
+
+  },
+  securityLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    width: "40%",
+    backgroundColor: colors.lightColor1,
+    borderTopLeftRadius: hp("3%"),
+    borderBottomLeftRadius: hp("3%"),
+  },
+  securityRight: {
+    flexDirection: "column",
+    alignItems: "center",
+    height: "100%",
+    flex: 1,
+    backgroundColor: colors.lightColor2,
+    borderTopRightRadius: hp("3%"),
+    borderBottomRightRadius: hp("3%"),
+    padding: wp("2%"),
+  },
+  securityTitle:{
+    fontSize: hp("2.5%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-SemiBold",
+    marginBottom:hp("1%")
+  },
+  securityText: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Medium",
+    color:"#4BB543"
   },
   optionsContainer: {
-    flex: 0.15,
+    height: "9%",
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",

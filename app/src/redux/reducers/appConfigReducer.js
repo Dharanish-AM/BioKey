@@ -8,11 +8,13 @@ const initialState = {
     videosScreen: true,
     audiosScreen: true,
     othersScreen: true,
-    passwordsScreen:true
+    passwordsScreen: true,
+    filePreviewScreen: true,
+    favouritesScreen:true
   },
-  API_IP:"192.168.1.5" 
+  API_IP: "biokey.ddns.net"
 };
- 
+
 export const appConfigReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_TAB_BAR_VISIBLE:
@@ -22,7 +24,7 @@ export const appConfigReducer = (state = initialState, action) => {
       };
     case SET_FIRST_RENDER:
       return {
-        ...state, 
+        ...state,
         isFirstRender: {
           ...state.isFirstRender,
           [action.screen]: false,

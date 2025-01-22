@@ -43,6 +43,8 @@ import PlayIcon from "../../../assets/images/play_icon.png";
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
 
+    const userId = useSelector((state) => state.user.userId);
+
   const { videos } = useSelector(
     (state) => ({
       videos: state.files.videos,
@@ -66,14 +68,14 @@ export default function PhotosScreen({ navigation }) {
 
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "videos", dispatch);
+    await fetchFilesByCategory(userId, "videos", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "videos", dispatch);
-    fetchRecentFiles(dispatch);
+    await fetchFilesByCategory(userId, "videos", dispatch);
+    fetchRecentFiles(userId,dispatch);
     setRefreshing(false);
   };
 
@@ -94,11 +96,9 @@ export default function PhotosScreen({ navigation }) {
     dispatch(setFirstRender("videosScreen"));
   }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileId, fileName, type) => {
+  const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      fileId,
-      fileName,
-      type,
+      file
     });
   };
 
@@ -208,12 +208,11 @@ export default function PhotosScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-                const uploadResponse = await uploadMedia(files, dispatch);
+                const uploadResponse = await uploadMedia(userId,files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } uploaded successfully`
                   );
                   Alert.alert(
@@ -223,8 +222,7 @@ export default function PhotosScreen({ navigation }) {
                   );
                 } else {
                   console.error(
-                    `${
-                      category.charAt(0).toUpperCase() + category.slice(1)
+                    `${category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
                     uploadResponse.message
                   );
@@ -262,7 +260,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileId, item.name, item.type)}
+      onPress={() => handlePress(item)}
     >
       <Image source={PlayIcon} style={styles.playIcon} />
       {item.thumbnail ? (

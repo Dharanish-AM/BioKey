@@ -1,8 +1,10 @@
 import {
   FETCH_FILES_REQUEST,
+  FETCH_LIKED_FILES,
   FETCH_USED_SPACE,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
+  UPDATE_FILE_LIKE_STATUS
 } from "../types";
 
 const initialState = {
@@ -19,6 +21,7 @@ const initialState = {
   },
   searchQuery: "",
   filteredFiles: [],
+  likedFiles: []
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -90,6 +93,35 @@ const fileReducer = (state = initialState, action) => {
       return {
         ...state,
         tabBarVisible: action.payload,
+      };
+
+    case UPDATE_FILE_LIKE_STATUS:
+      const { fileId, isLiked, type } = action.payload;
+
+      const updateFiles = (files) => {
+        return files.map(file =>
+          file._id === fileId ? { ...file, isLiked } : file
+        );
+      };
+
+
+      const updatedTypeFiles = updateFiles(state[type]);
+
+
+      const updatedRecents = state.recents.map(file =>
+        file._id === fileId ? { ...file, isLiked } : file
+      );
+
+      return {
+        ...state,
+        [type]: updatedTypeFiles,
+        recents: updatedRecents,
+      };
+
+    case FETCH_LIKED_FILES:
+      return {
+        ...state,
+        likedFiles: action.payload
       };
 
     default:

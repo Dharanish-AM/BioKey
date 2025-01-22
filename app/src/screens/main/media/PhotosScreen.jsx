@@ -41,17 +41,6 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
-
-  const { images } = useSelector(
-    (state) => ({
-      images: state.files.images,
-    }),
-    shallowEqual
-  );
-  const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.imagesScreen
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -63,18 +52,37 @@ export default function PhotosScreen({ navigation }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
 
+  const userId = useSelector((state) => state.user.userId);
+
+  const { images } = useSelector(
+    (state) => ({
+      images: state.files.images,
+    }),
+    shallowEqual
+  );
+
+  const isFirstRender = useSelector(
+    (state) => state.appConfig.isFirstRender.imagesScreen
+  );
+
   const fetchData = async () => {
     setIsInitialLoading(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "images", dispatch);
+    await fetchFilesByCategory(userId, "images", dispatch);
     setIsInitialLoading(false);
   };
 
   const refreshData = async () => {
     setRefreshing(true);
-    await fetchFilesByCategory("676aee09b3f0d752bbbe58f7", "images", dispatch);
-    fetchRecentFiles(dispatch);
+    await fetchFilesByCategory(userId, "images", dispatch);
+    fetchRecentFiles(userId, dispatch);
     setRefreshing(false);
   };
+
+  useEffect(() => {
+    if (!isFirstRender) return;
+    fetchData();
+    dispatch(setFirstRender("imagesScreen"));
+  }, [isFirstRender, dispatch]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -87,17 +95,11 @@ export default function PhotosScreen({ navigation }) {
     }
   }, [images, searchTerm]);
 
-  useEffect(() => {
-    if (!isFirstRender) return;
-    fetchData();
-    dispatch(setFirstRender("imagesScreen"));
-  }, [isFirstRender, dispatch]);
 
-  const handlePress = async (fileId, fileName, type) => {
+
+  const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      fileId,
-      fileName,
-      type,
+      file
     });
   };
 
@@ -207,7 +209,7 @@ export default function PhotosScreen({ navigation }) {
               text: "OK",
               onPress: async () => {
                 setIsUploading(true);
-                const uploadResponse = await uploadMedia(files, dispatch);
+                const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log("All files uploaded successfully");
@@ -252,7 +254,7 @@ export default function PhotosScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.fileContainer}
-      onPress={() => handlePress(item.fileId, item.name, item.type)}
+      onPress={() => handlePress(item)}
     >
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>

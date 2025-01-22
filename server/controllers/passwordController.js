@@ -67,11 +67,6 @@ const getAllPasswords = async (req, res) => {
       "name userName email password website note updatedAt iv"
     );
 
-    if (!passwords || passwords.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No passwords found for this user." });
-    }
 
     const decryptedPasswords = passwords.map((password) => {
       if (!password.iv || !password.password) {
@@ -118,8 +113,8 @@ const getAllPasswords = async (req, res) => {
       .status(500)
       .json({ error: "An error occurred while fetching passwords." });
   }
-};
-
+}; 
+ 
 const deletePassword = async (req, res) => {
   try {
     const { userId, passwordId } = req.query;

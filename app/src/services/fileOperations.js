@@ -1,5 +1,5 @@
 import axios from "axios";
-import { fetchFilesAction, fetchUsedSpaceAction } from "../redux/actions";
+import { fetchFilesAction, fetchUsedSpaceAction, setLikedFiles } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
 
@@ -10,9 +10,8 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}:8000/api/files`;
 
-export const uploadMedia = async (files, dispatch) => {
+export const uploadMedia = async (userId, files, dispatch) => {
   const formData = new FormData();
-  let userId = "676aee09b3f0d752bbbe58f7";
   formData.append("userId", userId);
 
   console.log("Files to upload:", files);
@@ -91,10 +90,8 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
   }
 };
 
-export const fetchRecentFiles = async (dispatch) => {
+export const fetchRecentFiles = async (userId, dispatch) => {
   try {
-    const userId = "676aee09b3f0d752bbbe58f7";
-
     const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
 
     if (response.status === 200) {
@@ -112,6 +109,7 @@ export const fetchUsedSpace = async (userId, dispatch) => {
   const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   try {
     const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
+
 
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
@@ -136,38 +134,17 @@ export const fetchUsedSpace = async (userId, dispatch) => {
   }
 };
 
-export const previewImage = async (userId, fileId) => {
-  let url = "";
-  try {
-    url = `${API_URL}/previewimage?userId=${userId}&fileId=${fileId}`;
-    return url;
-  } catch (error) {
-    console.error("Error generating URL:", error.message);
-    return null;
-  }
-};
 
-export const previewVideo = (userId, fileId) => {
+export const previewFile = async (userId, fileId) => {
   let url = "";
   try {
-    url = `${API_URL}/previewvideo?userId=${userId}&fileId=${fileId}`;
+    url = `${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`
     return url;
   } catch (error) {
     console.error("Error generating URL:", error.message);
     return null;
   }
-};
-
-export const previewAudio = (userId, fileId) => {
-  let url = "";
-  try {
-    url = `${API_URL}/previewaudio?userId=${userId}&fileId=${fileId}`;
-    return url;
-  } catch (error) {
-    console.error("Error generating URL:", error.message);
-    return null;
-  }
-};
+}
 
 export const deleteFile = async (userId, fileId, type, dispatch) => {
   try {
@@ -216,5 +193,26 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
         message: error.message || "An unknown error occurred.",
       };
     }
+  }
+};
+
+
+export const fetchLikedFiles = async (userId, dispatch) => {
+  console.log("Called")
+  try {
+    const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
+
+    const files = response.data?.files || [];
+
+    dispatch(setLikedFiles(files));
+
+    return files;
+  } catch (error) {
+    console.error('Error fetching liked files:', error.message);
+
+
+    dispatch(setLikedFiles([]));
+
+    return [];
   }
 };

@@ -8,7 +8,8 @@ import {
   SET_PASSWORD,
   UPDATE_FILE_LIKE_STATUS,
   FETCH_LIKED_FILES,
-  FETCH_FOLDERS
+  FETCH_FOLDERS,
+  GET_EACH_PASSWORD
 } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
@@ -82,9 +83,9 @@ export const setLikedFiles = (files) => {
   }
 }
 
-export const setFolders = (folders)=>{
-  return{
-    type:FETCH_FOLDERS,
-    payload:folders
+export const setFolders = (folders) => {
+  return {
+    type: FETCH_FOLDERS,
+    payload: folders
   }
 }

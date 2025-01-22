@@ -119,6 +119,26 @@ export const deletePassword = async (userId, passwordId, dispatch) => {
   }
 };
 
+export const getPassword = async (userId, passwordId) => {
+  try {
+    const response = await axios.get(`${API_URL}/getpassword`, {
+      params: {
+        userId,
+        passwordId,
+      },
+    });
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      console.error("Failed to retrieve password:", response.data);
+      throw new Error("Failed to retrieve password");
+    }
+  } catch (error) {
+    console.error("Error retrieving password:", error.message);
+    throw new Error("Error retrieving password");
+  }
+}
+
 
 export const getPasswordBreachStatus = async (password) => {
   const hashedPassword = sha1(password).toString();
@@ -128,11 +148,15 @@ export const getPasswordBreachStatus = async (password) => {
   try {
     const response = await axios.get(`https://api.pwnedpasswords.com/range/${hashPrefix}`);
 
-    const breachedPasswords = response.data.split('\r\n');
-    const matchedHash = breachedPasswords.find(entry => entry.startsWith(hashSuffix));
+    const breachedPasswords = response.data.split('\n').map(entry => entry.trim());
+
+
+    const matchedHash = breachedPasswords.find(entry => entry.toLowerCase().startsWith(hashSuffix.toLowerCase()));
+
 
     if (matchedHash) {
       const breachCount = matchedHash.split(':')[1];
+
       return { breached: true, breachCount: parseInt(breachCount, 10), message: `Password found in ${breachCount} breaches.` };
     } else {
       return { breached: false, breachCount: 0, message: "Password is safe, not found in any breach." };
@@ -140,6 +164,35 @@ export const getPasswordBreachStatus = async (password) => {
   } catch (error) {
     console.error("Error occurred while checking password breach status:", error);
     return { breached: false, breachCount: 0, message: "Error occurred while checking the breach status." };
+  }
+};
+
+
+export const handlePasswordUpdate = async (userId, passwordId, updatedData, dispatch) => {
+  try {
+    const response = await axios.put(`${API_URL}/updatepassword`, {
+      userId,
+      passwordId,
+      updatedData,
+    });
+    if (response.status === 200) {
+      return {
+        status: true,
+        message: response.data.message || "Password updated successfully.",
+        data: response.data.data,
+      };
+    }
+    else {
+      console.error("Unexpected response status:", response.status);
+      return {
+        status: false,
+        message: response.data.message || "Failed to update password. Please try again.",
+        data: null,
+      };
+    }
+
+  } catch (error) {
+    console.error("Error updating password:", error);
   }
 };
 

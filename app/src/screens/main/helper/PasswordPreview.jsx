@@ -18,6 +18,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Clipboard from "expo-clipboard";
+import PullToRefresh from 'react-native-pull-to-refresh';
 
 import BackIcon from "../../../assets/images/back_icon.png";
 import EyeIcon from "../../../assets/images/eye.png";
@@ -77,21 +78,21 @@ export default function PasswordPreview({ navigation, route }) {
   const handleSavePress = async () => {
     if (isEditing && passwordData) {
       const changes = {};
-  
+
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (email.trim() !== passwordData.email) {
         if (!emailPattern.test(email.trim())) {
           Alert.alert("Invalid Email", "Please enter a valid email address.", [{ text: "OK" }]);
-          return; 
+          return;
         }
         changes.email = email.trim();
       }
-  
+
       if (username.trim() !== passwordData.userName) changes.userName = username.trim();
       if (password.trim() !== passwordData.password) changes.password = password.trim();
       if (website.trim() !== passwordData.website) changes.website = website.trim();
       if (note.trim() !== passwordData.note) changes.note = note.trim();
-  
+
       if (Object.keys(changes).length > 0) {
         const response = await handlePasswordUpdate(userId, passwordId, changes);
         if (response.status) {
@@ -104,10 +105,10 @@ export default function PasswordPreview({ navigation, route }) {
         console.log("No changes detected.");
       }
     }
-  
+
     setIsEditing(false);
   };
-  
+
 
 
 
@@ -189,7 +190,7 @@ export default function PasswordPreview({ navigation, route }) {
   const getBreachAnimation = () => {
     if (breachStatus) {
       if (breachStatus.breached) {
-        return BreachedAnimation;
+        return BreachedAnimation;1
       } else {
         return NotBreachedAnimation;
       }
@@ -214,159 +215,165 @@ export default function PasswordPreview({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+
       <View style={styles.innerContainer}>
-        <View style={styles.top}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-            }}
-            style={styles.backIconContainer}
-          >
-            <Image source={BackIcon} style={styles.backIcon} />
-          </TouchableOpacity>
-          <Text style={styles.titleText}>{name}</Text>
-        </View>
-        <View style={styles.center}>
-          <View style={styles.passwordDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Username:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={username || ""}
-                onChangeText={setUsername}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(username)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Email:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={email || ""}
-                onChangeText={setEmail}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(email)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Password:</Text>
-              <View style={styles.passwordFieldContainer}>
+        <PullToRefresh offset={
+          0
+        } onRefresh={fetchPassword}>
+          <View style={styles.top}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.goBack();
+              }}
+              style={styles.backIconContainer}
+            >
+              <Image source={BackIcon} style={styles.backIcon} />
+            </TouchableOpacity>
+            <Text style={styles.titleText}>{name}</Text>
+          </View>
+          <View style={styles.center}>
+            <View style={styles.passwordDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Username:</Text>
                 <TextInput
                   style={[styles.inputField, isEditing && styles.editableInput]}
-                  value={password || ""}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
+                  value={username || ""}
+                  onChangeText={setUsername}
                   editable={isEditing}
-                  onTouchStart={() => handleCopyText(password)}
+                  onTouchStart={() => handleCopyText(username)}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIconContainer}>
-                  <Image source={showPassword ? EyeIcon : EyeOffIcon} style={styles.eyeIcon} />
-                </TouchableOpacity>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Email:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={email || ""}
+                  onChangeText={setEmail}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(email)}
+                />
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Password:</Text>
+                <View style={styles.passwordFieldContainer}>
+                  <TextInput
+                    style={[styles.inputField, isEditing && styles.editableInput]}
+                    value={password || ""}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={isEditing}
+                    onTouchStart={() => handleCopyText(password)}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIconContainer}>
+                    <Image source={showPassword ? EyeIcon : EyeOffIcon} style={styles.eyeIcon} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Website:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={website || ""}
+                  onChangeText={setWebsite}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(website)}
+                />
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Note:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={note || ""}
+                  onChangeText={setNote}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(note)}
+                />
               </View>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Website:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={website || ""}
-                onChangeText={setWebsite}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(website)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Note:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={note || ""}
-                onChangeText={setNote}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(note)}
-              />
-            </View>
-          </View>
-
-          <View style={styles.securityContainer}>
-            <View style={styles.securityLeft}>
-              {isBreachStatusLoading ? (
-                <ActivityIndicator size="small" />
-              ) : (
-                <LottieView
-                  autoPlay
-                  loop={false}
-                  style={{
-                    width: animationSource === NotBreachedAnimation ? '100%' : '75%',
-                    height: animationSource === NotBreachedAnimation ? '100%' : '75%',
-                    aspectRatio: 1,
-                  }}
-                  source={animationSource || ""}
-                />
-              )}
-            </View>
-            <View style={styles.sepView}></View>
-            <View style={styles.securityRight}>
-              <Text style={styles.securityTitle}>Breach Status</Text>
-              <Text style={styles.securityText}>
-                {breachStatus ? (
-                  breachStatus.breached ? (
-                    <Text style={styles.breachedText}>
-                      Password found in <Text style={styles.breachValue}>{breachStatus.breachCount}</Text> breaches.
-                    </Text>
-                  ) : (
-                    <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
-                  )
+            <View style={styles.securityContainer}>
+              <View style={styles.securityLeft}>
+                {isBreachStatusLoading ? (
+                  <ActivityIndicator size="small" />
                 ) : (
-                  <Text style={styles.noBreachText}>No breach status available</Text>
+                  <LottieView
+                    autoPlay
+                    loop={false}
+                    style={{
+                      width: animationSource === NotBreachedAnimation ? '100%' : '75%',
+                      height: animationSource === NotBreachedAnimation ? '100%' : '75%',
+                      aspectRatio: 1,
+                    }}
+                    source={animationSource || ""}
+                  />
                 )}
+              </View>
+              <View style={styles.sepView}></View>
+              <View style={styles.securityRight}>
+                <Text style={styles.securityTitle}>Breach Status</Text>
+                <Text style={styles.securityText}>
+                  {breachStatus ? (
+                    breachStatus.breached ? (
+                      <Text style={styles.breachedText}>
+                        Password found in <Text style={styles.breachValue}>{breachStatus.breachCount}</Text> breaches.
+                      </Text>
+                    ) : (
+                      <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
+                    )
+                  ) : (
+                    <Text style={styles.noBreachText}>No breach status available</Text>
+                  )}
 
-              </Text>
+                </Text>
 
-              <Text style={styles.tipText}>Tip: Use a unique password for each service to minimize risk.</Text>
+                <Text style={styles.tipText}>Tip: Use a unique password for each service to minimize risk.</Text>
 
+              </View>
+            </View>
+
+
+            <View style={[styles.optionsContainer,
+            {
+              marginBottom: Platform.OS == "android" ? hp("2%") : 0
+            }]}>
+              <TouchableOpacity
+                style={styles.editContainer}
+                onPress={() => {
+                  if (isEditing) {
+                    handleSavePress();
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+              >
+                <Image source={isEditing ? null : EditIcon} style={styles.editIcon} />
+                <Text style={styles.editText}>
+                  {isEditing ? "Save" : "Edit"}
+                </Text>
+              </TouchableOpacity>
+
+
+              <TouchableOpacity
+                style={styles.linkContainer}
+                onPress={handleOpenLink}
+              >
+                <Image source={LinkIcon} style={styles.iconTwo} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteContainer}
+                onPress={handleDelete}
+              >
+                <Image source={BinIcon} style={styles.iconTwo} />
+              </TouchableOpacity>
             </View>
           </View>
-
-
-          <View style={[styles.optionsContainer,
-          {
-            marginBottom: Platform.OS == "android" ? hp("2%") : 0
-          }]}>
-            <TouchableOpacity
-              style={styles.editContainer}
-              onPress={() => {
-                if (isEditing) {
-                  handleSavePress();
-                } else {
-                  setIsEditing(true);
-                }
-              }}
-            >
-              <Image source={isEditing ? null : EditIcon} style={styles.editIcon} />
-              <Text style={styles.editText}>
-                {isEditing ? "Save" : "Edit"}
-              </Text>
-            </TouchableOpacity>
-
-
-            <TouchableOpacity
-              style={styles.linkContainer}
-              onPress={handleOpenLink}
-            >
-              <Image source={LinkIcon} style={styles.iconTwo} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteContainer}
-              onPress={handleDelete}
-            >
-              <Image source={BinIcon} style={styles.iconTwo} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        </PullToRefresh>
       </View>
+
     </SafeAreaView>
   );
 }
@@ -515,9 +522,9 @@ const styles = StyleSheet.create({
   breachedText: {
     color: "red"
   },
-  breachValue:{
-   textDecorationLine : 'underline',
-   fontSize: hp("2.2%"),
+  breachValue: {
+    textDecorationLine: 'underline',
+    fontSize: hp("2.2%"),
   },
   tipText: {
     fontSize: hp("2%"),

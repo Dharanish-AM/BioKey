@@ -18,8 +18,6 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import axios from "axios";
-import CircularProgress from "react-native-circular-progress-indicator";
 import SpinnerOverlay from "../../components/SpinnerOverlay";
 import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";

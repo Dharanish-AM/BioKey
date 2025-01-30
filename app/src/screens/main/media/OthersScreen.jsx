@@ -170,7 +170,6 @@ export default function OthersScreen({ navigation }) {
       const result = await pickMedia("others");
 
       setIsSelecting(false);
-      console.log(result);
 
       if (!result) {
         console.log("No files selected or invalid data");

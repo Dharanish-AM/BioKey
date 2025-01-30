@@ -2,6 +2,7 @@ import { SET_PASSWORD } from "../types";
 
 const initialState = {
   passwords: [],
+  selectedPassword: {},
   loading: false,
   error: null,
 };

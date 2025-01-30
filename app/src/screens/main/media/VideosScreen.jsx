@@ -177,7 +177,6 @@ export default function PhotosScreen({ navigation }) {
 
       if (Array.isArray(result) && result.length > 0) {
         const files = result;
-        console.log("Files selected:", files);
 
         const mediaType = files[0].type;
         let category = "";

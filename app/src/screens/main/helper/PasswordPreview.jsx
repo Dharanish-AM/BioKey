@@ -8,6 +8,7 @@ import {
   Linking,
   Alert,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +18,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Clipboard from "expo-clipboard";
+import PullToRefresh from 'react-native-pull-to-refresh';
 
 import BackIcon from "../../../assets/images/back_icon.png";
 import EyeIcon from "../../../assets/images/eye.png";
@@ -25,55 +27,88 @@ import EditIcon from "../../../assets/images/pencil.png";
 import LinkIcon from "../../../assets/images/link.png";
 import BinIcon from "../../../assets/images/trash_bottom_icon.png";
 import { useDispatch } from "react-redux";
-import { deletePassword, getPasswordBreachStatus } from "../../../services/passwordOperations";
+import { deletePassword, getPassword, getPasswordBreachStatus, handlePasswordUpdate } from "../../../services/passwordOperations";
 import { useSelector } from "react-redux";
+import LottieView from "lottie-react-native"
+
+import NotBreachedAnimation from "../../../assets/animations/safe-notbreached.json";
+import BreachedAnimation from "../../../assets/animations/breached.json";
 
 export default function PasswordPreview({ navigation, route }) {
-  const { passwordData } = route.params;
-
-  const [username, setUsername] = useState(passwordData.userName);
-  const [email, setEmail] = useState(passwordData.email);
-  const [password, setPassword] = useState(passwordData.password);
-  const [website, setWebsite] = useState(passwordData.website);
-  const [note, setNote] = useState(passwordData.note);
+  const [passwordId, setPasswordId] = useState(route.params.passwordId);
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [website, setWebsite] = useState("");
+  const [note, setNote] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const dispatch = useDispatch();
   const [breachStatus, setBreachStatus] = useState();
+  const [animationSource, setAnimationSource] = useState(null);
   const userId = useSelector((state) => state.user.userId);
+  const [passwordData, setPasswordData] = useState(null);
+  const [isBreachStatusLoading, setIsBreachStatusLoading] = useState(true);
 
   useEffect(() => {
-    fetchPasswordBreachStatus();
-  }, [passwordData]);
+    fetchPassword();
+  }, [passwordId]);
 
+  const fetchPassword = async () => {
+    try {
+      const response = await getPassword(userId, passwordId);
+      const fetchedPasswordData = response.data;
 
-  const handleEditPress = () => {
-    if (isEditing) {
+      setName(fetchedPasswordData.name);
+      setUsername(fetchedPasswordData.userName);
+      setEmail(fetchedPasswordData.email);
+      setPassword(fetchedPasswordData.password);
+      setWebsite(fetchedPasswordData.website);
+      setNote(fetchedPasswordData.note);
+
+      setPasswordData(fetchedPasswordData);
+
+      await fetchPasswordBreachStatus(fetchedPasswordData.password);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSavePress = async () => {
+    if (isEditing && passwordData) {
       const changes = {};
 
-      if (username.trim() !== passwordData.userName.trim()) {
-        changes.username = username;
-      }
-      if (email.trim() !== passwordData.email.trim()) {
-        changes.email = email;
-      }
-      if (password.trim() !== passwordData.password.trim()) {
-        changes.password = password;
-      }
-      if (website.trim() !== passwordData.website.trim()) {
-        changes.website = website;
-      }
-      if (note.trim() !== passwordData.note.trim()) {
-        changes.note = note;
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (email.trim() !== passwordData.email) {
+        if (!emailPattern.test(email.trim())) {
+          Alert.alert("Invalid Email", "Please enter a valid email address.", [{ text: "OK" }]);
+          return;
+        }
+        changes.email = email.trim();
       }
 
+      if (username.trim() !== passwordData.userName) changes.userName = username.trim();
+      if (password.trim() !== passwordData.password) changes.password = password.trim();
+      if (website.trim() !== passwordData.website) changes.website = website.trim();
+      if (note.trim() !== passwordData.note) changes.note = note.trim();
+
       if (Object.keys(changes).length > 0) {
-        console.log("Changes saved:", JSON.stringify(changes));
+        const response = await handlePasswordUpdate(userId, passwordId, changes);
+        if (response.status) {
+          await fetchPassword();
+          Alert.alert("Success", response.message || "Password updated successfully", [{ text: "OK" }]);
+        } else {
+          Alert.alert("Error", response.message || "Failed to update password. Please try again.", [{ text: "OK" }]);
+        }
+      } else {
+        console.log("No changes detected.");
       }
     }
 
-    setIsEditing(!isEditing);
+    setIsEditing(false);
   };
+
 
 
 
@@ -114,7 +149,7 @@ export default function PasswordPreview({ navigation, route }) {
           onPress: async () => {
             const response = await deletePassword(
               userId,
-              passwordData._id,
+              passwordId,
               dispatch
             );
 
@@ -142,156 +177,203 @@ export default function PasswordPreview({ navigation, route }) {
     Clipboard.setStringAsync(text);
   };
 
-  const fetchPasswordBreachStatus = async () => {
-    if (passwordData.password) {
-      const response = await getPasswordBreachStatus(passwordData.password);
-      console.log(response)
+  const fetchPasswordBreachStatus = async (password) => {
+    if (password) {
+      setIsBreachStatusLoading(true);
+      const response = await getPasswordBreachStatus(password);
       setBreachStatus(response);
+      setIsBreachStatusLoading(false);
     }
-  }
+  };
+
+
+  const getBreachAnimation = () => {
+    if (breachStatus) {
+      if (breachStatus.breached) {
+        return BreachedAnimation; 1
+      } else {
+        return NotBreachedAnimation;
+      }
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (passwordData && passwordData.password) {
+      fetchPasswordBreachStatus(passwordData.password);
+    }
+  }, [passwordData]);
+
+  useEffect(() => {
+
+    if (breachStatus) {
+      const animation = getBreachAnimation();
+      setAnimationSource(animation);
+    }
+  }, [breachStatus]);
+
 
   return (
     <SafeAreaView style={styles.container}>
+
       <View style={styles.innerContainer}>
-        <View style={styles.top}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
-            }}
-            style={styles.backIconContainer}
-          >
-            <Image source={BackIcon} style={styles.backIcon} />
-          </TouchableOpacity>
-          <Text style={styles.titleText}>{passwordData.name}</Text>
-        </View>
-        <View style={styles.center}>
-          <View style={styles.passwordDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Username:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={username || ""}
-                onChangeText={setUsername}
-                placeholder={username ? "" : "No Username"}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(username)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Email:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={email || ""}
-                onChangeText={setEmail}
-                placeholder={email ? "" : "No Email"}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(email)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Password:</Text>
-              <View style={styles.passwordFieldContainer}>
+        <PullToRefresh offset={
+          0
+        } onRefresh={fetchPassword}>
+          <View style={styles.top}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.goBack();
+              }}
+              style={styles.backIconContainer}
+            >
+              <Image source={BackIcon} style={styles.backIcon} />
+            </TouchableOpacity>
+            <Text style={styles.titleText}>{name}</Text>
+          </View>
+          <View style={styles.center}>
+            <View style={styles.passwordDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Username:</Text>
                 <TextInput
                   style={[styles.inputField, isEditing && styles.editableInput]}
-                  value={password || ""}
-                  onChangeText={setPassword}
-                  secureTextEntry={showPassword ? false : true}
-                  autoCompleteType="off"
-                  textContentType="none"
+                  value={username || ""}
+                  onChangeText={setUsername}
                   editable={isEditing}
-                  onTouchStart={() => handleCopyText(password)}
+                  onTouchStart={() => handleCopyText(username)}
                 />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIconContainer}
-                >
-                  <Image
-                    source={showPassword ? EyeIcon : EyeOffIcon}
-                    style={styles.eyeIcon}
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Email:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={email || ""}
+                  onChangeText={setEmail}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(email)}
+                />
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Password:</Text>
+                <View style={styles.passwordFieldContainer}>
+                  <TextInput
+                    style={[styles.inputField, isEditing && styles.editableInput]}
+                    value={password || ""}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={isEditing}
+                    onTouchStart={() => handleCopyText(password)}
                   />
-                </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIconContainer}>
+                    <Image source={showPassword ? EyeIcon : EyeOffIcon} style={styles.eyeIcon} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Website:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={website || ""}
+                  onChangeText={setWebsite}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(website)}
+                />
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailTitle}>Note:</Text>
+                <TextInput
+                  style={[styles.inputField, isEditing && styles.editableInput]}
+                  value={note || ""}
+                  onChangeText={setNote}
+                  editable={isEditing}
+                  onTouchStart={() => handleCopyText(note)}
+                />
               </View>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Website:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={website || ""}
-                onChangeText={setWebsite}
-                placeholder={website ? "" : "No Website"}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(website)}
-              />
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailTitle}>Note:</Text>
-              <TextInput
-                style={[styles.inputField, isEditing && styles.editableInput]}
-                value={note || ""}
-                onChangeText={setNote}
-                placeholder={note ? "" : "No Note"}
-                editable={isEditing}
-                onTouchStart={() => handleCopyText(note)}
-              />
-            </View>
-          </View>
-
-          <View style={styles.securityContainer}>
-            <View style={styles.securityLeft}>
-
-            </View>
-            <View style={styles.securityRight}>
-            <Text style={styles.securityTitle}>Breach Status</Text>
-              <Text style={styles.securityText}>
-                {breachStatus ? (
-                  breachStatus.breached ? (
-                    <Text style={styles.breachedText}>
-                      Password found in {breachStatus.breachCount} breaches.
-                    </Text>
-                  ) : (
-                    <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
-                  )
+            <View style={styles.securityContainer}>
+              <View style={styles.securityLeft}>
+                {isBreachStatusLoading ? (
+                  <ActivityIndicator size="small" />
                 ) : (
-                  "No breach status available"
+                  <LottieView
+                    autoPlay
+                    loop={false}
+                    style={{
+                      width: animationSource === NotBreachedAnimation ? '100%' : '75%',
+                      height: animationSource === NotBreachedAnimation ? '100%' : '75%',
+                      aspectRatio: 1,
+                    }}
+                    source={animationSource || ""}
+                  />
                 )}
-              </Text>
+              </View>
+              <View style={styles.sepView}></View>
+              <View style={styles.securityRight}>
+                <Text style={styles.securityTitle}>Breach Status</Text>
+                <Text style={styles.securityText}>
+                  {breachStatus ? (
+                    breachStatus.breached ? (
+                      <Text style={styles.breachedText}>
+                        Password found in <Text style={styles.breachValue}>{breachStatus.breachCount}</Text> breaches.
+                      </Text>
+                    ) : (
+                      <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
+                    )
+                  ) : (
+                    <Text style={styles.noBreachText}>No breach status available</Text>
+                  )}
+
+                </Text>
+
+                <Text style={styles.tipText}>Tip: Use a unique password for each service to minimize risk.</Text>
+
+              </View>
+            </View>
+
+
+            <View style={[styles.optionsContainer,
+            {
+              marginBottom: Platform.OS == "android" ? hp("2%") : 0
+            }]}>
+              <TouchableOpacity
+                style={styles.editContainer}
+                onPress={() => {
+                  if (isEditing) {
+                    handleSavePress();
+                  } else {
+                    setIsEditing(true);
+                  }
+                }}
+              >
+                <Image source={isEditing ? null : EditIcon} style={styles.editIcon} />
+                <Text style={styles.editText}>
+                  {isEditing ? "Save" : "Edit"}
+                </Text>
+              </TouchableOpacity>
+
+
+              <TouchableOpacity
+                style={styles.linkContainer}
+                onPress={handleOpenLink}
+              >
+                <Image source={LinkIcon} style={styles.iconTwo} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteContainer}
+                onPress={handleDelete}
+              >
+                <Image source={BinIcon} style={styles.iconTwo} />
+              </TouchableOpacity>
             </View>
           </View>
-
-
-          <View style={[styles.optionsContainer,
-          {
-            marginBottom: Platform.OS == "android" ? hp("2%") : 0
-          }]}>
-            <TouchableOpacity
-              style={styles.editContainer}
-              onPress={handleEditPress}
-            >
-              <View style={styles.editIconContainer}>
-                <Image source={EditIcon} style={styles.editIcon} />
-              </View>
-
-              <Text style={styles.editText}>{isEditing ? "Save" : "Edit"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.linkContainer}
-              onPress={handleOpenLink}
-            >
-              <Image source={LinkIcon} style={styles.iconTwo} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteContainer}
-              onPress={handleDelete}
-            >
-              <Image source={BinIcon} style={styles.iconTwo} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        </PullToRefresh>
       </View>
+
     </SafeAreaView>
   );
 }
@@ -307,13 +389,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   top: {
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
-    height: hp("6%"),
     marginBottom: hp("1.5%"),
   },
   backIconContainer: {
@@ -341,11 +423,12 @@ const styles = StyleSheet.create({
   passwordDetails: {
     backgroundColor: colors.lightColor2,
     borderRadius: hp("3%"),
-    padding: hp("2.5%"),
+    padding: hp("3%"),
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
+    height: hp("51%")
   },
   detailRow: {
     flexDirection: "column",
@@ -395,6 +478,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("3%"),
     flexDirection: "row",
     alignItems: "center",
+    maxHeight: hp("20%"),
 
   },
   securityLeft: {
@@ -403,9 +487,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: "100%",
     width: "40%",
-    backgroundColor: colors.lightColor1,
     borderTopLeftRadius: hp("3%"),
     borderBottomLeftRadius: hp("3%"),
+  },
+  sepView: {
+    width: 0.7,
+    height: "85%",
+    backgroundColor: colors.textColor3,
+    opacity: 0.1
   },
   securityRight: {
     flexDirection: "column",
@@ -415,19 +504,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightColor2,
     borderTopRightRadius: hp("3%"),
     borderBottomRightRadius: hp("3%"),
-    padding: wp("2%"),
+    padding: wp("4.5%"),
+    justifyContent: "center",
+    gap: hp("1%")
   },
-  securityTitle:{
+  securityTitle: {
     fontSize: hp("2.5%"),
     color: colors.textColor3,
-    fontFamily: "Afacad-SemiBold",
-    marginBottom:hp("1%")
+    fontFamily: "Afacad-Medium",
   },
   securityText: {
     fontSize: hp("2%"),
     color: colors.textColor3,
-    fontFamily: "Afacad-Medium",
-    color:"#4BB543"
+    fontFamily: "Afacad-Italic",
+    color: "green",
+    textAlign: "center"
+  },
+  breachedText: {
+    color: "red"
+  },
+  breachValue: {
+    textDecorationLine: 'underline',
+    fontSize: hp("2.2%"),
+  },
+  tipText: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Italic",
+    display: "none"
   },
   optionsContainer: {
     height: "9%",
@@ -451,11 +555,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   editIcon: {
-    width: wp("2.8%"),
-    height: hp("2.8%"),
+    width: wp("5.5%"),
+    height: hp("5.5%"),
     aspectRatio: 1,
     resizeMode: "contain",
     tintColor: colors.textColor3,
+
   },
   editText: {
     fontSize: hp("2.8%"),

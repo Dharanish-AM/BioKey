@@ -147,7 +147,7 @@ export default function PasswordsScreen({ navigation }) {
 
   const handlePress = (item) => {
     navigation.navigate("PasswordPreview", {
-      passwordData: item,
+      passwordId: item._id,
     });
   };
 
@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
+
   },
   backIconContainer: {
     height: hp("6%"),

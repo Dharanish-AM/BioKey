@@ -8,7 +8,7 @@ const getIP = () => {
   return state.appConfig.API_IP;
 };
 
-const API_URL = `http://${getIP()}:8000/api/passwords`;
+const API_URL = `http://${getIP()}/api/passwords`;
 
 export const addPassword = async (
   userId,

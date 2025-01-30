@@ -8,7 +8,7 @@ const getIP = () => {
   return state.appConfig.API_IP;
 };
 
-const API_URL = `http://${getIP()}:8000/api/users`;
+const API_URL = `http://${getIP()}/api/users`;
 
 
 export const loadProfile = async (userId, dispatch) => {

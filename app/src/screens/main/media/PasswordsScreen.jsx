@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("1%"),
     justifyContent: "space-between",
+
   },
   backIconContainer: {
     height: hp("6%"),

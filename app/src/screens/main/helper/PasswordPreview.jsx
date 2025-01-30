@@ -190,7 +190,7 @@ export default function PasswordPreview({ navigation, route }) {
   const getBreachAnimation = () => {
     if (breachStatus) {
       if (breachStatus.breached) {
-        return BreachedAnimation;1
+        return BreachedAnimation; 1
       } else {
         return NotBreachedAnimation;
       }
@@ -389,6 +389,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   top: {
     width: wp("100%"),

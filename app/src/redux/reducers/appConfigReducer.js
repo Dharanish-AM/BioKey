@@ -12,7 +12,7 @@ const initialState = {
     filePreviewScreen: true,
     favouritesScreen:true
   },
-  API_IP: "biokey.ddns.net"
+  API_IP: "biokey.ddns.net:8000"
 };
 
 export const appConfigReducer = (state = initialState, action) => {

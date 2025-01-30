@@ -8,18 +8,15 @@ const getIP = () => {
   return state.appConfig.API_IP;
 };
 
-const API_URL = `http://${getIP()}:8000/api/files`;
+const API_URL = `http://${getIP()}/api/files`;
 
 export const uploadMedia = async (userId, files, dispatch) => {
   const formData = new FormData();
   formData.append("userId", userId);
 
-  console.log("Files to upload:", files);
-
   files.forEach((file) => {
     const { uri, fileName, name } = file;
     const fileNameToUse = fileName || name;
-    console.log("Appending file:", { fileName: fileNameToUse, uri });
 
     formData.append("file", {
       uri,
@@ -44,7 +41,6 @@ export const uploadMedia = async (userId, files, dispatch) => {
           )}`,
         };
       }
-      console.log("Upload successful", response.data);
 
       await fetchUsedSpace(userId, dispatch);
 
@@ -79,8 +75,6 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
 
     if (response.status == 200) {
       const files = response.data.files;
-      console.log(`Fetched Files of category ${category} `);
-      console.log("Fetched files:", files.length);
       dispatch(fetchFilesAction(category, files || []));
     } else {
       console.error("Error fetching files:", response.data.error);
@@ -96,7 +90,6 @@ export const fetchRecentFiles = async (userId, dispatch) => {
 
     if (response.status === 200) {
       dispatch(fetchFilesAction("recents", response.data.files || []));
-      console.log("Fetched Recent Files");
     } else {
       console.error("Error fetching recent files:", response.statusText);
     }

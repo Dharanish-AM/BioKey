@@ -176,6 +176,7 @@ export const handlePasswordUpdate = async (userId, passwordId, updatedData, disp
       updatedData,
     });
     if (response.status === 200) {
+      getAllPasswords(userId, dispatch)
       return {
         status: true,
         message: response.data.message || "Password updated successfully.",

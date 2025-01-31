@@ -5,7 +5,6 @@ const sharp = require("sharp");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = "D:/ffmpeg-7.1-essentials_build/bin/ffmpeg.exe";
 const jsmediatags = require("jsmediatags");
-const busboy = require("busboy");
 const File = require("../models/fileSchema");
 const User = require("../models/userSchema");
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -13,6 +12,20 @@ const { exec } = require("child_process");
 const os = require("os");
 const mongoose = require("mongoose");
 const mime = require("mime-types");
+const Minio = require("minio");
+const { getUniqueFilePath, createThumbnail, deleteThumbnail, deleteTempFile, getFileCategory } = require("../utils/fileUtils");
+const dotenv = require("dotenv").config();
+
+
+const minioClient = new Minio.Client({
+  endPoint: process.env.MINIO_ENDPOINT,
+  port: parseInt(process.env.MINIO_PORT, 10),
+  useSSL: process.env.MINIO_USE_SSL == 'true',
+  accessKey: process.env.MINIO_ACCESS_KEY,
+  secretKey: process.env.MINIO_SECRET_KEY,
+});
+
+const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 
 const TARGET_DIR = path.join(
   "D:",
@@ -22,175 +35,7 @@ const TARGET_DIR = path.join(
   "uploads"
 );
 
-const getFileCategory = (filename) => {
-  const ext = path.extname(filename).toLowerCase();
 
-  const imageExtensions = [
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-    ".bmp",
-    ".tiff",
-    ".webp",
-    ".svg",
-    ".ico",
-  ];
-  if (imageExtensions.includes(ext)) return "images";
-
-  const videoExtensions = [
-    ".mp4",
-    ".mkv",
-    ".avi",
-    ".mov",
-    ".wmv",
-    ".flv",
-    ".webm",
-    ".3gp",
-    ".m4v",
-  ];
-  if (videoExtensions.includes(ext)) return "videos";
-
-  const audioExtensions = [
-    ".mp3",
-    ".wav",
-    ".aac",
-    ".flac",
-    ".ogg",
-    ".wma",
-    ".m4a",
-    ".opus",
-    ".amr",
-  ];
-  if (audioExtensions.includes(ext)) return "audios";
-
-  return "others";
-};
-
-const createThumbnail = async (filePath, userId, fileCategory, fileName) => {
-  try {
-    const thumbnailDir = path.join(
-      TARGET_DIR,
-      userId,
-      "thumbnails",
-      fileCategory
-    );
-
-    const thumbnailPath = path.join(
-      thumbnailDir,
-      `${path.parse(fileName).name}.webp`
-    );
-
-    await fs.promises.mkdir(thumbnailDir, { recursive: true });
-
-    if (fileCategory === "images") {
-      await sharp(filePath).resize(500, 500).webp().toFile(thumbnailPath);
-      return thumbnailPath;
-    } else if (fileCategory === "videos") {
-      return new Promise((resolve, reject) => {
-        ffmpeg(filePath)
-          .screenshots({
-            count: 1,
-            timemarks: ["00:00:01.000"],
-            folder: path.dirname(thumbnailPath),
-            filename: path.basename(thumbnailPath),
-            size: "500x?",
-          })
-          .on("end", () => resolve(thumbnailPath))
-          .on("error", (err) =>
-            reject({ error: "Error creating video thumbnail", details: err })
-          );
-      });
-    } else if (fileCategory === "audios") {
-      return new Promise((resolve, reject) => {
-        jsmediatags.read(filePath, {
-          onSuccess: async (tag) => {
-            const albumArt = tag.tags["APIC"];
-            if (albumArt?.data) {
-              try {
-                let imageBuffer;
-                if (Buffer.isBuffer(albumArt.data)) {
-                  imageBuffer = albumArt.data;
-                } else if (Array.isArray(albumArt.data)) {
-                  imageBuffer = Buffer.from(albumArt.data);
-                } else if (typeof albumArt.data === "object") {
-                  imageBuffer = Buffer.from(albumArt.data.data || []);
-                } else {
-                  throw new Error("Invalid album art data format");
-                }
-
-                const resizedBuffer = await sharp(imageBuffer)
-                  .resize(500, 500)
-                  .webp()
-                  .toBuffer();
-
-                await fs.promises.mkdir(path.dirname(thumbnailPath), {
-                  recursive: true,
-                });
-
-                await fs.promises.writeFile(thumbnailPath, resizedBuffer);
-
-                resolve(thumbnailPath);
-              } catch (error) {
-                console.error("Error resizing audio thumbnail:", error);
-                reject({
-                  error: "Error resizing audio thumbnail",
-                  details: error.message,
-                });
-              }
-            } else {
-              console.log("No album art found in audio file.");
-              resolve(null);
-            }
-          },
-          onError: (error) => {
-            console.error("Error reading audio metadata:", error);
-            reject({
-              error: "Error reading audio metadata",
-              details: error.message,
-            });
-          },
-        });
-      });
-    } else {
-      return null;
-    }
-  } catch (error) {
-    throw { error: "Error creating thumbnail", details: error };
-  }
-};
-
-const deleteTempFile = (filePath) => {
-  return new Promise((resolve, reject) => {
-    fs.unlink(filePath, (unlinkErr) => {
-      if (unlinkErr) {
-        if (unlinkErr.code === "EPERM") {
-          const platform = os.platform();
-          let command;
-
-          if (platform === "win32") {
-            command = `del /f /q "${filePath}"`;
-          } else if (platform === "linux" || platform === "darwin") {
-            command = `rm -f "${filePath}"`;
-          }
-
-          exec(command, (execErr, stdout, stderr) => {
-            if (execErr) {
-              console.error("Forced removal failed:", execErr.message);
-              reject(execErr);
-            } else {
-              resolve();
-            }
-          });
-        } else {
-          reject(unlinkErr);
-        }
-      } else {
-        resolve();
-      }
-    });
-  });
-};
 
 const uploadFile = (req, res) => {
   const form = new IncomingForm();
@@ -221,40 +66,56 @@ const uploadFile = (req, res) => {
       }
 
       const filePromises = uploadedFiles.map(async (file) => {
-        const fileName =
+        const originalFileName =
           file.originalFilename ||
           file.name ||
           `default_filename_${Date.now()}`;
-        const fileCategory = getFileCategory(fileName);
+        const fileCategory = getFileCategory(originalFileName);
 
-        const targetDir = path.join(TARGET_DIR, userId, fileCategory);
-        const uniqueFileName = getUniqueFilePath(targetDir, fileName);
-        const uniqueTargetPath = path.join(targetDir, uniqueFileName);
+        
+        const uniqueFileName = await getUniqueFilePath(
+          BUCKET_NAME,
+          `${userId}/${fileCategory}`,
+          originalFileName,
+          minioClient
+        );
 
         let thumbnailPath = null;
 
         try {
-          await fs.promises.mkdir(targetDir, { recursive: true });
-          await fs.promises.copyFile(file.filepath, uniqueTargetPath);
-
-          thumbnailPath = await createThumbnail(
-            uniqueTargetPath,
-            userId,
-            fileCategory,
-            fileName
+          
+          await minioClient.putObject(
+            BUCKET_NAME,
+            uniqueFileName,
+            file.filepath
           );
 
+          
+          thumbnailPath = await createThumbnail(
+            file.filepath,
+            userId,
+            fileCategory,
+            originalFileName,  
+            minioClient
+          );
+
+          if (thumbnailPath) {
+            const thumbnailFileName = `${userId}/thumbnails/${fileCategory}/${path.basename(thumbnailPath)}`;
+            await minioClient.putObject(
+              BUCKET_NAME,
+              thumbnailFileName,
+              thumbnailPath
+            );
+
+            thumbnailPath = thumbnailFileName;
+          }
+
+          
           const fileMetadata = new File({
-            name: uniqueFileName,
-            path: path.join(fileCategory, uniqueFileName),
+            name: path.basename(uniqueFileName),
+            path: uniqueFileName,
             type: fileCategory,
-            thumbnail: thumbnailPath
-              ? path.join(
-                "thumbnails",
-                fileCategory,
-                path.basename(thumbnailPath)
-              )
-              : null,
+            thumbnail: thumbnailPath,
             size: file.size,
             owner: userId,
           });
@@ -263,38 +124,29 @@ const uploadFile = (req, res) => {
           await deleteTempFile(file.filepath);
 
           return {
-            fileName: uniqueFileName,
-            filePath: path.join(fileCategory, uniqueFileName),
-            thumbnailPath: thumbnailPath
-              ? path.join(
-                "thumbnails",
-                fileCategory,
-                path.basename(thumbnailPath)
-              )
-              : null,
+            fileName: path.basename(uniqueFileName),
+            filePath: uniqueFileName,
+            thumbnailPath,
             category: fileCategory,
           };
         } catch (fileError) {
-          console.error("Error processing file:", fileError.message);
-
-
-          if (fs.existsSync(uniqueTargetPath)) {
-            await fs.promises.unlink(uniqueTargetPath);
-            console.log(`Deleted file: ${uniqueTargetPath}`);
+          console.error("Error processing file:", fileError);
+          try {
+            await minioClient.removeObject(BUCKET_NAME, uniqueFileName);
+          } catch (cleanupError) {
+            console.error("Error cleaning up file in MinIO:", cleanupError.message);
           }
 
-          if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-            await fs.promises.unlink(thumbnailPath);
-            console.log(`Deleted thumbnail: ${thumbnailPath}`);
+          if (thumbnailPath) {
+            await minioClient.removeObject(BUCKET_NAME, thumbnailPath);
           }
 
           return {
-            error: fileError.message,
-            details: fileError.stack,
+            error: fileError.message || "Unknown error",
+            details: fileError.stack || "No stack available",
           };
         }
       });
-
 
       const results = await Promise.allSettled(filePromises);
 
@@ -326,20 +178,6 @@ const uploadFile = (req, res) => {
   });
 };
 
-const getUniqueFilePath = (dir, fileName) => {
-  let filePath = path.join(dir, fileName);
-  let count = 1;
-
-  while (fs.existsSync(filePath)) {
-    const ext = path.extname(fileName);
-    const baseName = path.basename(fileName, ext);
-    const newFileName = `${baseName}(${count})${ext}`;
-    filePath = path.join(dir, newFileName);
-    count++;
-  }
-
-  return path.basename(filePath);
-};
 
 const deleteFile = async (req, res) => {
   const { userId, fileId } = req.body;

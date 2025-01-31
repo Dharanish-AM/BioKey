@@ -11,12 +11,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
-      unique: true, 
+      unique: true,
     },
     phone: {
       type: Number,
       required: true,
-      unique: true, 
+      unique: true,
     },
     password: {
       type: String,
@@ -52,6 +52,14 @@ const userSchema = new mongoose.Schema(
         ],
       },
     ],
+    totalStorage: {
+      type: Number,
+      default: 0
+    },
+    usedStorage: {
+      type: Number,
+      default: 0
+    },
     createdAt: {
       type: Date,
       default: Date.now,

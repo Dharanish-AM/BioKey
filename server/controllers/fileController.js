@@ -36,7 +36,6 @@ const TARGET_DIR = path.join(
 );
 
 
-
 const uploadFile = (req, res) => {
   const form = new IncomingForm();
   form.multiples = true;
@@ -58,21 +57,15 @@ const uploadFile = (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const uploadedFiles = Array.isArray(files.file)
-        ? files.file
-        : [files.file];
+      const uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
       if (!uploadedFiles || uploadedFiles.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
       const filePromises = uploadedFiles.map(async (file) => {
-        const originalFileName =
-          file.originalFilename ||
-          file.name ||
-          `default_filename_${Date.now()}`;
+        const originalFileName = file.originalFilename || file.name || `default_filename_${Date.now()}`;
         const fileCategory = getFileCategory(originalFileName);
 
-        
         const uniqueFileName = await getUniqueFilePath(
           BUCKET_NAME,
           `${userId}/${fileCategory}`,
@@ -83,19 +76,14 @@ const uploadFile = (req, res) => {
         let thumbnailPath = null;
 
         try {
-          
-          await minioClient.putObject(
-            BUCKET_NAME,
-            uniqueFileName,
-            file.filepath
-          );
+          await minioClient.putObject(BUCKET_NAME, uniqueFileName, file.filepath);
 
-          
+
           thumbnailPath = await createThumbnail(
             file.filepath,
             userId,
             fileCategory,
-            originalFileName,  
+            uniqueFileName,
             minioClient
           );
 
@@ -110,7 +98,6 @@ const uploadFile = (req, res) => {
             thumbnailPath = thumbnailFileName;
           }
 
-          
           const fileMetadata = new File({
             name: path.basename(uniqueFileName),
             path: uniqueFileName,

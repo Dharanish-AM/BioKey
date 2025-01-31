@@ -25,7 +25,7 @@ const createThumbnail = async (filePath, userId, fileCategory, fileName, minioCl
         const thumbnailPath = `${userId}/thumbnails/${fileCategory}/${path.basename(fileName, path.extname(fileName))}.webp`;
 
         if (fileCategory === "images") {
-            const buffer = await sharp(filePath).resize(500, 500).webp().toBuffer();
+            const buffer = await sharp(filePath, { failOnError: false }).resize(500, 500).webp().toBuffer();
             await minioClient.putObject(process.env.MINIO_BUCKET_NAME, thumbnailPath, buffer);
 
             return thumbnailPath;

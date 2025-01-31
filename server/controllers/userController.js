@@ -6,9 +6,10 @@ const path = require("path");
 const { IncomingForm } = require("formidable");
 const mongoose = require("mongoose");
 const sharp = require("sharp");
-
+const minioClient = require("../config/minio")
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
+const upload = require("../config/multer");
 
 const TARGET_DIR = path.join(
   "D:",
@@ -68,13 +69,14 @@ const register = async (req, res) => {
 
     await user.save();
 
-    const directory = path.join(TARGET_DIR, user._id.toString());
-
-    if (!fs.existsSync(directory)) {
-      fs.mkdirSync(directory, { recursive: true });
-    }
-
     const userId = user._id;
+
+
+    const folderPath = `${userId}/`;
+
+
+    await minioClient.putObject(BUCKET_NAME, folderPath, Buffer.from(''));
+
     const token = generateToken(userId, name, email);
 
     if (token) {
@@ -90,6 +92,7 @@ const register = async (req, res) => {
     res.status(500).json({ message: "Error creating user." });
   }
 };
+
 
 const login = async (req, res) => {
   try {
@@ -144,18 +147,33 @@ const getUser = async (req, res) => {
     }
 
     if (user.profile) {
-      const profilePath = path.join(TARGET_DIR, userId, user.profile);
-      if (fs.existsSync(profilePath)) {
-        const imageBuffer = fs.readFileSync(profilePath);
+      const profilePath = `${userId}/${user.profile}`;
+
+      try {
+
+        const profileStream = await minioClient.getObject(BUCKET_NAME, profilePath);
+
+
+        const imageBuffer = await new Promise((resolve, reject) => {
+          const chunks = [];
+          profileStream.on('data', (chunk) => chunks.push(chunk));
+          profileStream.on('end', () => resolve(Buffer.concat(chunks)));
+          profileStream.on('error', (err) => reject(err));
+        });
+
 
         const compressedImageBuffer = await sharp(imageBuffer)
           .resize({ width: 150 })
           .webp({ quality: 100 })
           .toBuffer();
 
+
         user.profile = `data:image/webp;base64,${compressedImageBuffer.toString(
           "base64"
         )}`;
+      } catch (err) {
+        console.error("Error fetching profile image from MinIO:", err.message);
+        user.profile = null;
       }
     }
 
@@ -168,6 +186,7 @@ const getUser = async (req, res) => {
     res.status(500).json({ message: "Error fetching user." });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {
@@ -205,64 +224,46 @@ const setProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    const form = new IncomingForm();
-    form.uploadDir = TEMP_DIR;
-    form.keepExtensions = true;
-
-    if (!fs.existsSync(TEMP_DIR)) {
-      fs.mkdirSync(TEMP_DIR, { recursive: true });
-    }
-
-    form.parse(req, async (err, fields, files) => {
+    upload(req, res, async (err) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ message: "Error processing the file." });
+        return res.status(400).json({ message: err.message });
       }
 
-      if (!files.profile || !files.profile[0]) {
+      if (!req.file) {
         return res.status(400).json({ message: "Profile image is required." });
       }
 
-      const file = files.profile[0];
+      const file = req.file;
+      const fileExtension = path.extname(file.originalname);
+      const minioPath = `${userId}/profile${fileExtension}`;
 
-      if (file.size === 0) {
-        return res.status(400).json({ message: "Uploaded file is empty." });
-      }
 
-      const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
+      try {
+        await minioClient.putObject(
+          BUCKET_NAME,
+          minioPath,
+          file.buffer,
+          file.size,
+          {
+            "Content-Type": file.mimetype,
+          }
+        );
+
+
+        user.profile = minioPath;
+        await user.save();
+
+        res.status(200).json({
+          message: "Profile updated successfully.",
+          profile: minioPath,
+        });
+      } catch (uploadError) {
+        console.error("Error uploading to MinIO:", uploadError);
         return res
-          .status(400)
-          .json({ message: "Invalid file type. Only images are allowed." });
+          .status(500)
+          .json({ message: "Error uploading profile image to storage." });
       }
-
-      const fileExtension = path.extname(file.originalFilename);
-      const filePath = path.join(
-        TARGET_DIR,
-        userId,
-        "assets",
-        `profile${fileExtension}`
-      );
-      const tempFilePath = path.join("assets", `profile${fileExtension}`);
-
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-
-      fs.renameSync(file.filepath, filePath);
-
-      user.profile = tempFilePath;
-      await user.save();
-
-      res.status(200).json({
-        message: "Profile updated successfully.",
-        profile: filePath,
-      });
     });
   } catch (error) {
     console.error(error);
@@ -357,19 +358,7 @@ const likeOrUnlikeFile = async (req, res) => {
     file.isLiked = !file.isLiked;
 
 
-    if (file.isLiked) {
-      if (!user.likedFiles) {
-        user.likedFiles = [];
-      }
-      user.likedFiles.push(fileId);
-    } else {
-
-      user.likedFiles = user.likedFiles.filter((id) => id.toString() !== fileId);
-    }
-
-
     await file.save();
-    await user.save();
 
     return res.status(200).json({ success: true, isLiked: file.isLiked });
   } catch (error) {

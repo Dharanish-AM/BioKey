@@ -5,9 +5,8 @@ const User = require("../models/userSchema");
 const mongoose = require("mongoose");
 const mime = require("mime-types");
 const minioClient = require("../config/minio")
-const { getUniqueFilePath, createThumbnail, deleteTempFile, getFileCategory, getFileSizeFromMinIO } = require("../utils/fileUtils");
+const { getUniqueFilePath, createThumbnail, deleteTempFile, getFileCategory, getFileSizeFromMinIO, streamToBuffer } = require("../utils/fileUtils");
 const upload = require("../config/multer");
-
 
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 const maxThumbnailSize = 204800;
@@ -19,7 +18,6 @@ const TARGET_DIR = path.join(
   "server",
   "uploads"
 );
-
 
 const uploadFile = async (req, res) => {
   upload(req, res, async (err) => {
@@ -348,20 +346,24 @@ const listFile = async (req, res) => {
       return res.status(200).json({ message: "No files found", files: [] });
     }
 
+
     const processedFiles = await Promise.all(
       files.map(async (file) => {
         let base64Thumbnail = null;
         if (file.thumbnail) {
-          const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
           try {
-            await fs.promises.access(thumbnailPath);
-            const thumbnailData = await fs.promises.readFile(thumbnailPath);
-            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString(
+
+            const thumbnailStream = await minioClient.getObject(
+              BUCKET_NAME,
+              file.thumbnail
+            );
+            const thumbnailBuffer = await streamToBuffer(thumbnailStream);
+            base64Thumbnail = `data:image/webp;base64,${thumbnailBuffer.toString(
               "base64"
             )}`;
           } catch (err) {
-            console.error(
-              `Error reading thumbnail for file ${file.name}:`,
+            console.warn(
+              `Thumbnail not found or error fetching for file ${file.name}:`,
               err.message
             );
           }
@@ -390,83 +392,39 @@ const listFile = async (req, res) => {
 };
 
 
+
 const loadFile = async (req, res) => {
   const { userId, fileId } = req.query;
 
-
   if (!userId || !fileId) {
-    console.error("Missing required parameters");
     return res.status(400).json({ message: "Missing userId or fileId" });
   }
 
   try {
-
     const fileRecord = await File.findOne({ _id: fileId, owner: userId });
     if (!fileRecord) {
-      console.error("File not found in database");
       return res.status(404).json({ message: "File not found in database" });
     }
 
-
-    const filePath = path.resolve(TARGET_DIR, userId, fileRecord.path);
-
-    let fileStats;
-    try {
-      fileStats = await fs.promises.stat(filePath);
-    } catch (err) {
-      console.error("File not found on disk:", filePath, err);
-      return res.status(404).json({ message: "File not found on disk" });
-    }
-
-    const fileSize = fileStats.size;
+    const filePath = fileRecord.path;
     const contentType = mime.lookup(fileRecord.name) || "application/octet-stream";
-    const range = req.headers.range;
+
+    const presignedUrl = await minioClient.presignedUrl('GET', BUCKET_NAME, filePath, 60 * 60);
 
 
-    if (range && (contentType.startsWith("video/") || contentType.startsWith("audio/"))) {
-      const [startPart, endPart] = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(startPart, 10) || 0;
-      const end = endPart ? parseInt(endPart, 10) : fileSize - 1;
-
-      if (start >= fileSize || end >= fileSize || start > end) {
-        console.error("Invalid Range request");
-        return res.status(416).json({ message: "Range not satisfiable" });
-      }
-
-      const chunkSize = end - start + 1;
-      const headers = {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunkSize,
-        "Content-Type": contentType,
-      };
-
-      res.writeHead(206, headers);
-      const fileStream = fs.createReadStream(filePath, { start, end });
-      fileStream.pipe(res).on("error", (err) => {
-        console.error("Read stream error:", err);
-        res.status(500).end("Error streaming file");
-      });
-
-      return;
-    }
-
-
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Length", fileSize);
-    res.setHeader("Content-Disposition", `inline; filename="${fileRecord.name}"`);
-
-
-    const readStream = fs.createReadStream(filePath);
-    readStream.pipe(res).on("error", (err) => {
-      console.error("Read stream error:", err);
-      res.status(500).end("Error retrieving file data");
+    res.json({
+      url: presignedUrl,
+      contentType: contentType,
+      filename: fileRecord.name,
+      size: fileRecord.size
     });
+
   } catch (err) {
-    console.error("Error retrieving file:", err.message);
-    res.status(500).json({ message: "Error retrieving file data" });
+    console.error("Error generating presigned URL:", err);
+    res.status(500).json({ message: "Error generating presigned URL" });
   }
 };
+
 
 const ListFolderFiles = async (req, res) => {
   try {
@@ -548,7 +506,6 @@ const listLiked = async (req, res) => {
       return res.status(400).json({ message: "Invalid userId format" });
     }
 
-
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -558,26 +515,28 @@ const listLiked = async (req, res) => {
     const likedFiles = await File.find({
       isLiked: true,
       owner: userId,
-    }, "name type size thumbnail createdAt _id isLiked");
+    }, "name type size createdAt _id isLiked path");
 
     if (!likedFiles || likedFiles.length === 0) {
       return res.status(200).json({ message: "No liked files found", files: [] });
     }
 
-
     const processedFiles = await Promise.all(
       likedFiles.map(async (file) => {
-        let base64Thumbnail = null;
-        if (file.thumbnail) {
-          const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
-          try {
-            await fs.promises.access(thumbnailPath);
-            const thumbnailData = await fs.promises.readFile(thumbnailPath);
-            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString("base64")}`;
-          } catch (err) {
-            console.error(`Error reading thumbnail for file ${file.name}:`, err.message);
-          }
-        }
+
+        const fileStream = await minioClient.getObject(BUCKET_NAME, file.path);
+
+
+        let base64File = '';
+        fileStream.on('data', (chunk) => {
+          base64File += chunk.toString('base64');
+        });
+
+
+        await new Promise((resolve, reject) => {
+          fileStream.on('end', resolve);
+          fileStream.on('error', reject);
+        });
 
         return {
           _id: file._id,
@@ -585,8 +544,8 @@ const listLiked = async (req, res) => {
           type: file.type,
           size: file.size,
           createdAt: file.createdAt,
-          thumbnail: base64Thumbnail,
-          isLiked: file.isLiked
+          isLiked: file.isLiked,
+          fileBase64: base64File,
         };
       })
     );
@@ -600,7 +559,6 @@ const listLiked = async (req, res) => {
     return res.status(500).json({ message: "Error retrieving liked files" });
   }
 };
-
 
 
 

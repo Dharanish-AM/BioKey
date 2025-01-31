@@ -9,4 +9,4 @@ const minioClient = new Minio.Client({
 });
 
 
-module.exports = minioClient
+module.exports = minioClient  

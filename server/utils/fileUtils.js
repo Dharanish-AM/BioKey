@@ -112,7 +112,6 @@ const getUniqueFilePath = async (bucketName, folderPath, fileName, minioClient) 
     const baseFileName = path.basename(fileName, fileExtension);
     let uniqueFileName = `${folderPath}/${fileName}`;
 
-    console.log('Checking if file exists in MinIO:', uniqueFileName);
 
     let fileExists = await minioClient.statObject(bucketName, uniqueFileName).catch((err) => {
         console.error('Error checking file existence in MinIO:', err.message);
@@ -122,9 +121,7 @@ const getUniqueFilePath = async (bucketName, folderPath, fileName, minioClient) 
     let counter = 1;
     while (fileExists) {
         uniqueFileName = `${folderPath}/${baseFileName}(${counter})${fileExtension}`;
-        console.log('Checking if file exists in MinIO with new name:', uniqueFileName);
         fileExists = await minioClient.statObject(bucketName, uniqueFileName).catch((err) => {
-            console.error('Error checking file existence in MinIO:', err.message);
             return null;
         });
         counter++;
@@ -143,7 +140,6 @@ const getUniqueFilePath = async (bucketName, folderPath, fileName, minioClient) 
         });
     }
 
-    console.log('Final unique file path:', uniqueFileName);
     return uniqueFileName;
 };
 
@@ -184,9 +180,23 @@ const deleteTempFile = (filePath) => {
 };
 
 
+const getFileSizeFromMinIO = async (bucketName, filePath, minioClient) => {
+    try {
+
+        const stats = await minioClient.statObject(bucketName, filePath);
+        return stats.size;
+    } catch (err) {
+        console.error(`Error getting file size from MinIO: ${err.message}`);
+        throw err;
+    }
+};
+
+
+
 module.exports = {
     getFileCategory,
     createThumbnail,
     getUniqueFilePath,
-    deleteTempFile
+    deleteTempFile,
+    getFileSizeFromMinIO
 };

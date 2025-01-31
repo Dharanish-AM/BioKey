@@ -52,11 +52,11 @@ const userSchema = new mongoose.Schema(
         ],
       },
     ],
-    totalStorage: {
+    totalSpace: {
       type: Number,
-      default: 0
+      default: 5368709120 
     },
-    usedStorage: {
+    usedSpace: {
       type: Number,
       default: 0
     },

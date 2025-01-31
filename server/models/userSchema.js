@@ -32,11 +32,6 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
-    likedFiles: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "File",
-      default: [],
-    },
     folders: [
       {
         name: {

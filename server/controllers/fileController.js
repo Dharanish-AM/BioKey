@@ -155,49 +155,72 @@ const uploadFile = async (req, res) => {
 
 
 
-const deleteFile = async (req, res) => {
-  const { userId, fileId } = req.body;
-  console.log(userId, fileId)
-
-  if (!userId || !fileId) {
-    return res.status(400).json({ message: "Missing userId or fileId" });
-  }
-
+const deleteFileAndThumbnail = async (req, res) => {
   try {
-    const file = await File.findOne({ _id: fileId, owner: userId });
-    if (!file) {
-      return res.status(404).json({ message: "File not found" });
+    const { userId, fileId } = req.body;
+
+
+    if (!userId || !fileId) {
+      return res.status(400).json({ error: "Missing required parameters: userId or fileId." });
     }
 
-    const filePath = path.join(TARGET_DIR, file.path);
-    const thumbnailPath = file.thumbnail
-      ? path.join(TARGET_DIR, file.thumbnail)
-      : null;
 
-    if (fs.existsSync(filePath)) {
-      await fs.promises.unlink(filePath);
-      console.log(`Deleted file: ${filePath}`);
+    const fileRecord = await File.findOne({ _id: fileId, userId });
+    if (!fileRecord) {
+      return res.status(404).json({ error: "File not found for the given user." });
     }
 
-    if (thumbnailPath && fs.existsSync(thumbnailPath)) {
-      await fs.promises.unlink(thumbnailPath);
-      console.log(`Deleted thumbnail: ${thumbnailPath}`);
+    const { filePath, thumbnailPath, size: fileSize } = fileRecord;
+
+
+    let thumbnailSize = 0;
+    if (thumbnailPath) {
+      try {
+        const thumbnailStats = await minioClient.statObject(BUCKET_NAME, thumbnailPath);
+        thumbnailSize = thumbnailStats.size;
+      } catch (err) {
+        console.warn(`Thumbnail not found or stat failed: ${thumbnailPath}. Skipping size calculation.`);
+      }
     }
+
+
+    const sizeToReduce = fileSize + thumbnailSize;
+
+
+    await minioClient.removeObject(BUCKET_NAME, filePath);
+    console.log(`Deleted file: ${filePath}`);
+
+
+    if (thumbnailPath) {
+      try {
+        await minioClient.removeObject(BUCKET_NAME, thumbnailPath);
+        console.log(`Deleted thumbnail: ${thumbnailPath}`);
+      } catch (thumbnailErr) {
+        console.warn(`Failed to delete thumbnail: ${thumbnailPath}.`);
+      }
+    }
+
+
+    await User.updateOne({ _id: userId }, { $inc: { usedSpace: -sizeToReduce } });
+    console.log(`Reduced ${sizeToReduce} bytes from user ${userId}'s storage quota.`);
+
 
     await File.deleteOne({ _id: fileId });
-    console.log(`Deleted file metadata with ID: ${fileId}`);
+    console.log(`Removed file metadata from the database for fileId: ${fileId}`);
 
-    res.status(200).json({
-      message: "File and its metadata deleted successfully",
-      fileId,
+    return res.status(200).json({
+      success: true,
+      message: "File and thumbnail deleted successfully, and user quota updated.",
     });
   } catch (error) {
-    console.error("Error deleting file:", error.message);
-    res
-      .status(500)
-      .json({ message: "Error deleting file", error: error.message });
+    console.error("Error during deletion:", error.message);
+    return res.status(500).json({
+      error: "Error deleting file and thumbnail or updating user quota.",
+      details: error.message,
+    });
   }
 };
+
 
 
 const getRecentFiles = async (req, res) => {
@@ -277,32 +300,23 @@ const getSpace = async (req, res) => {
 
   try {
 
-    const files = await File.find({ owner: userId });
+    const user = await File.findById(userId);
 
 
-    if (!files || files.length === 0) {
-      return res.json({
-        usedSpace: 0,
-      });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
 
-    const totalSize = files.reduce((acc, file) => {
-      if (file.size && typeof file.size === "number") {
-        return acc + file.size;
-      }
-      return acc;
-    }, 0);
-
-
     res.json({
-      usedSpace: totalSize,
+      usedSpace: user.usedSpace,
+      totalSpace: user.totalSpace
     });
   } catch (err) {
-    console.error("Error fetching files:", err.message);
+    console.error("Error fetching space:", err.message);
     return res
       .status(500)
-      .json({ message: `Error fetching files: ${err.message}` });
+      .json({ message: `Error fetching space: ${err.message}` });
   }
 };
 
@@ -542,7 +556,7 @@ const listLiked = async (req, res) => {
 
 
     const likedFiles = await File.find({
-      _id: { $in: user.likedFiles },
+      isLiked: true,
       owner: userId,
     }, "name type size thumbnail createdAt _id isLiked");
 
@@ -595,7 +609,7 @@ module.exports = {
   getRecentFiles,
   getSpace,
   listFile,
-  deleteFile,
+  deleteFileAndThumbnail,
   listLiked,
   loadFile
 };

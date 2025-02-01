@@ -96,7 +96,6 @@ export default function PhotosScreen({ navigation }) {
   }, [images, searchTerm]);
 
 
-
   const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
       file

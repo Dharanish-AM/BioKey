@@ -8,5 +8,9 @@ const minioClient = new Minio.Client({
     secretKey: process.env.MINIO_SECRET_KEY,
 });
 
+if (minioClient) {
+    console.log("Minio Client is connected");
+}
 
-module.exports = minioClient  
+
+module.exports = minioClient   

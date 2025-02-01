@@ -94,7 +94,7 @@ export default function PasswordPreview({ navigation, route }) {
       if (note.trim() !== passwordData.note) changes.note = note.trim();
 
       if (Object.keys(changes).length > 0) {
-        const response = await handlePasswordUpdate(userId, passwordId, changes);
+        const response = await handlePasswordUpdate(userId, passwordId, changes,dispatch);
         if (response.status) {
           await fetchPassword();
           Alert.alert("Success", response.message || "Password updated successfully", [{ text: "OK" }]);

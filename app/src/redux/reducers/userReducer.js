@@ -1,3 +1,4 @@
+import { act } from "react";
 import { FETCH_FOLDERS, SET_USER } from "../types";
 
 const initialState = {
@@ -8,7 +9,9 @@ const initialState = {
   deviceId: "",
   isUserLoggedIn: false,
   deviceName: "",
-  folders: []
+  folders: [],
+  totalSpace: null,
+  usedSpace: null,
 };
 
 export default function userReducer(state = initialState, action) {
@@ -23,6 +26,8 @@ export default function userReducer(state = initialState, action) {
         deviceId: action.payload.device,
         isUserLoggedIn: true,
         deviceName: action.payload.device,
+        totalSpace: action.payload.totalSpace,
+        usedSpace: action.payload.usedSpace,
       };
 
     case FETCH_FOLDERS:

@@ -5,8 +5,9 @@ const User = require("../models/userSchema");
 const mongoose = require("mongoose");
 const mime = require("mime-types");
 const minioClient = require("../config/minio")
-const { getUniqueFilePath, createThumbnail, deleteTempFile, getFileCategory, getFileSizeFromMinIO, streamToBuffer } = require("../utils/fileUtils");
-const upload = require("../config/multer");
+const { getUniqueFilePath, createThumbnail, getFileCategory, getFileSizeFromMinIO, streamToBuffer } = require("../utils/fileUtils");
+const formidable = require("formidable");
+
 
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 const maxThumbnailSize = 204800;
@@ -20,13 +21,15 @@ const TARGET_DIR = path.join(
 );
 
 const uploadFile = async (req, res) => {
-  upload(req, res, async (err) => {
+  const form = new formidable.IncomingForm({ multiples: true, keepExtensions: true });
+
+  form.parse(req, async (err, fields, files) => {
     if (err) {
-      console.error("Error uploading files:", err.message);
+      console.error("Error parsing form data:", err.message);
       return res.status(500).json({ message: "Error processing file upload" });
     }
 
-    const { userId } = req.body;
+    const { userId } = fields;
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
@@ -37,87 +40,77 @@ const uploadFile = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const uploadedFiles = req.files;
+      const uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
       if (!uploadedFiles || uploadedFiles.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
       const filePromises = uploadedFiles.map(async (file) => {
-        const originalFileName = file.originalname || `default_filename_${Date.now()}`;
-        const fileCategory = getFileCategory(originalFileName);
-        const fileSize = file.size;
-
-        console.log("File Size from Buffer", fileSize);
-
-        if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
-          return res.status(400).json({ message: "Insufficient space" });
-        }
-
-        const uniqueFileName = await getUniqueFilePath(
-          BUCKET_NAME,
-          `${userId}/${fileCategory}`,
-          originalFileName,
-          minioClient
-        );
-
-        let thumbnailPath = null;
+        const filePath = file.filepath;
+        let uniqueFilePath, thumbnailPath;
         let thumbnailSize = 0;
-
-        console.log("Uploading file to MinIO:", uniqueFileName);
-
+        let totalSize = 0;
         try {
-          const fileStream = fs.createReadStream(file.path);
-          await minioClient.putObject(BUCKET_NAME, uniqueFileName, fileStream);
+          const originalFileName = file.originalFilename || `default_${Date.now()}`;
+          const fileCategory = getFileCategory(originalFileName);
+          const fileSize = file.size;
 
+          if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
+            throw new Error("Insufficient space");
+          }
+          const folderPath = `${userId}/${fileCategory}`;
+          uniqueFilePath = await getUniqueFilePath(BUCKET_NAME, folderPath, originalFileName, minioClient);
 
-          thumbnailPath = await createThumbnail(file.path, userId, fileCategory, uniqueFileName, minioClient);
+          const fileStream = fs.createReadStream(filePath);
+          await minioClient.putObject(BUCKET_NAME, uniqueFilePath, fileStream);
+          fileStream.close();
 
+          thumbnailPath = await createThumbnail(filePath, userId, fileCategory, uniqueFilePath, minioClient);
           if (thumbnailPath) {
             thumbnailSize = await getFileSizeFromMinIO(BUCKET_NAME, thumbnailPath, minioClient);
           }
 
-          const originalFileSize = await getFileSizeFromMinIO(BUCKET_NAME, uniqueFileName, minioClient);
-          console.log("Original file size from MinIO:", originalFileSize);
-
           const fileMetadata = new File({
-            name: path.basename(uniqueFileName),
-            path: uniqueFileName,
+            name: path.basename(uniqueFilePath),
+            path: uniqueFilePath,
             type: fileCategory,
             thumbnail: thumbnailPath,
-            size: originalFileSize,
+            size: fileSize,
             owner: userId,
           });
-
           await fileMetadata.save();
+          totalSize = fileSize + thumbnailSize;
 
-          user.usedSpace += originalFileSize + thumbnailSize;
-          await user.save();
-
-          await deleteTempFile(file.path);
+          await new Promise(resolve => {
+            fs.unlink(filePath, (err) => {
+              if (err && err.code !== "ENOENT" && err.code !== "EPERM") {
+                console.error("Error deleting temp file:", err.message);
+              }
+              resolve()
+            });
+          })
 
           return {
-            fileName: path.basename(uniqueFileName),
-            filePath: uniqueFileName,
+            fileName: path.basename(uniqueFilePath),
+            filePath: uniqueFilePath,
             thumbnailPath,
             category: fileCategory,
+            size: totalSize,
           };
-        } catch (fileError) {
-          console.error("Error processing file:", fileError);
 
+        } catch (error) {
+          console.error("File processing error:", error.message);
           try {
-            await minioClient.removeObject(BUCKET_NAME, uniqueFileName);
+            await minioClient.removeObject(BUCKET_NAME, uniqueFilePath);
           } catch (cleanupError) {
-            console.error("Error cleaning up file in MinIO:", cleanupError.message);
+            console.error("Error removing MinIO file:", cleanupError.message);
           }
-
-          if (thumbnailPath) {
-            await minioClient.removeObject(BUCKET_NAME, thumbnailPath);
+          try {
+            await fs.promises.unlink(filePath)
+          } catch (deleteError) {
+            console.error("Error deleting temp file:", deleteError.message)
           }
-
-          return {
-            error: fileError.message || "Unknown error",
-            details: fileError.stack || "No stack available",
-          };
+          return { status: "rejected", reason: error.message, size: 0 };
         }
       });
 
@@ -131,12 +124,19 @@ const uploadFile = async (req, res) => {
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason);
 
+      if (successes.length > 0) {
+        const totalSpaceChange = successes.reduce((acc, file) => acc + file.size, 0);
+        user.usedSpace += totalSpaceChange;
+        await user.save();
+      }
+
+
       if (errors.length > 0) {
         console.error("Upload errors:", errors);
         res.status(207).json({
           message: "Some files failed to upload",
           successes,
-          errors: errors.map((error) => error.error),
+          errors: errors.map((error) => error.error || error),
         });
       } else {
         res.status(200).json({
@@ -151,33 +151,39 @@ const uploadFile = async (req, res) => {
   });
 };
 
-
-
 const deleteFileAndThumbnail = async (req, res) => {
   try {
     const { userId, fileId } = req.body;
 
-
     if (!userId || !fileId) {
+      console.error("Missing parameters:", { userId, fileId });
       return res.status(400).json({ error: "Missing required parameters: userId or fileId." });
     }
 
-
-    const fileRecord = await File.findOne({ _id: fileId, userId });
+    const fileRecord = await File.findOne({ _id: fileId, owner: userId });
     if (!fileRecord) {
+      console.error("File not found for user:", { userId, fileId });
       return res.status(404).json({ error: "File not found for the given user." });
     }
 
-    const { filePath, thumbnailPath, size: fileSize } = fileRecord;
+    const { path, thumbnail, size: fileSize } = fileRecord;
 
+    if (!path) {
+      console.error("File path is undefined or missing for fileId:", fileId);
+      return res.status(400).json({ error: "File path is missing or invalid." });
+    }
 
     let thumbnailSize = 0;
-    if (thumbnailPath) {
+
+
+    if (thumbnail && fileRecord.thumbnailSize) {
+      thumbnailSize = fileRecord.thumbnailSize;
+    } else if (thumbnail) {
       try {
-        const thumbnailStats = await minioClient.statObject(BUCKET_NAME, thumbnailPath);
+        const thumbnailStats = await minioClient.statObject(BUCKET_NAME, thumbnail);
         thumbnailSize = thumbnailStats.size;
       } catch (err) {
-        console.warn(`Thumbnail not found or stat failed: ${thumbnailPath}. Skipping size calculation.`);
+        console.error("Error fetching thumbnail stats:", err);
       }
     }
 
@@ -185,31 +191,34 @@ const deleteFileAndThumbnail = async (req, res) => {
     const sizeToReduce = fileSize + thumbnailSize;
 
 
-    await minioClient.removeObject(BUCKET_NAME, filePath);
-    console.log(`Deleted file: ${filePath}`);
+    await Promise.all([
+      minioClient.removeObject(BUCKET_NAME, path).catch(err => {
+        console.error("Error deleting file from MinIO:", err);
+        throw new Error(`Failed to delete file from MinIO: ${err.message}`);
+      }),
+      thumbnail && minioClient.removeObject(BUCKET_NAME, thumbnail).catch(thumbnailErr => {
+        console.warn(`Failed to delete thumbnail: ${thumbnail}. Error: ${thumbnailErr.message}`);
+      })
+    ]);
 
 
-    if (thumbnailPath) {
-      try {
-        await minioClient.removeObject(BUCKET_NAME, thumbnailPath);
-        console.log(`Deleted thumbnail: ${thumbnailPath}`);
-      } catch (thumbnailErr) {
-        console.warn(`Failed to delete thumbnail: ${thumbnailPath}.`);
-      }
-    }
+    await Promise.all([
+      User.updateOne({ _id: userId }, { $inc: { usedSpace: -sizeToReduce } }).catch(err => {
+        console.error("Error updating user quota:", err);
+        throw new Error(`Failed to update user quota: ${err.message}`);
+      }),
+      File.deleteOne({ _id: fileId }).catch(err => {
+        console.error("Error removing file metadata:", err);
+        throw new Error(`Failed to remove file metadata: ${err.message}`);
+      })
+    ]);
 
-
-    await User.updateOne({ _id: userId }, { $inc: { usedSpace: -sizeToReduce } });
-    console.log(`Reduced ${sizeToReduce} bytes from user ${userId}'s storage quota.`);
-
-
-    await File.deleteOne({ _id: fileId });
-    console.log(`Removed file metadata from the database for fileId: ${fileId}`);
 
     return res.status(200).json({
       success: true,
       message: "File and thumbnail deleted successfully, and user quota updated.",
     });
+
   } catch (error) {
     console.error("Error during deletion:", error.message);
     return res.status(500).json({
@@ -218,7 +227,6 @@ const deleteFileAndThumbnail = async (req, res) => {
     });
   }
 };
-
 
 
 const getRecentFiles = async (req, res) => {
@@ -238,7 +246,6 @@ const getRecentFiles = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-
     const files = await File.find({ owner: userId })
       .sort({ updatedAt: -1 })
       .limit(7)
@@ -253,31 +260,27 @@ const getRecentFiles = async (req, res) => {
 
     const fileResponses = await Promise.all(
       files.map(async (file) => {
-        const filePath = file.path;
+        let preSignedThumbnailUrl = null;
 
-        let fileThumbnail = null;
         if (file.thumbnail) {
           try {
-            const thumbnailBuffer = await minioClient.getObject(process.env.MINIO_BUCKET_NAME, file.thumbnail);
-            fileThumbnail = `data:image/webp;base64,${thumbnailBuffer.toString("base64")}`;
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(
+              process.env.MINIO_BUCKET_NAME, file.thumbnail, 60 * 60);
           } catch (err) {
             console.error(`Error fetching thumbnail for ${file.name}:`, err.message);
-            fileThumbnail = null;
           }
         }
-
         return {
           _id: file._id,
           name: file.name,
           type: file.type,
           size: file.size,
           createdAt: file.createdAt,
-          thumbnail: fileThumbnail,
+          thumbnail: preSignedThumbnailUrl,
           isLiked: file.isLiked,
         };
       })
     );
-
     res.status(200).json({
       message: "Recent files retrieved successfully",
       files: fileResponses,
@@ -288,7 +291,6 @@ const getRecentFiles = async (req, res) => {
   }
 };
 
-
 const getSpace = async (req, res) => {
   const userId = req.query.userId;
 
@@ -298,7 +300,7 @@ const getSpace = async (req, res) => {
 
   try {
 
-    const user = await File.findById(userId);
+    const user = await User.findById(userId);
 
 
     if (!user) {
@@ -342,45 +344,32 @@ const listFile = async (req, res) => {
     if (category) query.type = category;
 
     const files = await File.find(query, "name type size thumbnail createdAt isLiked _id");
+
     if (!files || files.length === 0) {
       return res.status(200).json({ message: "No files found", files: [] });
     }
 
-
     const processedFiles = await Promise.all(
       files.map(async (file) => {
-        let base64Thumbnail = null;
+        let preSignedThumbnailUrl = null;
         if (file.thumbnail) {
           try {
-
-            const thumbnailStream = await minioClient.getObject(
-              BUCKET_NAME,
-              file.thumbnail
-            );
-            const thumbnailBuffer = await streamToBuffer(thumbnailStream);
-            base64Thumbnail = `data:image/webp;base64,${thumbnailBuffer.toString(
-              "base64"
-            )}`;
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 60 * 60);
           } catch (err) {
-            console.warn(
-              `Thumbnail not found or error fetching for file ${file.name}:`,
-              err.message
-            );
+            console.warn(`Thumbnail not found or error fetching for file ${file.name}:`, err.message);
           }
         }
-
         return {
           _id: file._id,
           name: file.name,
           type: file.type,
           size: file.size,
           createdAt: file.createdAt,
-          thumbnail: base64Thumbnail,
+          thumbnail: preSignedThumbnailUrl,
           isLiked: file.isLiked,
         };
       })
     );
-
     return res.status(200).json({
       message: "Files retrieved successfully",
       files: processedFiles,
@@ -390,7 +379,6 @@ const listFile = async (req, res) => {
     return res.status(500).json({ message: "Error retrieving files" });
   }
 };
-
 
 
 const loadFile = async (req, res) => {
@@ -410,7 +398,6 @@ const loadFile = async (req, res) => {
     const contentType = mime.lookup(fileRecord.name) || "application/octet-stream";
 
     const presignedUrl = await minioClient.presignedUrl('GET', BUCKET_NAME, filePath, 60 * 60);
-
 
     res.json({
       url: presignedUrl,
@@ -497,6 +484,7 @@ const ListFolderFiles = async (req, res) => {
 
 const listLiked = async (req, res) => {
   const { userId } = req.query;
+
   try {
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
@@ -511,32 +499,26 @@ const listLiked = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-
-    const likedFiles = await File.find({
-      isLiked: true,
-      owner: userId,
-    }, "name type size createdAt _id isLiked path");
+    const likedFiles = await File.find(
+      { isLiked: true, owner: userId },
+      "name type size createdAt _id isLiked thumbnail"
+    );
 
     if (!likedFiles || likedFiles.length === 0) {
       return res.status(200).json({ message: "No liked files found", files: [] });
     }
 
+
     const processedFiles = await Promise.all(
       likedFiles.map(async (file) => {
-
-        const fileStream = await minioClient.getObject(BUCKET_NAME, file.path);
-
-
-        let base64File = '';
-        fileStream.on('data', (chunk) => {
-          base64File += chunk.toString('base64');
-        });
-
-
-        await new Promise((resolve, reject) => {
-          fileStream.on('end', resolve);
-          fileStream.on('error', reject);
-        });
+        let preSignedThumbnailUrl = null;
+        if (file.thumbnail) {
+          try {
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 60 * 60);
+          } catch (err) {
+            console.warn(`Thumbnail not found or error fetching for file ${file.name}:`, err.message);
+          }
+        }
 
         return {
           _id: file._id,
@@ -545,7 +527,7 @@ const listLiked = async (req, res) => {
           size: file.size,
           createdAt: file.createdAt,
           isLiked: file.isLiked,
-          fileBase64: base64File,
+          thumbnail: preSignedThumbnailUrl,
         };
       })
     );
@@ -559,7 +541,6 @@ const listLiked = async (req, res) => {
     return res.status(500).json({ message: "Error retrieving liked files" });
   }
 };
-
 
 
 module.exports = {

@@ -114,7 +114,6 @@ const getUniqueFilePath = async (bucketName, folderPath, fileName, minioClient) 
 
 
     let fileExists = await minioClient.statObject(bucketName, uniqueFileName).catch((err) => {
-        console.error('Error checking file existence in MinIO:', err.message);
         return null;
     });
 
@@ -163,7 +162,6 @@ const deleteTempFile = (filePath) => {
                             console.error("Forced removal failed:", execErr.message);
                             reject(execErr);
                         } else {
-                            console.log("Forced removal successful:", stdout);
                             resolve();
                         }
                     });
@@ -172,7 +170,6 @@ const deleteTempFile = (filePath) => {
                     reject(unlinkErr);
                 }
             } else {
-                console.log("File deleted successfully:", filePath);
                 resolve();
             }
         });
@@ -194,20 +191,19 @@ const getFileSizeFromMinIO = async (bucketName, filePath, minioClient) => {
 
 const streamToBuffer = async (stream) => {
     return new Promise((resolve, reject) => {
-      const chunks = [];
-      stream.on("data", (chunk) => chunks.push(chunk));
-      stream.on("end", () => resolve(Buffer.concat(chunks)));
-      stream.on("error", (err) => reject(err));
+        const chunks = [];
+        stream.on("data", (chunk) => chunks.push(chunk));
+        stream.on("end", () => resolve(Buffer.concat(chunks)));
+        stream.on("error", (err) => reject(err));
     });
-  };
-  
+};
+
 
 
 module.exports = {
     getFileCategory,
     createThumbnail,
     getUniqueFilePath,
-    deleteTempFile,
     getFileSizeFromMinIO,
     streamToBuffer
 };

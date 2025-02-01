@@ -8,10 +8,9 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
-  Animated,
   RefreshControl,
-} from "react-native";
-import React, { useEffect, useState, useRef, useMemo } from "react";
+} from "react-native"
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import {
@@ -19,7 +18,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import SpinnerOverlay from "../../components/SpinnerOverlay";
-import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
@@ -53,19 +51,16 @@ import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
-import { setFirstRender, setTabBarVisible } from "../../redux/actions";
-import SkeletonLoader from "../../components/SkeletonLoader";
-import { loadProfile } from "../../services/userOperations";
+import { setFirstRender } from "../../redux/actions";
+import { loadUser } from "../../services/userOperations";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const refRBSheet = useRef();
-  const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
-  const [isProfileLoaded, setProfileLoaded] = useState(false);
-  const [usedSpace, setUsedSpace] = useState(0);
+
 
   const { userId } = useSelector(
     (state) => state.user,
@@ -76,7 +71,6 @@ export default function HomeScreen({ navigation }) {
     shallowEqual
   );
 
-  const usedSpaceRedux = useSelector((state) => state.files.usedSpace);
 
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.homeScreen
@@ -84,10 +78,17 @@ export default function HomeScreen({ navigation }) {
 
   const user = useSelector((state) => state.user, shallowEqual);
 
+
+
   useEffect(() => {
     if (!isFirstRender) return;
     setIsLoading(true);
     dispatch(setFirstRender("homeScreen"));
+
+    const fetchUser = async () => {
+      await loadUser(userId, dispatch);
+    };
+
     const fetchData = async () => {
       try {
         await fetchRecentFiles(userId, dispatch);
@@ -99,19 +100,12 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
-    const fetchUser = async () => {
-      await loadProfile(userId, dispatch);
-    };
 
     fetchUser();
     fetchData();
   }, [dispatch]);
 
-  useEffect(() => {
-    if (usedSpaceRedux) {
-      setUsedSpace(usedSpaceRedux);
-    }
-  }, [usedSpaceRedux]);
+
 
   const showAlert = (title, message, onConfirm) => {
     Alert.alert(title, message, [
@@ -255,69 +249,29 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [recentFilesFromRedux]);
-
-  const animatedRenderItem = ({ item, index }) => {
-    const translateY = fadeAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [10, 0],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          transform: [{ translateY }],
-          opacity: fadeAnim,
-        }}
-      >
-        {renderItem({ item, index })}
-      </Animated.View>
-    );
-  };
 
   const getThumbnailSource = (item) => {
     const isPdf = item.name.toLowerCase().endsWith(".pdf");
+    const { type, thumbnail } = item;
 
-    if (isPdf) {
-      return PdfIcon;
+
+    if (isPdf) return PdfIcon;
+
+
+    if (type === "audios" && !thumbnail) return AudioFileIcon;
+
+
+    if (type === "others" && !thumbnail) return DocsFileIcon;
+
+
+    if (thumbnail) {
+      return { uri: thumbnail };
     }
 
-    if (item.type === "images" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
 
-    if (item.type === "videos" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
-
-    if (item.type === "audios" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
-
-    if (item.type === "audios" && !item.thumbnail) {
-      return AudioFileIcon;
-    }
-
-    if (item.type === "others" && !item.thumbnail) {
-      return DocsFileIcon;
-    }
-
-    return { uri: item.thumbnail };
+    return DocsFileIcon;
   };
+
 
   const renderItem = ({ item }) => {
     const thumbnailSource = getThumbnailSource(item);
@@ -328,7 +282,7 @@ export default function HomeScreen({ navigation }) {
         key={item.id || item.name}
         onPress={() => {
           navigation.navigate("FilePreviewScreen", {
-            file: item
+            file: item,
           });
         }}
       >
@@ -338,13 +292,13 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>
+          ) : item.type === "audios" && !item.thumbnail ? (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
+            </View>
           ) : item.type === "others" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={DocsFileIcon} style={styles.documentImage} />
-            </View>
-          ) : item.type === "audios" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={AudioFileIcon} style={styles.audioImage} />
             </View>
           ) : item.type === "videos" ? (
             <View style={styles.videoFileWithPlayContainer}>
@@ -400,6 +354,7 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
+
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
       <SpinnerOverlay visible={isLoading} />
@@ -427,14 +382,12 @@ export default function HomeScreen({ navigation }) {
                   source={{ uri: user.profileImage }}
                   style={styles.profileIcon}
                   resizeMode="cover"
-                  onLoadEnd={() => setProfileLoaded(true)}
                 />
               ) : (
                 <Image
                   source={ProfileIcon}
                   style={styles.profileIcon}
                   resizeMode="cover"
-                  onLoadEnd={() => setProfileLoaded(true)}
                 />
               )}
             </View>
@@ -460,7 +413,7 @@ export default function HomeScreen({ navigation }) {
               <AnimatedCircularProgress
                 size={hp("16%")}
                 width={hp("1.2%")}
-                fill={Number(usedSpace?.usedSpacePercentage) || 0}
+                fill={(user.usedSpace / user.totalSpace) * 100 || 0}
                 prefill={0}
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
@@ -492,9 +445,9 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.storageDetailsContainer}>
                 <Text style={styles.storageTitle}>Used Space</Text>
                 <Text style={styles.storageValue}>
-                  {usedSpace && usedSpace.usedSpaceWithUnit
-                    ? `${usedSpace.usedSpaceWithUnit} / ${TOTAL_SPACE_UNIT}`
-                    : `0 / ${TOTAL_SPACE_UNIT}`}
+                  {user && user.usedSpace && user.totalSpace
+                    ? `${formatFileSize(user.usedSpace)} / ${formatFileSize(user.totalSpace)}`
+                    : `0 B / ${formatFileSize(user.totalSpace)}`}
                 </Text>
               </View>
               <TouchableOpacity style={styles.premiumContainer}>
@@ -601,7 +554,7 @@ export default function HomeScreen({ navigation }) {
               {recentFilesFromRedux && recentFilesFromRedux.length > 0 ? (
                 <FlatList
                   data={recentFilesFromRedux}
-                  renderItem={animatedRenderItem}
+                  renderItem={renderItem}
                   keyExtractor={(item) => item.name}
                   refreshControl={
                     <RefreshControl
@@ -620,11 +573,11 @@ export default function HomeScreen({ navigation }) {
                 <FlatList
                   data={[]}
                   ListEmptyComponent={
-                    <Animated.View style={{ opacity: fadeAnim }}>
+                    <View>
                       <Text style={styles.nothingText}>
                         Nothing here, upload now!
                       </Text>
-                    </Animated.View>
+                    </View>
                   }
                   refreshControl={
                     <RefreshControl
@@ -636,6 +589,7 @@ export default function HomeScreen({ navigation }) {
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
+                    width: wp("100%")
                   }}
                 />
               )}
@@ -1006,6 +960,11 @@ const styles = StyleSheet.create({
   audioImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "contain",
+  },
+  fallBackAudioImage: {
+    width: "60%",
+    height: "60%",
     resizeMode: "contain",
   },
   videoFileWithPlayContainer: {

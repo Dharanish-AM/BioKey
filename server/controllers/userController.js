@@ -3,13 +3,12 @@ const File = require("../models/fileSchema")
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
-const { IncomingForm } = require("formidable");
+const formidable = require("formidable");
 const mongoose = require("mongoose");
 const sharp = require("sharp");
 const minioClient = require("../config/minio")
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
-const upload = require("../config/multer");
 
 const TARGET_DIR = path.join(
   "D:",
@@ -17,14 +16,6 @@ const TARGET_DIR = path.join(
   "BioKey",
   "server",
   "uploads"
-);
-
-const TEMP_DIR = path.join(
-  "D:",
-  "Github_Repository",
-  "BioKey",
-  "server",
-  "temp"
 );
 
 const register = async (req, res) => {
@@ -212,9 +203,15 @@ const deleteUser = async (req, res) => {
 };
 
 const setProfile = async (req, res) => {
-  try {
-    const userId = req.query.userId;
+  const form = new formidable.IncomingForm({ keepExtensions: true });
 
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error("Error parsing form data:", err.message);
+      return res.status(500).json({ message: "Error processing profile upload" });
+    }
+
+    const { userId } = fields;
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
@@ -224,53 +221,35 @@ const setProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    upload(req, res, async (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(400).json({ message: err.message });
-      }
+    if (!files.profile) {
+      return res.status(400).json({ message: "Profile image is required." });
+    }
 
-      if (!req.file) {
-        return res.status(400).json({ message: "Profile image is required." });
-      }
+    const file = files.profile;
+    const fileExtension = file.originalFilename.split('.').pop();
+    const minioPath = `${userId}/profile.${fileExtension}`;
 
-      const file = req.file;
-      const fileExtension = path.extname(file.originalname);
-      const minioPath = `${userId}/profile${fileExtension}`;
+    try {
+      const fileStream = fs.createReadStream(file.filepath);
+      await minioClient.putObject(BUCKET_NAME, minioPath, fileStream, {
+        "Content-Type": file.mimetype,
+      });
 
+      user.profile = minioPath;
+      await user.save();
 
-      try {
-        await minioClient.putObject(
-          BUCKET_NAME,
-          minioPath,
-          file.buffer,
-          file.size,
-          {
-            "Content-Type": file.mimetype,
-          }
-        );
+      res.status(200).json({
+        message: "Profile updated successfully.",
+        profile: minioPath,
+      });
 
-
-        user.profile = minioPath;
-        await user.save();
-
-        res.status(200).json({
-          message: "Profile updated successfully.",
-          profile: minioPath,
-        });
-      } catch (uploadError) {
-        console.error("Error uploading to MinIO:", uploadError);
-        return res
-          .status(500)
-          .json({ message: "Error uploading profile image to storage." });
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error updating profile." });
-  }
+      fs.unlinkSync(file.filepath);
+    } catch (uploadError) {
+      console.error("Error uploading to MinIO:", uploadError);
+      res.status(500).json({ message: "Error uploading profile image to storage." });
+    }
+  });
 };
-
 const createFolder = async (req, res) => {
   const { userId, folderName } = req.query;
 

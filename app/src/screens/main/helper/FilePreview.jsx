@@ -41,7 +41,6 @@ export default function FilePreviewScreen({ route, navigation }) {
   const [videoData, setVideoData] = useState(null);
   const [audioData, setAudioData] = useState(null);
   const [otherData, setOtherData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,8 +69,6 @@ export default function FilePreviewScreen({ route, navigation }) {
         }
       } catch (error) {
         console.error("Error fetching file preview:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -88,21 +85,20 @@ export default function FilePreviewScreen({ route, navigation }) {
 
   const handleShare = async () => {
     try {
-      let filePath = "";
-
+      let uri = "";
 
       switch (true) {
         case file.type.includes("image"):
-          filePath = imageData;
+          uri = imageData;
           break;
         case file.type.includes("video"):
-          filePath = videoData;
+          uri = videoData;
           break;
         case file.type.includes("audio"):
-          filePath = audioData;
+          uri = audioData;
           break;
         default:
-          filePath = otherData;
+          uri = otherData;
           break;
       }
 
@@ -114,22 +110,12 @@ export default function FilePreviewScreen({ route, navigation }) {
       }
 
 
-      if (!filePath || typeof filePath !== 'string') {
+      if (!uri || typeof uri !== 'string') {
         Alert.alert('Invalid file path', 'The file path is missing or invalid.');
         return;
       }
 
-
-      const tempFilePath = FileSystem.cacheDirectory + `${Date.now()}_${file.name}`;
-
-      console.log("File path:", filePath);
-      console.log("Temporary file path:", tempFilePath);
-
-
-      const { uri: downloadedUri } = await FileSystem.downloadAsync(filePath, tempFilePath);
-
-
-      await Sharing.shareAsync(downloadedUri, {
+      await Sharing.shareAsync(uri, {
         mimeType: file.type,
         dialogTitle: `Share ${file.name}`,
       });
@@ -137,8 +123,6 @@ export default function FilePreviewScreen({ route, navigation }) {
       console.log('File shared successfully!');
 
 
-      await FileSystem.deleteAsync(downloadedUri);
-      console.log('Temporary file deleted after sharing');
     } catch (error) {
 
       if (error.message.includes('Network')) {
@@ -225,19 +209,18 @@ export default function FilePreviewScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.top}>
-          <View style={styles.topContent}>
-            <TouchableOpacity
-              style={styles.backIconContainer}
-              onPress={() => navigation.goBack()}
-            >
-              <Image
-                source={require("../../../assets/images/back_icon.png")}
-                style={styles.backIcon}
-              />
-            </TouchableOpacity>
-            <Text style={styles.fileName}>{file.name}</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.backIconContainer}
+            onPress={() => navigation.goBack()}
+          >
+            <Image
+              source={require("../../../assets/images/back_icon.png")}
+              style={styles.backIcon}
+            />
+          </TouchableOpacity>
+          <Text style={styles.fileName}>{file.name}</Text>
         </View>
+
         <View style={styles.center}>{
           renderFilePreview()
         }</View>
@@ -357,21 +340,17 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    height: hp("6%"),
-    marginBottom: hp("1%")
-  },
-  topContent: {
-    flexDirection: "row",
-    alignItems: "center",
+    marginBottom: hp("1%"),
     gap: wp("0.5%"),
     flexWrap: "wrap",
-    paddingRight: wp("2%"),
   },
+
   fileName: {
     fontSize: hp("3%"),
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
     flex: 1,
+    flexWrap: "wrap",
   },
   backIconContainer: {
     height: hp("4.7%"),

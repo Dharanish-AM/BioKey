@@ -9,6 +9,7 @@ const colors = {
   lightColor2: "#242933",
   textColor3: "#E1E1E1",
   borderColorLight: "#E5E7EB",
+  red:"#DA4D4D"
 };
 
 export default colors;

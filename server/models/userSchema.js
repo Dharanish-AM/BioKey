@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    gender: {
+      type: String,
+      required: true
+    },
+    location: {
+      type: String,
+      required: true
+    },
     profile: {
       type: String,
       default: null,
@@ -49,7 +57,7 @@ const userSchema = new mongoose.Schema(
     ],
     totalSpace: {
       type: Number,
-      default: 5368709120 
+      default: 5368709120
     },
     usedSpace: {
       type: Number,

@@ -287,8 +287,8 @@ export default function HomeScreen({ navigation }) {
         }}
       >
         <View style={styles.recentFileImageContainer}>
-          {item.type === "pdf" ||
-            (item.type === "others" && item.name.includes("pdf")) ? (
+
+          {item.type === "others" && item.name.includes("pdf") ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>
@@ -305,23 +305,21 @@ export default function HomeScreen({ navigation }) {
               <Image
                 source={thumbnailSource}
                 style={[
-                  styles.fileImage,
-                  item.type === "others" && styles.documentImage,
-                  item.type === "audios" && styles.audioImage,
+                  styles.videoThumbnail,
                 ]}
               />
               <View style={styles.overlay} />
               <Image source={PlayIcon} style={styles.playIcon} />
             </View>
           ) : (
-            <Image
-              source={thumbnailSource}
-              style={[
-                styles.fileImage,
-                item.type === "others" && styles.documentImage,
-                item.type === "audios" && styles.audioImage,
-              ]}
-            />
+            <View style={styles.customThumbnailContainer}>
+              <Image
+                source={thumbnailSource}
+                style={[
+                  styles.fileImage,
+                ]}
+              />
+            </View>
           )}
         </View>
         <View style={styles.fileDetailsContainer}>
@@ -762,9 +760,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     flexDirection: "column",
+    justifyContent: "space-evenly"
   },
   storageDetailsContainer: {
-    marginTop: "10%",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
@@ -781,8 +779,6 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Medium",
   },
   premiumContainer: {
-    marginTop: "33%",
-    marginLeft: "15%",
     height: "15%",
     paddingHorizontal: hp("2%"),
     backgroundColor: "rgba(197, 169, 55, 0.2)",
@@ -950,6 +946,7 @@ const styles = StyleSheet.create({
   fileImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "contain",
     borderRadius: hp("1.5%"),
   },
   pdfImage: {
@@ -980,6 +977,11 @@ const styles = StyleSheet.create({
     tintColor: "rgba(202, 202, 202, 0.80)",
     zIndex: 10,
     opacity: 0.95,
+  },
+  videoThumbnail: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

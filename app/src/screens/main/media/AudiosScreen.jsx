@@ -75,7 +75,7 @@ export default function PhotosScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory(userId, "audios", dispatch);
-    fetchRecentFiles(userId,dispatch);
+    fetchRecentFiles(userId, dispatch);
     setRefreshing(false);
   };
 
@@ -206,8 +206,8 @@ export default function PhotosScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-              
-                const uploadResponse = await uploadMedia(userId,files, dispatch);
+
+                const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log(
@@ -326,11 +326,11 @@ export default function PhotosScreen({ navigation }) {
             <Animated.View
               style={[styles.filterContainer, { opacity: iconsOpacity }]}
             >
-              {!isSearchActive && (
+              {/* {!isSearchActive && (
                 <TouchableOpacity style={styles.filterIconContainer}>
                   <Image source={FilterIcon} style={styles.filterIcon} />
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {!isSearchActive && (
                 <TouchableOpacity
@@ -437,19 +437,20 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("1%"),
+    paddingHorizontal: wp("1.5%"),
     justifyContent: "space-between",
     marginBottom: hp("2%"),
   },
   backIconContainer: {
-    height: hp("6%"),
-    width: hp("4.5%"),
     flexDirection: "row",
     alignItems: "center",
+    width: wp("8%"),
+    justifyContent: "center",
+    marginRight: wp("1%")
   },
   backIcon: {
-    flex: 1,
-    aspectRatio: 1,
+    width: wp("5%"),
+    height: hp("5%"),
     resizeMode: "contain",
   },
   screenTitle: {
@@ -463,13 +464,13 @@ const styles = StyleSheet.create({
     gap: wp("4%"),
     flex: 1,
     alignItems: "center",
-    marginRight: wp("1%"),
   },
   searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
+    marginRight: wp("2%")
   },
   searchIcon: {
     width: "100%",

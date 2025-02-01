@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function Notifications() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center',backgroundColor:"red" }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "red" }}>
       <Text>Notifications</Text>
     </View>
   )

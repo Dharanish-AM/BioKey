@@ -23,6 +23,7 @@ import FilterIcon from "../../assets/images/filter_icon.png";
 import { Easing } from "react-native-reanimated";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { fetchFolderList } from "../../services/userOperations";
+import PlusIcon from "../../assets/images/plus_icon.png";
 
 export default function FoldersScreen() {
   const [filteredFolders, setFilteredFolders] = useState([]);
@@ -195,6 +196,11 @@ export default function FoldersScreen() {
           />
         </View>
       </View>
+      <TouchableOpacity
+        style={styles.addButton}
+      >
+        <Image source={PlusIcon} style={styles.plusIcon} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -308,8 +314,24 @@ const styles = StyleSheet.create({
   },
   folderName: {
     color: colors.textColor3,
-    fontSize: hp("2.3%"),
+    fontSize: hp("2.2%"),
     textAlign: "center",
-    fontFamily: "Afacad-Medium",
+    fontFamily: "Afacad-Regular",
+  },
+  addButton: {
+    position: "absolute",
+    right: wp("7%"),
+    bottom: hp("3%"),
+    width: hp("8%"),
+    aspectRatio: 1,
+    backgroundColor: "rgba(101, 48, 194, 0.95)",
+    borderRadius: hp("100%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  plusIcon: {
+    width: "50%",
+    height: "50%",
+    opacity: 0.9,
   },
 });

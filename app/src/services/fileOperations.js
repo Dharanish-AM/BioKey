@@ -17,7 +17,6 @@ export const uploadMedia = async (userId, files, dispatch) => {
   files.forEach((file) => {
     const { uri, fileName, name } = file;
     const fileNameToUse = fileName || name;
-
     formData.append("file", {
       uri,
       name: fileNameToUse,
@@ -32,13 +31,13 @@ export const uploadMedia = async (userId, files, dispatch) => {
     });
 
     if (response.status >= 200 && response.status < 300) {
-      if (response.data.errors && response.data.errors.length > 0) {
-        console.error("Some files failed to upload:", response.data.errors);
+      const { errors } = response.data;
+
+      if (errors && errors.length > 0) {
+        console.error("Some files failed to upload:", errors);
         return {
           success: false,
-          message: `Some files failed to upload: ${response.data.errors.join(
-            ", "
-          )}`,
+          message: `Some files failed to upload: ${errors.join(", ")}`,
         };
       }
 
@@ -53,16 +52,21 @@ export const uploadMedia = async (userId, files, dispatch) => {
       };
     }
   } catch (error) {
-    if (error.response) {
-      console.error("Error response:", error.response.data);
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-    } else {
-      console.error("Request error:", error.message);
-    }
+    handleUploadError(error);
     return { success: false, message: "Upload failed. Please try again." };
   }
 };
+
+const handleUploadError = (error) => {
+  if (error.response) {
+    console.error("Error response:", error.response.data);
+  } else if (error.request) {
+    console.error("No response received:", error.request);
+  } else {
+    console.error("Request error:", error.message);
+  }
+};
+
 
 export const fetchFilesByCategory = async (userId, category, dispatch) => {
   try {
@@ -99,15 +103,13 @@ export const fetchRecentFiles = async (userId, dispatch) => {
 };
 
 export const fetchUsedSpace = async (userId, dispatch) => {
-  const TOTAL_SPACE = 5 * 1024 * 1024 * 1024;
   try {
     const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
-
-
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
+      const totalSpaceBytes = response.data.totalSpace || 0;
       const usedSpacePercentage = (
-        (usedSpaceBytes / TOTAL_SPACE) *
+        (usedSpaceBytes / totalSpaceBytes) *
         100
       ).toFixed(2);
       const usedSpaceWithUnit = formatFileSize(usedSpaceBytes);
@@ -129,15 +131,20 @@ export const fetchUsedSpace = async (userId, dispatch) => {
 
 
 export const previewFile = async (userId, fileId) => {
-  let url = "";
   try {
-    url = `${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`
-    return url;
+    const response = await axios.get(`${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`);
+    if (response.status === 200) {
+      return response.data.url;
+    } else {
+      console.error("Error fetching file preview:", response.data.message || response);
+      return null;
+    }
   } catch (error) {
     console.error("Error generating URL:", error.message);
     return null;
   }
-}
+};
+
 
 export const deleteFile = async (userId, fileId, type, dispatch) => {
   try {
@@ -151,7 +158,7 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
     console.log("File deleted successfully:", response.data);
 
     fetchFilesByCategory(userId, type, dispatch);
-    fetchRecentFiles(dispatch);
+    fetchRecentFiles(userId, dispatch);
     fetchUsedSpace(userId, dispatch);
 
     return {

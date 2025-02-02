@@ -11,12 +11,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DrawerView from "../components/DrawerView";
 import Notifications from "../screens/main/drawer/Notifications";
 import MapView from "react-native-maps";
+import Accounts from "../screens/main/drawer/Accounts";
+import ActivityLogs from "../screens/main/drawer/ActivityLogs";
+import Support from "../screens/main/drawer/Support";
 
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
 
-  
+
   return (
     <Drawer.Navigator
       initialRouteName="TabNavigator"
@@ -24,7 +27,6 @@ export default function DrawerNavigator() {
       screenOptions={{
         headerShown: false,
         drawerType: "front",
-
         drawerPosition: "left",
         drawerStyle: {
           backgroundColor: "transparent",
@@ -34,11 +36,14 @@ export default function DrawerNavigator() {
         drawerLockMode: "unlocked",
         keyboardDismissMode: "on-drag",
         backBehavior: "history",
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen name="TabNavigator" component={TabNavigator} />
-      <Drawer.Screen name="ActivityLogs" component={MapView} />
+      <Drawer.Screen name="Accounts" component={Accounts} />
       <Drawer.Screen name="Notifications" component={Notifications} />
+      <Drawer.Screen name="ActivityLogs" component={ActivityLogs} />
+      <Drawer.Screen name="Support" component={Support} />
     </Drawer.Navigator>
   );
 }

@@ -39,11 +39,12 @@ import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import PlayIcon from "../../../assets/images/play_icon.png";
+import Toast from "react-native-toast-message";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
 
-    const userId = useSelector((state) => state.user.userId);
+  const userId = useSelector((state) => state.user.userId);
 
   const { videos } = useSelector(
     (state) => ({
@@ -75,7 +76,7 @@ export default function PhotosScreen({ navigation }) {
   const refreshData = async () => {
     setRefreshing(true);
     await fetchFilesByCategory(userId, "videos", dispatch);
-    fetchRecentFiles(userId,dispatch);
+    fetchRecentFiles(userId, dispatch);
     setRefreshing(false);
   };
 
@@ -207,27 +208,29 @@ export default function PhotosScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-                const uploadResponse = await uploadMedia(userId,files, dispatch);
+                const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
                   console.log(
                     `${category.charAt(0).toUpperCase() + category.slice(1)
                     } uploaded successfully`
                   );
-                  Alert.alert(
-                    "Upload Success",
-                    `${files.length} ${category}(s) uploaded successfully!`,
-                    [{ text: "OK" }]
-                  );
+                  Toast.show({
+                    type: 'success',
+                    text1: `File uploaded successfully!`,
+                    text2: `Total files: ${files.length}.`,
+                  });
                 } else {
                   console.error(
                     `${category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
                     uploadResponse.message
                   );
-                  Alert.alert("Upload Failed", uploadResponse.message, [
-                    { text: "OK" },
-                  ]);
+                  Toast.show({
+                    type: 'error',
+                    text1: "Upload Failed",
+                    text2: uploadResponse.message || "Unknown error occurred.",
+                  });
                 }
 
                 setIsUploading(false);
@@ -261,16 +264,19 @@ export default function PhotosScreen({ navigation }) {
       style={styles.fileContainer}
       onPress={() => handlePress(item)}
     >
-      <Image source={PlayIcon} style={styles.playIcon} />
+
       {item.thumbnail ? (
         <View style={styles.fileThumbnailContainer}>
+          <Image source={PlayIcon} style={styles.playIcon} />
           <Image
             source={{ uri: item.thumbnail }}
             style={styles.fileThumbnail}
           />
         </View>
       ) : (
-        <Text>No Thumbnail Available</Text>
+        <View style={styles.fileThumbnailContainer}>
+          <Text style={styles.noThumbnail}>No Thumbnail Available</Text>
+        </View>
       )}
       <View style={styles.fileDetails}>
         <Text style={styles.fileName} ellipsizeMode="tail" numberOfLines={1}>
@@ -323,11 +329,11 @@ export default function PhotosScreen({ navigation }) {
             <Animated.View
               style={[styles.filterContainer, { opacity: iconsOpacity }]}
             >
-              {!isSearchActive && (
+              {/* {!isSearchActive && (
                 <TouchableOpacity style={styles.filterIconContainer}>
                   <Image source={FilterIcon} style={styles.filterIcon} />
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {!isSearchActive && (
                 <TouchableOpacity
@@ -434,19 +440,20 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("1%"),
+    paddingHorizontal: wp("1.5%"),
     justifyContent: "space-between",
     marginBottom: hp("2%"),
   },
   backIconContainer: {
-    height: hp("6%"),
-    width: hp("4.5%"),
     flexDirection: "row",
     alignItems: "center",
+    width: wp("8%"),
+    justifyContent: "center",
+    marginRight: wp("1%")
   },
   backIcon: {
-    flex: 1,
-    aspectRatio: 1,
+    width: wp("5%"),
+    height: hp("5%"),
     resizeMode: "contain",
   },
   screenTitle: {
@@ -460,13 +467,13 @@ const styles = StyleSheet.create({
     gap: wp("4%"),
     flex: 1,
     alignItems: "center",
-    marginRight: wp("1%"),
   },
   searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
+    marginRight: wp("2%")
   },
   searchIcon: {
     width: "100%",
@@ -511,7 +518,7 @@ const styles = StyleSheet.create({
     height: hp("21%"),
     overflow: "hidden",
     borderRadius: hp("1.5%"),
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 0.6,
     backgroundColor: "rgba(25, 29, 36, 0.5)",
@@ -536,6 +543,13 @@ const styles = StyleSheet.create({
   fileThumbnail: {
     height: "100%",
     width: "100%",
+  },
+  noThumbnail: {
+    fontFamily: "Afacad-Regular",
+    opacity: 0.9,
+    fontSize: hp("1.5%"),
+    color: colors.textColor2,
+    alignSelf: "center",
   },
   fileDetails: {
     alignItems: "center",

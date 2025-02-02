@@ -38,6 +38,7 @@ import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
+import Toast from "react-native-toast-message";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -94,7 +95,6 @@ export default function PhotosScreen({ navigation }) {
       setFilteredImages(images);
     }
   }, [images, searchTerm]);
-
 
 
   const handlePress = async (file) => {
@@ -211,17 +211,19 @@ export default function PhotosScreen({ navigation }) {
                 const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
+                  Toast.show({
+                    type: 'success',
+                    text1: `File uploaded successfully!`,
+                    text2: `Total files: ${files.length}.`,
+                  });
                   console.log("All files uploaded successfully");
-                  Alert.alert(
-                    "Upload Success",
-                    `${files.length} ${category}(s) uploaded successfully!`,
-                    [{ text: "OK" }]
-                  );
                 } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: "Upload Failed",
+                    text2: uploadResponse.message || "Unknown error occurred.",
+                  });
                   console.error("Upload failed:", uploadResponse.message);
-                  Alert.alert("Upload Failed", uploadResponse.message, [
-                    { text: "OK" },
-                  ]);
                 }
 
                 setIsUploading(false);
@@ -318,11 +320,11 @@ export default function PhotosScreen({ navigation }) {
             <Animated.View
               style={[styles.filterContainer, { opacity: iconsOpacity }]}
             >
-              {!isSearchActive && (
+              {/* {!isSearchActive && (
                 <TouchableOpacity style={styles.filterIconContainer}>
                   <Image source={FilterIcon} style={styles.filterIcon} />
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {!isSearchActive && (
                 <TouchableOpacity
@@ -429,19 +431,20 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp("1%"),
+    paddingHorizontal: wp("1.5%"),
     justifyContent: "space-between",
     marginBottom: hp("2%"),
   },
   backIconContainer: {
-    height: hp("6%"),
-    width: hp("4.5%"),
     flexDirection: "row",
     alignItems: "center",
+    width: wp("8%"),
+    justifyContent: "center",
+    marginRight: wp("1%")
   },
   backIcon: {
-    flex: 1,
-    aspectRatio: 1,
+    width: wp("5%"),
+    height: hp("5%"),
     resizeMode: "contain",
   },
   screenTitle: {
@@ -455,13 +458,13 @@ const styles = StyleSheet.create({
     gap: wp("4%"),
     flex: 1,
     alignItems: "center",
-    marginRight: wp("1%"),
   },
   searchIconContainer: {
     alignItems: "center",
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
+    marginRight: wp("2%")
   },
   searchIcon: {
     width: "100%",
@@ -480,9 +483,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Regular",
     color: colors.textColor3,
   },
   filterIconContainer: {

@@ -8,10 +8,9 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
-  Animated,
   RefreshControl,
-} from "react-native";
-import React, { useEffect, useState, useRef, useMemo } from "react";
+} from "react-native"
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
 import {
@@ -19,7 +18,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import SpinnerOverlay from "../../components/SpinnerOverlay";
-import SpinnerOverlay2 from "../../components/SpinnerOverlay2";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
@@ -53,19 +51,17 @@ import PdfIcon from "../../assets/images/pdf_icon.png";
 import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
-import { setFirstRender, setTabBarVisible } from "../../redux/actions";
-import SkeletonLoader from "../../components/SkeletonLoader";
-import { loadProfile } from "../../services/userOperations";
+import { setFirstRender } from "../../redux/actions";
+import { loadUser } from "../../services/userOperations";
+import Toast from "react-native-toast-message";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const refRBSheet = useRef();
-  const TOTAL_SPACE_UNIT = "5 GB";
   const dispatch = useDispatch();
-  const [isProfileLoaded, setProfileLoaded] = useState(false);
-  const [usedSpace, setUsedSpace] = useState(0);
+
 
   const { userId } = useSelector(
     (state) => state.user,
@@ -76,7 +72,6 @@ export default function HomeScreen({ navigation }) {
     shallowEqual
   );
 
-  const usedSpaceRedux = useSelector((state) => state.files.usedSpace);
 
   const isFirstRender = useSelector(
     (state) => state.appConfig.isFirstRender.homeScreen
@@ -84,10 +79,17 @@ export default function HomeScreen({ navigation }) {
 
   const user = useSelector((state) => state.user, shallowEqual);
 
+
+
   useEffect(() => {
     if (!isFirstRender) return;
     setIsLoading(true);
     dispatch(setFirstRender("homeScreen"));
+
+    const fetchUser = async () => {
+      await loadUser(userId, dispatch);
+    };
+
     const fetchData = async () => {
       try {
         await fetchRecentFiles(userId, dispatch);
@@ -99,19 +101,12 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
-    const fetchUser = async () => {
-      await loadProfile(userId, dispatch);
-    };
 
     fetchUser();
     fetchData();
   }, [dispatch]);
 
-  useEffect(() => {
-    if (usedSpaceRedux) {
-      setUsedSpace(usedSpaceRedux);
-    }
-  }, [usedSpaceRedux]);
+
 
   const showAlert = (title, message, onConfirm) => {
     Alert.alert(title, message, [
@@ -129,17 +124,34 @@ export default function HomeScreen({ navigation }) {
     try {
       const uploadResponse = await uploadMedia(userId, fileData, dispatch);
       if (uploadResponse.success) {
+        Toast.show({
+          type: 'success',
+          text1: `File uploaded successfully!`,
+          text2: `Total files: ${files.length}.`,
+        });
         console.log(`${files.length} file(s) uploaded successfully.`);
         return files.length;
       } else {
+        Toast.show({
+          type: 'error',
+          text1: "Upload Failed",
+          text2: uploadResponse.message || "Unknown error occurred.",
+        });
         console.error("Upload failed:", uploadResponse.message);
         return 0;
       }
     } catch (error) {
       console.error("Error uploading files:", error);
+      Toast.show({
+        type: 'error',
+        text1: "Upload Failed",
+        text2: error.message || "An error occurred during upload.",
+      });
       return 0;
     }
   };
+
+
 
   const handleImageVideoPick = async () => {
     if (isUploading) return;
@@ -164,17 +176,6 @@ export default function HomeScreen({ navigation }) {
             if (successCount > 0) {
               fetchFilesByCategory(userId, "images", dispatch);
               fetchFilesByCategory(userId, "videos", dispatch);
-              Alert.alert(
-                "Upload Success",
-                `${successCount} file(s) uploaded successfully!`,
-                [{ text: "OK" }]
-              );
-            } else {
-              Alert.alert(
-                "Upload Failed",
-                "No files were uploaded successfully.",
-                [{ text: "OK" }]
-              );
             }
 
             refRBSheet.current.close();
@@ -218,17 +219,6 @@ export default function HomeScreen({ navigation }) {
 
             if (successCount > 0) {
               fetchFilesByCategory(userId, "others", dispatch);
-              Alert.alert(
-                "Upload Success",
-                `${successCount} file(s) uploaded successfully!`,
-                [{ text: "OK" }]
-              );
-            } else {
-              Alert.alert(
-                "Upload Failed",
-                "No files were uploaded successfully.",
-                [{ text: "OK" }]
-              );
             }
 
             refRBSheet.current.close();
@@ -255,69 +245,29 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [recentFilesFromRedux]);
-
-  const animatedRenderItem = ({ item, index }) => {
-    const translateY = fadeAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [10, 0],
-    });
-
-    return (
-      <Animated.View
-        style={{
-          transform: [{ translateY }],
-          opacity: fadeAnim,
-        }}
-      >
-        {renderItem({ item, index })}
-      </Animated.View>
-    );
-  };
 
   const getThumbnailSource = (item) => {
     const isPdf = item.name.toLowerCase().endsWith(".pdf");
+    const { type, thumbnail } = item;
 
-    if (isPdf) {
-      return PdfIcon;
+
+    if (isPdf) return PdfIcon;
+
+
+    if (type === "audios" && !thumbnail) return AudioFileIcon;
+
+
+    if (type === "others" && !thumbnail) return DocsFileIcon;
+
+
+    if (thumbnail) {
+      return { uri: thumbnail };
     }
 
-    if (item.type === "images" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
 
-    if (item.type === "videos" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
-
-    if (item.type === "audios" && item.thumbnail) {
-      return {
-        uri: item.thumbnail,
-      };
-    }
-
-    if (item.type === "audios" && !item.thumbnail) {
-      return AudioFileIcon;
-    }
-
-    if (item.type === "others" && !item.thumbnail) {
-      return DocsFileIcon;
-    }
-
-    return { uri: item.thumbnail };
+    return DocsFileIcon;
   };
+
 
   const renderItem = ({ item }) => {
     const thumbnailSource = getThumbnailSource(item);
@@ -328,46 +278,44 @@ export default function HomeScreen({ navigation }) {
         key={item.id || item.name}
         onPress={() => {
           navigation.navigate("FilePreviewScreen", {
-            file: item
+            file: item,
           });
         }}
       >
         <View style={styles.recentFileImageContainer}>
-          {item.type === "pdf" ||
-            (item.type === "others" && item.name.includes("pdf")) ? (
+
+          {!item?.thumbnail ? "" : item.type === "others" && item.name.includes("pdf") ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
+            </View>
+          ) : item.type === "audios" && !item.thumbnail ? (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
             </View>
           ) : item.type === "others" && !item.thumbnail ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={DocsFileIcon} style={styles.documentImage} />
-            </View>
-          ) : item.type === "audios" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={AudioFileIcon} style={styles.audioImage} />
             </View>
           ) : item.type === "videos" ? (
             <View style={styles.videoFileWithPlayContainer}>
               <Image
                 source={thumbnailSource}
                 style={[
-                  styles.fileImage,
-                  item.type === "others" && styles.documentImage,
-                  item.type === "audios" && styles.audioImage,
+                  styles.videoThumbnail,
                 ]}
               />
               <View style={styles.overlay} />
               <Image source={PlayIcon} style={styles.playIcon} />
             </View>
           ) : (
-            <Image
-              source={thumbnailSource}
-              style={[
-                styles.fileImage,
-                item.type === "others" && styles.documentImage,
-                item.type === "audios" && styles.audioImage,
-              ]}
-            />
+            <View style={styles.customThumbnailContainer}>
+              <Image
+                source={thumbnailSource}
+                style={[
+                  styles.fileImage,
+                ]}
+              />
+            </View>
           )}
         </View>
         <View style={styles.fileDetailsContainer}>
@@ -400,10 +348,11 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
+
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay visible={isLoading} />
 
+      <SpinnerOverlay visible={isLoading} />
       {isUploading && (
         <ActivityIndicator
           size="large"
@@ -427,14 +376,12 @@ export default function HomeScreen({ navigation }) {
                   source={{ uri: user.profileImage }}
                   style={styles.profileIcon}
                   resizeMode="cover"
-                  onLoadEnd={() => setProfileLoaded(true)}
                 />
               ) : (
                 <Image
                   source={ProfileIcon}
                   style={styles.profileIcon}
                   resizeMode="cover"
-                  onLoadEnd={() => setProfileLoaded(true)}
                 />
               )}
             </View>
@@ -460,7 +407,7 @@ export default function HomeScreen({ navigation }) {
               <AnimatedCircularProgress
                 size={hp("16%")}
                 width={hp("1.2%")}
-                fill={Number(usedSpace?.usedSpacePercentage) || 0}
+                fill={(user.usedSpace / user.totalSpace) * 100 || 0}
                 prefill={0}
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
@@ -492,9 +439,9 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.storageDetailsContainer}>
                 <Text style={styles.storageTitle}>Used Space</Text>
                 <Text style={styles.storageValue}>
-                  {usedSpace && usedSpace.usedSpaceWithUnit
-                    ? `${usedSpace.usedSpaceWithUnit} / ${TOTAL_SPACE_UNIT}`
-                    : `0 / ${TOTAL_SPACE_UNIT}`}
+                  {user && user.usedSpace && user.totalSpace
+                    ? `${formatFileSize(user.usedSpace)} / ${formatFileSize(user.totalSpace)}`
+                    : `0 B / ${formatFileSize(user.totalSpace)}`}
                 </Text>
               </View>
               <TouchableOpacity style={styles.premiumContainer}>
@@ -575,7 +522,7 @@ export default function HomeScreen({ navigation }) {
                 >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity style={styles.optionsIconContainer} >
                   <Image style={styles.optionIcon} source={BinIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.optionsIconContainer}>
@@ -601,7 +548,7 @@ export default function HomeScreen({ navigation }) {
               {recentFilesFromRedux && recentFilesFromRedux.length > 0 ? (
                 <FlatList
                   data={recentFilesFromRedux}
-                  renderItem={animatedRenderItem}
+                  renderItem={renderItem}
                   keyExtractor={(item) => item.name}
                   refreshControl={
                     <RefreshControl
@@ -620,11 +567,11 @@ export default function HomeScreen({ navigation }) {
                 <FlatList
                   data={[]}
                   ListEmptyComponent={
-                    <Animated.View style={{ opacity: fadeAnim }}>
+                    <View>
                       <Text style={styles.nothingText}>
                         Nothing here, upload now!
                       </Text>
-                    </Animated.View>
+                    </View>
                   }
                   refreshControl={
                     <RefreshControl
@@ -636,6 +583,7 @@ export default function HomeScreen({ navigation }) {
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
+                    width: wp("100%")
                   }}
                 />
               )}
@@ -808,9 +756,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     flexDirection: "column",
+    justifyContent: "space-evenly"
   },
   storageDetailsContainer: {
-    marginTop: "10%",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
@@ -827,8 +775,6 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Medium",
   },
   premiumContainer: {
-    marginTop: "33%",
-    marginLeft: "15%",
     height: "15%",
     paddingHorizontal: hp("2%"),
     backgroundColor: "rgba(197, 169, 55, 0.2)",
@@ -996,6 +942,7 @@ const styles = StyleSheet.create({
   fileImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "contain",
     borderRadius: hp("1.5%"),
   },
   pdfImage: {
@@ -1006,6 +953,11 @@ const styles = StyleSheet.create({
   audioImage: {
     width: "100%",
     height: "100%",
+    resizeMode: "contain",
+  },
+  fallBackAudioImage: {
+    width: "60%",
+    height: "60%",
     resizeMode: "contain",
   },
   videoFileWithPlayContainer: {
@@ -1021,6 +973,11 @@ const styles = StyleSheet.create({
     tintColor: "rgba(202, 202, 202, 0.80)",
     zIndex: 10,
     opacity: 0.95,
+  },
+  videoThumbnail: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

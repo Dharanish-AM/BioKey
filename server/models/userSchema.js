@@ -11,17 +11,25 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
-      unique: true, 
+      unique: true,
     },
     phone: {
       type: Number,
       required: true,
-      unique: true, 
+      unique: true,
     },
     password: {
       type: String,
       required: true,
       trim: true,
+    },
+    gender: {
+      type: String,
+      required: true
+    },
+    location: {
+      type: String,
+      required: true
     },
     profile: {
       type: String,
@@ -31,11 +39,6 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Device",
       default: null,
-    },
-    likedFiles: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "File",
-      default: [],
     },
     folders: [
       {
@@ -52,6 +55,14 @@ const userSchema = new mongoose.Schema(
         ],
       },
     ],
+    totalSpace: {
+      type: Number,
+      default: 5368709120
+    },
+    usedSpace: {
+      type: Number,
+      default: 0
+    },
     createdAt: {
       type: Date,
       default: Date.now,

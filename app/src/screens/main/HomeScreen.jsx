@@ -246,31 +246,53 @@ export default function HomeScreen({ navigation }) {
   };
 
 
-  const getThumbnailSource = (item) => {
-    const isPdf = item.name.toLowerCase().endsWith(".pdf");
-    const { type, thumbnail } = item;
-
-
-    if (isPdf) return PdfIcon;
-
-
-    if (type === "audios" && !thumbnail) return AudioFileIcon;
-
-
-    if (type === "others" && !thumbnail) return DocsFileIcon;
-
-
-    if (thumbnail) {
-      return { uri: thumbnail };
-    }
-
-
-    return DocsFileIcon;
-  };
-
-
   const renderItem = ({ item }) => {
-    const thumbnailSource = getThumbnailSource(item);
+    const renderThumbnail = () => {
+      if (item?.thumbnail) {
+        if (item.type === "images") {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+            </View>
+          );
+        }
+
+        if (item.type === "videos") {
+          return (
+            <View style={styles.videoFileWithPlayContainer}>
+              <Image
+                source={{ uri: item.thumbnail }}
+                style={styles.videoThumbnail}
+              />
+              <View style={styles.overlay} />
+              <Image source={PlayIcon} style={styles.playIcon} />
+            </View>
+          );
+        }
+      }
+
+      if (item.name.toLowerCase().endsWith(".pdf")) {
+        return (
+          <View style={styles.customThumbnailContainer}>
+            <Image source={PdfIcon} style={styles.pdfImage} />
+          </View>
+        );
+      }
+
+      if (item.type === "audios") {
+        return (
+          <View style={styles.customThumbnailContainer}>
+            <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
+          </View>
+        );
+      }
+
+      return (
+        <View style={styles.customThumbnailContainer}>
+          <Image source={DocsFileIcon} style={styles.documentImage} />
+        </View>
+      );
+    };
 
     return (
       <TouchableOpacity
@@ -283,54 +305,15 @@ export default function HomeScreen({ navigation }) {
         }}
       >
         <View style={styles.recentFileImageContainer}>
-
-          {!item?.thumbnail ? "" : item.type === "others" && item.name.includes("pdf") ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={PdfIcon} style={styles.pdfImage} />
-            </View>
-          ) : item.type === "audios" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
-            </View>
-          ) : item.type === "others" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={DocsFileIcon} style={styles.documentImage} />
-            </View>
-          ) : item.type === "videos" ? (
-            <View style={styles.videoFileWithPlayContainer}>
-              <Image
-                source={thumbnailSource}
-                style={[
-                  styles.videoThumbnail,
-                ]}
-              />
-              <View style={styles.overlay} />
-              <Image source={PlayIcon} style={styles.playIcon} />
-            </View>
-          ) : (
-            <View style={styles.customThumbnailContainer}>
-              <Image
-                source={thumbnailSource}
-                style={[
-                  styles.fileImage,
-                ]}
-              />
-            </View>
-          )}
+          {renderThumbnail()}
         </View>
         <View style={styles.fileDetailsContainer}>
           <View style={styles.aboutFile}>
-            <Text
-              style={styles.recentFileName}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text style={styles.recentFileName} numberOfLines={1} ellipsizeMode="tail">
               {item.name}
             </Text>
             <View style={styles.fileDetails}>
-              <Text style={styles.recentFileSize}>
-                {formatFileSize(item.size)}
-              </Text>
+              <Text style={styles.recentFileSize}>{formatFileSize(item.size)}</Text>
               <Text style={styles.modifiedTime}>
                 {new Date(item.createdAt).toLocaleString("en-US", {
                   hour: "2-digit",
@@ -347,6 +330,7 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
     );
   };
+
 
 
   return (
@@ -938,6 +922,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("1.5%"),
     alignItems: "center",
     justifyContent: "center",
+
   },
   fileImage: {
     width: "100%",
@@ -965,19 +950,21 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: hp("1.5%"),
+
   },
   playIcon: {
     position: "absolute",
     width: "35%",
     height: "35%",
-    tintColor: "rgba(202, 202, 202, 0.80)",
+    tintColor: "rgba(202, 202, 202, 0.90)",
     zIndex: 10,
-    opacity: 0.95,
   },
   videoThumbnail: {
     width: "100%",
     height: "100%",
-    resizeMode: "contain",
+    resizeMode: "cover",
+    borderRadius: hp("1.5%"),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground } from 'react-native'
+import React, { useRef, useState } from 'react'
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -12,24 +12,42 @@ import Entypo from '@expo/vector-icons/Entypo';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, TextInput } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { BlurView } from 'expo-blur';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import FallBackProfileImage from '../../../assets/images/profile_icon.png';
 
 export default function Accounts({ navigation }) {
     const [isMoreOption, setIsMoreOption] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const user = useSelector((state) => state.user);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const RBSheetRef = useRef()
+
+    const handleOpenProfile = () => {
+        setIsProfileOpen(!isProfileOpen);
+    }
+
+
 
     return (
         <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
             <StatusBar backgroundColor={colors.lightColor1} barStyle="light-content" />
 
             <View style={styles.innerContainer}>
-                <TouchableOpacity style={styles.editContainer}>
+                <TouchableOpacity onPress={() => {
+                    RBSheetRef.current.open()
+                }} style={styles.editContainer}>
                     <MaterialCommunityIcons name="pencil-outline" size={hp("2.5%")} color={colors.secondaryColor1} />
                 </TouchableOpacity>
 
-                <View style={styles.profileContainer}>
-                    <Image style={styles.profileImage} source={ProfileIcon} />
-                </View>
+                <TouchableOpacity onPress={handleOpenProfile} style={styles.profileContainer}>
+                    {
+                        user.profileImage ?
+                            <Image style={styles.profileImage} source={user.profileImage} />
+                            :
+                            <Image style={styles.profileImage} source={FallBackProfileImage} />
+                    }
+                </TouchableOpacity>
 
                 <View style={styles.top}>
                     <View style={styles.header}>
@@ -101,6 +119,45 @@ export default function Accounts({ navigation }) {
                     </View>
                 </TouchableWithoutFeedback>
             )}
+            {
+                isProfileOpen &&
+                <BlurView onTouchEnd={() => {
+                    setIsProfileOpen(false);
+                }} style={styles.blurryContainer}>
+                    <Image style={styles.fullProfileImage} source={ProfileIcon} />
+                </BlurView>
+
+
+            }
+            <RBSheet
+                ref={RBSheetRef}
+                closeOnDragDown={true}
+                closeOnPressMask={true}
+                draggable={true}
+                height={hp("30%")}
+                customStyles={{
+                    container: {
+                        backgroundColor: colors.secondaryColor1,
+                        borderTopLeftRadius: hp("5%"),
+                        borderTopRightRadius: hp("5%"),
+                    }
+                }}
+            >
+                <View style={styles.sheetContainer}>
+                    <Text style={
+                        styles.sheetHeader
+                    }>Choose from</Text>
+                    <View style={styles.sheetOptions}>
+                        <TouchableOpacity><Text style={
+                            styles.sheetOption
+                        }>Take Photo</Text></TouchableOpacity>
+                        <TouchableOpacity><Text style={
+                            styles.sheetOption
+                        }>Choose from Gallery</Text></TouchableOpacity>
+                    </View>
+                </View>
+            </RBSheet>
+
         </SafeAreaView>
     );
 }
@@ -148,7 +205,7 @@ const styles = StyleSheet.create({
         width: wp('100%'),
         flex: 1,
         alignItems: "center",
-        paddingTop: hp("10%"),
+        paddingTop: hp("12%"),
         justifyContent: 'space-between',
     },
     accountDetails: {
@@ -204,7 +261,7 @@ const styles = StyleSheet.create({
         borderRadius: hp("1%"),
         alignItems: "center",
         left: wp("43%"),
-        top: hp("15%")
+        top: hp("12%")
     },
     overlay: {
         position: 'absolute',
@@ -215,4 +272,43 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         zIndex: 2
     },
+    blurryContainer: {
+        position: 'absolute',
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 4,
+        width: wp("100%"),
+        height: hp("100%"),
+    },
+    fullProfileImage: {
+        height: "40%",
+        aspectRatio: 1,
+        resizeMode: "contain",
+        borderRadius: hp("2%"),
+    },
+    sheetContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: "space-between",
+        alignItems: 'flex-start',
+        padding: hp("2%"),
+    },
+    sheetHeader: {
+        fontFamily: "Afacad-Medium",
+        color: colors.textColor3,
+        fontSize: hp("2.7%")
+    },
+    sheetOptions: {
+        flex: 1,
+        justifyContent: "space-evenly",
+        width: "100%"
+    },
+    sheetOption: {
+        color: colors.textColor3,
+        fontFamily: "Afacad-Regular",
+        fontSize: hp("2.3%"),
+        borderBottomColor: "rgba(166, 173, 186, 0.1)",
+        borderBottomWidth: hp("0.1%"),
+        paddingBottom: hp("1%")
+    }
 });

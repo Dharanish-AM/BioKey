@@ -13,6 +13,7 @@ import Notifications from "../screens/main/drawer/Notifications";
 import MapView from "react-native-maps";
 import Accounts from "../screens/main/drawer/Accounts";
 import ActivityLogs from "../screens/main/drawer/ActivityLogs";
+import Support from "../screens/main/drawer/Support";
 
 const Drawer = createDrawerNavigator();
 
@@ -42,6 +43,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="Accounts" component={Accounts} />
       <Drawer.Screen name="Notifications" component={Notifications} />
       <Drawer.Screen name="ActivityLogs" component={ActivityLogs} />
+      <Drawer.Screen name="Support" component={Support} />
     </Drawer.Navigator>
   );
 }

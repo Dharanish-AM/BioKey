@@ -56,10 +56,10 @@ export default function DrawerView({ navigation }) {
           <Image source={AccountsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Accounts</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton}>
-          <Image source={NotificationsIcon} style={styles.optionsIcon} onPress={() => {
-            navigation.navigate("Notifications");
-          }} />
+        <TouchableOpacity style={styles.optionsButton} onPress={() => {
+          navigation.navigate("Notifications");
+        }}>
+          <Image source={NotificationsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Notifications</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.optionsButton} onPress={() => {

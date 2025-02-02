@@ -288,7 +288,7 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.recentFileImageContainer}>
 
-          {item.type === "others" && item.name.includes("pdf") ? (
+          {!item?.thumbnail ? "" : item.type === "others" && item.name.includes("pdf") ? (
             <View style={styles.customThumbnailContainer}>
               <Image source={PdfIcon} style={styles.pdfImage} />
             </View>

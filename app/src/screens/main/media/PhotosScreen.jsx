@@ -38,6 +38,7 @@ import SearchIcon from "../../../assets/images/new_search_icon.png";
 import FilterIcon from "../../../assets/images/filter_icon.png";
 import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
+import Toast from "react-native-toast-message";
 
 export default function PhotosScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -210,17 +211,19 @@ export default function PhotosScreen({ navigation }) {
                 const uploadResponse = await uploadMedia(userId, files, dispatch);
 
                 if (uploadResponse.success) {
+                  Toast.show({
+                    type: 'success',
+                    text1: `File uploaded successfully!`,
+                    text2: `Total files: ${files.length}.`,
+                  });
                   console.log("All files uploaded successfully");
-                  Alert.alert(
-                    "Upload Success",
-                    `${files.length} ${category}(s) uploaded successfully!`,
-                    [{ text: "OK" }]
-                  );
                 } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: "Upload Failed",
+                    text2: uploadResponse.message || "Unknown error occurred.",
+                  });
                   console.error("Upload failed:", uploadResponse.message);
-                  Alert.alert("Upload Failed", uploadResponse.message, [
-                    { text: "OK" },
-                  ]);
                 }
 
                 setIsUploading(false);

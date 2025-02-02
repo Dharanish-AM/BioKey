@@ -53,6 +53,7 @@ import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 import { setFirstRender } from "../../redux/actions";
 import { loadUser } from "../../services/userOperations";
+import Toast from "react-native-toast-message";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -123,17 +124,34 @@ export default function HomeScreen({ navigation }) {
     try {
       const uploadResponse = await uploadMedia(userId, fileData, dispatch);
       if (uploadResponse.success) {
+        Toast.show({
+          type: 'success',
+          text1: `File uploaded successfully!`,
+          text2: `Total files: ${files.length}.`,
+        });
         console.log(`${files.length} file(s) uploaded successfully.`);
         return files.length;
       } else {
+        Toast.show({
+          type: 'error',
+          text1: "Upload Failed",
+          text2: uploadResponse.message || "Unknown error occurred.",
+        });
         console.error("Upload failed:", uploadResponse.message);
         return 0;
       }
     } catch (error) {
       console.error("Error uploading files:", error);
+      Toast.show({
+        type: 'error',
+        text1: "Upload Failed",
+        text2: error.message || "An error occurred during upload.",
+      });
       return 0;
     }
   };
+
+
 
   const handleImageVideoPick = async () => {
     if (isUploading) return;
@@ -158,17 +176,6 @@ export default function HomeScreen({ navigation }) {
             if (successCount > 0) {
               fetchFilesByCategory(userId, "images", dispatch);
               fetchFilesByCategory(userId, "videos", dispatch);
-              Alert.alert(
-                "Upload Success",
-                `${successCount} file(s) uploaded successfully!`,
-                [{ text: "OK" }]
-              );
-            } else {
-              Alert.alert(
-                "Upload Failed",
-                "No files were uploaded successfully.",
-                [{ text: "OK" }]
-              );
             }
 
             refRBSheet.current.close();
@@ -212,17 +219,6 @@ export default function HomeScreen({ navigation }) {
 
             if (successCount > 0) {
               fetchFilesByCategory(userId, "others", dispatch);
-              Alert.alert(
-                "Upload Success",
-                `${successCount} file(s) uploaded successfully!`,
-                [{ text: "OK" }]
-              );
-            } else {
-              Alert.alert(
-                "Upload Failed",
-                "No files were uploaded successfully.",
-                [{ text: "OK" }]
-              );
             }
 
             refRBSheet.current.close();
@@ -355,8 +351,8 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay visible={isLoading} />
 
+      <SpinnerOverlay visible={isLoading} />
       {isUploading && (
         <ActivityIndicator
           size="large"
@@ -526,7 +522,7 @@ export default function HomeScreen({ navigation }) {
                 >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity style={styles.optionsIconContainer} >
                   <Image style={styles.optionIcon} source={BinIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.optionsIconContainer}>

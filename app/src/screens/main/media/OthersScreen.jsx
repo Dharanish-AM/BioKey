@@ -38,6 +38,7 @@ import BackIcon from "../../../assets/images/back_icon.png";
 import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import DocsFileIcon from "../../../assets/images/document_icon.png";
 import PdfIcon from "../../../assets/images/pdf_icon.png";
+import Toast from "react-native-toast-message";
 
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -217,20 +218,22 @@ export default function OthersScreen({ navigation }) {
                     `${category.charAt(0).toUpperCase() + category.slice(1)
                     } uploaded successfully`
                   );
-                  Alert.alert(
-                    "Upload Success",
-                    `${files.length} ${category}(s) uploaded successfully!`,
-                    [{ text: "OK" }]
-                  );
+                  Toast.show({
+                    type: 'success',
+                    text1: `File uploaded successfully!`,
+                    text2: `Total files: ${files.length}.`,
+                  });
                 } else {
                   console.error(
                     `${category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
                     uploadResponse.message
                   );
-                  Alert.alert("Upload Failed", uploadResponse.message, [
-                    { text: "OK" },
-                  ]);
+                  Toast.show({
+                    type: 'error',
+                    text1: "Upload Failed",
+                    text2: uploadResponse.message || "Unknown error occurred.",
+                  });
                 }
 
                 setIsUploading(false);

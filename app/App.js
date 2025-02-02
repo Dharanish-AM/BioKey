@@ -7,6 +7,8 @@ import { Provider } from "react-redux";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { enableFreeze } from "react-native-screens";
+import Toast from 'react-native-toast-message';
+import toastConfig from './toastConfig';
 
 import useLoadFonts from "./src/hooks/useLoadFonts";
 import colors from "./src/constants/colors";
@@ -38,6 +40,7 @@ export default function App() {
             <View style={styles.container}>
               <AppNavigator />
             </View>
+            <Toast config={toastConfig} />
           </NavigationContainer>
         </Provider>
       </SafeAreaProvider>

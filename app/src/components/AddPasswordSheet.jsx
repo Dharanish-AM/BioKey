@@ -17,6 +17,7 @@ import { addPassword } from "../services/passwordOperations";
 import { useDispatch } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+import Toast from "react-native-toast-message";
 
 export default function AddPasswordSheet({ bottomSheetRef }) {
   const [name, setName] = useState("");
@@ -65,22 +66,21 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
       );
 
       if (response.status) {
-        console.log("Password added successfully. Closing bottom sheet.");
+        Toast.show({
+          type: 'success',
+          text1: `Password added successfully!`,
+        });
 
         if (bottomSheetRef.current) {
           bottomSheetRef.current.close();
-          console.log("Bottom sheet closed.");
-        } else {
-          console.warn("Bottom sheet reference is undefined.");
         }
 
-        Alert.alert("Success", "Password added successfully!", [
-          { text: "OK" },
-        ]);
       } else {
-        Alert.alert("Error", "Failed to add password. Please try again.", [
-          { text: "OK" },
-        ]);
+        Toast.show({
+          type: 'error',
+          text1: "Adding Failed",
+          text2: uploadResponse.message || "Unknown error occurred.",
+        });
       }
     } catch (error) {
       console.error("Error in handleSubmit:", error);

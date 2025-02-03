@@ -34,6 +34,8 @@ import VideoPreview from '../../../components/preview/VideoPreview';
 import AudioPreview from '../../../components/preview/AudioPreview';
 import OtherPreview from '../../../components/preview/OtherPreview';
 import { useSelector } from "react-redux";
+import Toast from "react-native-toast-message";
+import AddFilesFolder from "../../../components/AddFilesFolder";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
@@ -45,6 +47,7 @@ export default function FilePreviewScreen({ route, navigation }) {
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLiked, setIsLike] = useState(false)
+  const addFolderSheet = useRef()
 
   const userId = useSelector((state) => state.user.userId);
 
@@ -173,16 +176,16 @@ export default function FilePreviewScreen({ route, navigation }) {
             const result = await deleteFile(userId, file._id, file.type, dispatch);
 
             if (result.success === false) {
-              Alert.alert(`Error`, `Error deleting file: ${result.message}`, [
-                { text: "OK" },
-              ]);
+              Toast.show({
+                type: 'error',
+                text1: `Error deleting file.`,
+                text2: `Status code: ${response?.message}`
+              })
             } else {
-              Alert.alert("Success", "File deleted successfully.", [
-                {
-                  text: "OK",
-                  onPress: () => navigation.goBack(),
-                },
-              ]);
+              Toast.show({
+                type: 'success',
+                text1: `File deleted successfully!`,
+              })
             }
           },
         },
@@ -243,7 +246,9 @@ export default function FilePreviewScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => console.log("Add Folder Icon Pressed")}
+            onPress={() => {
+              addFolderSheet.current.open()
+            }}
             style={styles.opticonContainer}
           >
             <Image source={AddFolder} style={styles.opticon} />
@@ -318,6 +323,15 @@ export default function FilePreviewScreen({ route, navigation }) {
           </View>
 
 
+        </RBSheet>
+        <RBSheet height={hp("80%")} draggable={true} customStyles={{
+          container: {
+            backgroundColor: colors.lightColor1,
+            borderTopLeftRadius: hp("3%"),
+            borderTopRightRadius: hp("3%"),
+          }
+        }} openDuration={250} ref={addFolderSheet}>
+          <AddFilesFolder file={file} />
         </RBSheet>
       </View>
     </SafeAreaView >

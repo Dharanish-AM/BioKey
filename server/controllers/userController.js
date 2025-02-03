@@ -1,5 +1,6 @@
 const User = require("../models/userSchema");
-const File = require("../models/fileSchema")
+const File = require("../models/fileSchema");
+const Folder = require("../models/folderSchema");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
@@ -250,8 +251,11 @@ const setProfile = async (req, res) => {
     }
   });
 };
+
+
 const createFolder = async (req, res) => {
-  const { userId, folderName } = req.query;
+  const { userId, folderName } = req.body;
+
 
   if (!userId || !folderName) {
     return res.status(400).json({ success: false, message: "User ID and folder name are required" });
@@ -265,26 +269,24 @@ const createFolder = async (req, res) => {
     }
 
 
-    if (!user.folders) {
-      user.folders = [];
-    }
-
-
-    const existingFolder = user.folders.find(folder => folder.name.trim().toLowerCase() === folderName.trim().toLowerCase());
+    const existingFolder = await Folder.findOne({
+      name: folderName.trim().toLowerCase(),
+      owner: userId,
+    });
 
     if (existingFolder) {
       return res.status(400).json({ success: false, message: "Folder already exists" });
     }
 
 
-    const newFolder = { name: folderName, files: [] };
+    const newFolder = new Folder({
+      name: folderName,
+      owner: userId,
+      files: [],
+    });
 
 
-    user.folders.push(newFolder);
-
-
-    await user.save();
-
+    await newFolder.save();
 
     return res.status(201).json({ success: true, folder: newFolder });
   } catch (error) {
@@ -294,25 +296,44 @@ const createFolder = async (req, res) => {
 };
 
 
+
 const addFilesToFolder = async (req, res) => {
-  const { userId, folderName, fileId } = req.body;
+  const { userId, folderId, fileId } = req.body;
+
   try {
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const folder = user.folders.find(f => f.name === folderName);
+
+    const folder = await Folder.findById(folderId);
     if (!folder) {
       return res.status(404).json({ success: false, message: "Folder not found" });
     }
+
+
+    if (!folder.owner.equals(userId)) {
+      return res.status(403).json({ success: false, message: "Folder does not belong to the user" });
+    }
+
+
+    const file = await File.findById(fileId);
+    if (!file) {
+      return res.status(404).json({ success: false, message: "File not found" });
+    }
+
 
     if (folder.files.includes(fileId)) {
       return res.status(400).json({ success: false, message: "File already in the folder" });
     }
 
+
     folder.files.push(fileId);
-    await user.save();
+
+
+    await folder.save();
 
     return res.status(200).json({ success: true, folder });
   } catch (error) {
@@ -320,7 +341,6 @@ const addFilesToFolder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Error adding file to folder" });
   }
 };
-
 
 
 const likeOrUnlikeFile = async (req, res) => {
@@ -347,22 +367,112 @@ const likeOrUnlikeFile = async (req, res) => {
 };
 
 
-
 const ListFolder = async (req, res) => {
   const { userId } = req.query;
-  try {
-    const user = await User.findById(userId).select("folders");
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+  try {
+
+    const folders = await Folder.find({ owner: userId }).populate({
+      path: 'files',
+      select: 'name type size thumbnail createdAt'
+    });
+
+    if (!folders || folders.length === 0) {
+      return res.status(404).json({ success: false, message: "No folders found for this user" });
     }
 
-    return res.status(200).json({ success: true, folders: user.folders });
+    const folderDetails = [];
+
+    for (let folder of folders) {
+      const files = [];
+
+
+      for (let file of folder.files) {
+        if (file.thumbnail) {
+          try {
+
+            const presignedUrl = await minioClient.presignedGetObject(process.env.MINIO_BUCKET_NAME, file.thumbnail, 24 * 60 * 60);
+            files.push({
+              _id: file._id,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              thumbnail: presignedUrl,
+            });
+          } catch (error) {
+            console.error("Error generating presigned URL for file thumbnail: ", error);
+            files.push({
+              _id: file._id,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              thumbnail: null,
+            });
+          }
+        } else {
+
+          files.push({
+            fileId: file._id,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            thumbnailUrl: null,
+          });
+        }
+      }
+
+      folderDetails.push({
+        folderId: folder._id,
+        folderName: folder.name,
+        files: files,
+      });
+    }
+
+    return res.status(200).json({ success: true, folders: folderDetails });
   } catch (error) {
     console.error("Error fetching folders: ", error);
     return res.status(500).json({ success: false, message: "Error fetching folders" });
   }
 };
+
+
+const deleteFolder = async (req, res) => {
+  const { userId, folderIds } = req.body;
+  console.log(userId,folderIds)
+
+  if (!userId || !folderIds) {
+    return res.status(400).json({ success: false, message: "User ID and folder ID(s) are required" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+
+    const folderIdsArray = Array.isArray(folderIds) ? folderIds : [folderIds];
+
+
+    const foldersToDelete = await Folder.find({
+      _id: { $in: folderIdsArray },
+      owner: userId,
+    });
+
+    if (foldersToDelete.length === 0) {
+      return res.status(404).json({ success: false, message: "No folders found or they do not belong to the user" });
+    }
+
+
+    await Folder.deleteMany({ _id: { $in: folderIdsArray } });
+
+    return res.status(200).json({ success: true, message: `${foldersToDelete.length} folder(s) deleted successfully` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Error deleting folder(s)" });
+  }
+};
+
 
 
 module.exports = {
@@ -374,5 +484,6 @@ module.exports = {
   createFolder,
   addFilesToFolder,
   likeOrUnlikeFile,
-  ListFolder
+  ListFolder,
+  deleteFolder
 };

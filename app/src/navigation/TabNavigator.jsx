@@ -119,7 +119,8 @@ const getTabBarDisplay = (route) => {
     routeName === "PasswordsScreen" ||
     routeName === "PasswordPreview" ||
     routeName === "MapView" ||
-    routeName === "FavouritesScreen"
+    routeName === "FavouritesScreen" ||
+    routeName === "FolderPreviewScreen"
   ) {
     return "none";
   }

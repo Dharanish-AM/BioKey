@@ -40,21 +40,6 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
-    folders: [
-      {
-        name: {
-          type: String,
-          required: true,
-        },
-        files: [
-          {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "File",
-            default: [],
-          },
-        ],
-      },
-    ],
     totalSpace: {
       type: Number,
       default: 5368709120

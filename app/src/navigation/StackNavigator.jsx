@@ -22,6 +22,7 @@ import PasswordPreview from "../screens/main/helper/PasswordPreview";
 import MapView from "../screens/main/helper/MapView";
 import UserFormScreen from "../screens/auth/UserFormScreen";
 import FavouritesScreen from "../screens/main/media/FavouriteScreen";
+import FolderPreviewScreen from "../screens/main/helper/FolderPreviewScreen";
 
 const Stack = createStackNavigator();
 
@@ -130,6 +131,8 @@ function FoldersStack() {
       }}
     >
       <Stack.Screen name="FoldersScreen" component={FoldersScreen} />
+      <Stack.Screen name="FolderPreviewScreen" component={FolderPreviewScreen} />
+      <Stack.Screen name="FilePreviewScreen" component={FilePreviewScreen} />
     </Stack.Navigator>
   );
 }

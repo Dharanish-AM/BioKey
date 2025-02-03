@@ -8,8 +8,8 @@ const store = configureStore({
   reducer: {
     files: fileReducer,
     appConfig: appConfigReducer,
-    user:userReducer,
-    passwords:passwordReducer
+    user: userReducer,
+    passwords: passwordReducer
   },
 });
 

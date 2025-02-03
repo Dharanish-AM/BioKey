@@ -9,8 +9,6 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import moment from 'moment';
 
-
-
 const notifications = [
   {
     date: "2025-02-02",
@@ -67,6 +65,12 @@ export default function Notifications({ navigation }) {
               ))}
             </View>
           )}
+          style={
+            {
+              paddingHorizontal: wp("5%"),
+              flexGrow: 1
+            }
+          }
         />
       </View>
     </SafeAreaView>
@@ -87,6 +91,7 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     paddingHorizontal: wp("3%"),
     alignItems: 'center',
+    marginBottom: hp("1.5%")
   },
   headerText: {
     fontSize: hp("3.5%"),
@@ -95,13 +100,13 @@ const styles = StyleSheet.create({
     marginLeft: wp("1.5%"),
   },
   section: {
-    width: wp("100%"),
-    paddingHorizontal: wp("3.5%"),
+    flexGrow: 1,
     marginTop: hp("2%"),
+    width: wp("100%") - wp("10%"),
   },
   dateHeader: {
     fontSize: hp("2.2%"),
-    fontFamily: 'Afacad-Medium',
+    fontFamily: 'Afacad-Regular',
     color: colors.textColor2,
     marginBottom: hp("1%"),
   },
@@ -109,6 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: hp("2%"),
+
   },
   notiLeft: {
     alignItems: 'center',

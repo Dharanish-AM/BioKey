@@ -280,11 +280,19 @@ export default function HomeScreen({ navigation }) {
       }
 
       if (item.type === "audios") {
-        return (
-          <View style={styles.customThumbnailContainer}>
-            <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
-          </View>
-        );
+        if (item.thumbnail) {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+            </View>
+          );
+        } else {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
+            </View>
+          );
+        }
       }
 
       return (

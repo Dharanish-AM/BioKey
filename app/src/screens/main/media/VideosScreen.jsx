@@ -304,7 +304,7 @@ export default function PhotosScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay2 visible={isUploading} />
+      <SpinnerOverlay visible={isUploading} />
       {isSelecting && (
         <ActivityIndicator
           size="large"

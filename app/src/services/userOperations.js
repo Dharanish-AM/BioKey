@@ -57,7 +57,7 @@ export const fetchFolderList = async (userId, dispatch) => {
   }
   try {
     const response = await axios.get(`${API_URL}/listfolder`, { params: { userId } });
-    if (response.data.success) {
+    if (response.status == 200) {
       dispatch(setFolders(response.data.folders));
     } else {
       console.warn("Failed to fetch folders:", response.data.message);
@@ -67,4 +67,33 @@ export const fetchFolderList = async (userId, dispatch) => {
     console.error("Error fetching folder list:", error.message);
     dispatch(setFolders([]));
   }
-};  
+};
+
+export const handleFolderCreate = async (userId, folderName, dispatch) => {
+  const response = await axios.post(`${API_URL}/createfolder`, {
+    userId,
+    folderName
+  })
+  if (response.status == 200) {
+
+    return response.data
+  }
+  else {
+    return response.data
+  }
+}
+
+export const deleteFolders = async (userId, folderIds, dispatch) => {
+  const response = await axios.delete(`${API_URL}/deletefolder`, {
+    data: {
+      userId,
+      folderIds
+    }
+  })
+  if (response.status == 200) {
+    await fetchFolderList(userId, dispatch)
+    return response.data
+  } else {
+    return response.data
+  }
+}

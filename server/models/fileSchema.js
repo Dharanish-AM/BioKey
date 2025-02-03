@@ -31,14 +31,14 @@ const fileSchema = new mongoose.Schema(
     },
     isLiked: {
       type: Boolean,
-      default: false, 
+      default: false,
     },
-  }, 
+  },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
- 
-fileSchema.index({ owner: 1, createdAt: -1 }); 
+
+fileSchema.index({ owner: 1, createdAt: -1 });
 
 module.exports = mongoose.model("File", fileSchema);

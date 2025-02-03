@@ -39,6 +39,7 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import DocsFileIcon from "../../../assets/images/document_icon.png";
 import PdfIcon from "../../../assets/images/pdf_icon.png";
 import Toast from "react-native-toast-message";
+import SpinnerOverlay from "../../../components/SpinnerOverlay";
 
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -312,7 +313,7 @@ export default function OthersScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay2 visible={isUploading} />
+      <SpinnerOverlay visible={isUploading} />
       {isSelecting && (
         <ActivityIndicator
           size="large"

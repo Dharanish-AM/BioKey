@@ -23,6 +23,7 @@ import MapView from "../screens/main/helper/MapView";
 import UserFormScreen from "../screens/auth/UserFormScreen";
 import FavouritesScreen from "../screens/main/media/FavouriteScreen";
 import FolderPreviewScreen from "../screens/main/helper/FolderPreviewScreen";
+import RecycleBin from "../screens/main/utility/RecycleBin";
 
 const Stack = createStackNavigator();
 
@@ -118,6 +119,7 @@ function HomeStack() {
       <Stack.Screen name="PasswordPreview" component={PasswordPreview} />
       <Stack.Screen name="MapView" component={MapView} />
       <Stack.Screen name="FavouritesScreen" component={FavouritesScreen} />
+      <Stack.Screen name="RecycleBin" component={RecycleBin} />
     </Stack.Navigator>
   );
 }

@@ -43,8 +43,8 @@ export default function FoldersScreen({ navigation }) {
   const [selectedFolders, setSelectedFolders] = useState([]);
   const [isMultiSelect, setIsMultiSelect] = useState(false);
   const [isLongPressed, setIsLongPressed] = useState(false);
-
-  const [searchWidth] = useState(new Animated.Value(0));
+  const [width] = useState(new Animated.Value(0));
+  const [opacity] = useState(new Animated.Value(0));
   const [searchOpacity] = useState(new Animated.Value(0));
   const [iconsOpacity] = useState(new Animated.Value(1));
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -54,10 +54,12 @@ export default function FoldersScreen({ navigation }) {
   }, [folders]);
 
   useEffect(() => {
+    if (folders?.length > 0) return;
     fetchData();
   }, [userId, dispatch]);
 
   const fetchData = async () => {
+    console.log("first")
     setIsLoading(true);
     try {
       await fetchFolderList(userId, dispatch);
@@ -102,7 +104,7 @@ export default function FoldersScreen({ navigation }) {
         }
       });
     } else {
-      navigation.navigate("FolderPreviewScreen", { folder });
+      navigation.navigate("FolderPreviewScreen", { folderId: folder.folderId });
     }
   };
 
@@ -127,7 +129,7 @@ export default function FoldersScreen({ navigation }) {
   const handleSearchIconClick = () => {
     setIsSearchActive(true);
     Animated.parallel([
-      Animated.timing(searchWidth, {
+      Animated.timing(width, {
         toValue: hp("25%"),
         duration: 400,
         useNativeDriver: false,
@@ -150,10 +152,24 @@ export default function FoldersScreen({ navigation }) {
 
   const handleCancelSearch = () => {
     Animated.parallel([
-      Animated.timing(searchWidth, { toValue: 0, duration: 400, useNativeDriver: false }),
-      Animated.timing(searchOpacity, { toValue: 0, duration: 400, useNativeDriver: false }),
-      Animated.timing(iconsOpacity, { toValue: 1, duration: 400, useNativeDriver: false }),
-    ]).start(() => setIsSearchActive(false));
+      Animated.timing(width, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+      }),
+      Animated.timing(searchOpacity, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: false,
+      }),
+      Animated.timing(iconsOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: false,
+      }),
+    ]).start(() => {
+      setIsSearchActive(false);  
+    });
   };
 
   const handleSearchChange = (text) => {
@@ -215,7 +231,7 @@ export default function FoldersScreen({ navigation }) {
               </View>
             ) : <View style={styles.filterContainer}>
               <Animated.View
-                style={[styles.filterContainer, { opacity: iconsOpacity }]}
+                style={[styles.filterContainer, { width, opacity: iconsOpacity }]}
               >
 
                 {!isSearchActive && (
@@ -230,7 +246,7 @@ export default function FoldersScreen({ navigation }) {
 
               {isSearchActive && (
                 <Animated.View
-                  style={[styles.inputContainer, { width, opacity }]}
+                  style={[styles.inputContainer, { width: width, opacity: searchOpacity }]}
                 >
                   <TextInput
                     style={styles.textInput}
@@ -266,7 +282,9 @@ export default function FoldersScreen({ navigation }) {
             }}
           />
         </View>
-      </View>
+      </View>{
+        isCreateFolder && <View style={styles.modalContainer}></View>
+      }
       {
         isMultiSelect && isLongPressed ? (
           <TouchableOpacity onPress={() => {
@@ -290,30 +308,31 @@ export default function FoldersScreen({ navigation }) {
             transparent={true}
             onRequestClose={handleCancel}
           >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Enter Folder Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Folder Name"
-                  value={folderName}
-                  onChangeText={setFolderName}
-                />
-                <View style={styles.buttonContainer}>
+
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Enter Folder Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Folder Name"
+                value={folderName}
+                onChangeText={setFolderName}
+              />
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={handleCancel}>
                   <Text style={[styles.option, {
                     color: colors.textColor2
-                  }]} onPress={handleCancel}>Cancel</Text>
-                  <Text style={styles.option} onPress={handleCreate}>Create</Text>
-                </View>
+                  }]} >Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleCreate}>
+                  <Text style={styles.option} >Create</Text>
+                </TouchableOpacity>
               </View>
             </View>
+
           </Modal>
 
         )
       }
-
-
-
     </SafeAreaView >
   );
 }
@@ -452,12 +471,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: wp("100%"),
+    height: hp("100%"),
+    position: "absolute",
   },
   modalContent: {
     width: wp('80%'),
     padding: wp('5%'),
     backgroundColor: colors.lightColor2,
     borderRadius: hp("2%"),
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [
+      { translateX: wp("-40%") },
+      { translateY: hp("-10.5%") },
+    ],
+    alignSelf: "center"
   },
   modalTitle: {
     fontSize: hp('2.7%'),
@@ -466,14 +496,14 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold"
   },
   input: {
-    height: hp('5%'),
+
     borderColor: "rgba(166, 166, 166, 0.3)",
     borderWidth: 0.5,
     marginBottom: hp('3%'),
     padding: hp("1.5%"),
     borderRadius: hp("1%"),
     fontFamily: "Afacad-Regular",
-    fontSize: hp("2%"),
+    fontSize: hp("2.1%"),
     color: colors.textColor2
   },
   buttonContainer: {

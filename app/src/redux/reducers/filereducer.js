@@ -4,7 +4,9 @@ import {
   FETCH_USED_SPACE,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
-  UPDATE_FILE_LIKE_STATUS
+  UPDATE_FILE_LIKE_STATUS,
+  SET_ALL_FILES_METADATA,
+  SET_RECYCLE_BIN_FILES
 } from "../types";
 
 const initialState = {
@@ -21,7 +23,9 @@ const initialState = {
   },
   searchQuery: "",
   filteredFiles: [],
-  likedFiles: []
+  likedFiles: [],
+  allFilesMetadata: [],
+  recycleBinFiles:[]
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -124,6 +128,16 @@ const fileReducer = (state = initialState, action) => {
         likedFiles: action.payload
       };
 
+    case SET_ALL_FILES_METADATA:
+      return {
+        ...state,
+        allFilesMetadata: action.payload
+      }
+    case SET_RECYCLE_BIN_FILES:
+      return{
+        ...state,
+        recycleBinFiles: action.payload
+      }
     default:
       return state;
   }

@@ -9,7 +9,9 @@ import {
   UPDATE_FILE_LIKE_STATUS,
   FETCH_LIKED_FILES,
   FETCH_FOLDERS,
-  GET_EACH_PASSWORD
+  GET_EACH_PASSWORD,
+  SET_ALL_FILES_METADATA,
+  SET_RECYCLE_BIN_FILES
 } from "./types";
 
 export const fetchFilesAction = (type, files = []) => {
@@ -87,5 +89,20 @@ export const setFolders = (folders) => {
   return {
     type: FETCH_FOLDERS,
     payload: folders
+  }
+}
+
+
+export const setAllFilesMetadata = (allFiles) => {
+  return {
+    type: SET_ALL_FILES_METADATA,
+    payload: allFiles
+  }
+}
+
+export const setRecycleBinFile = (file)=>{
+  return {
+    type: SET_RECYCLE_BIN_FILES,
+    payload: file
   }
 }

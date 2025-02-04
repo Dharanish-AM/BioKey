@@ -10,6 +10,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import HeadPhoneIcon from "../../assets/images/headphone-big.png";
 
 export default function AudioPreview({ fileData, thumbnail }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -116,7 +117,9 @@ export default function AudioPreview({ fileData, thumbnail }) {
   return (
     <View style={styles.container}>
       <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: thumbnail }} style={styles.thumbnail} />
+        {
+          thumbnail ? <Image source={{ uri: thumbnail }} style={styles.thumbnail} /> : <Image source={HeadPhoneIcon} style={styles.headphone} />
+        }
       </View>
       <View style={styles.controlsContainer}>
         <Slider
@@ -160,6 +163,14 @@ const styles = StyleSheet.create({
   thumbnailContainer: {
     width: "90%",
     aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  headphone: {
+    tintColor: colors.textColor2,
+    width: wp("30%"),
+    aspectRatio: 1,
+    height: hp("30%")
   },
   thumbnail: {
     aspectRatio: 1,

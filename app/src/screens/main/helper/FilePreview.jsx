@@ -51,6 +51,7 @@ export default function FilePreviewScreen({ route, navigation }) {
 
   const userId = useSelector((state) => state.user.userId);
 
+
   useEffect(() => {
     const fetchFilePreview = async () => {
       try {
@@ -182,6 +183,7 @@ export default function FilePreviewScreen({ route, navigation }) {
                 text2: `Status code: ${response?.message}`
               })
             } else {
+              navigation.goBack()
               Toast.show({
                 type: 'success',
                 text1: `File deleted successfully!`,
@@ -269,7 +271,6 @@ export default function FilePreviewScreen({ route, navigation }) {
         </View>
         <RBSheet
           ref={refRBSheet}
-          height={hp("35%")}
           openDuration={400}
           draggable={true}
           closeDuration={300}
@@ -282,7 +283,7 @@ export default function FilePreviewScreen({ route, navigation }) {
               borderTopLeftRadius: hp("3%"),
               borderTopRightRadius: hp("3%"),
               backgroundColor: colors.lightColor2,
-              transform: [{ translateY: 0 }],
+              height: hp("40%")
             },
             mask: {
               backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -291,8 +292,13 @@ export default function FilePreviewScreen({ route, navigation }) {
         >
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Text style={[styles.infotext, styles.head]}>File Name:</Text>
-              <Text style={[styles.infotext, styles.value]}>{file.name}</Text>
+              <Text style={[styles.infotext, styles.head,
+
+              ]}>File Name:</Text>
+              <Text style={[styles.infotext, styles.value, {
+                flexWrap: "wrap",
+                width: "90%",
+              }]}>{file.name}</Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -315,6 +321,20 @@ export default function FilePreviewScreen({ route, navigation }) {
             </View>
 
             <View style={styles.infoRow}>
+              <Text style={[styles.infotext, styles.head]}>Folders:</Text>
+              <Text style={[styles.infotext, styles.value]}>{file.folders && file.folders.map((item, index) => {
+                return (
+                  <View key={index}>
+                    <Text style={[styles.infotext, styles.value]}>
+                      {file.folders && file.folders.length > 0 ? `${item}, ` : "No Folders"}
+                    </Text>
+
+                  </View>
+                )
+              })}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
               <Text style={[styles.infotext, styles.head]}>Created At:</Text>
               <Text style={[styles.infotext, styles.value]}>
                 {new Date(file.createdAt).toLocaleString()}
@@ -324,14 +344,14 @@ export default function FilePreviewScreen({ route, navigation }) {
 
 
         </RBSheet>
-        <RBSheet height={hp("80%")} draggable={true} customStyles={{
+        <RBSheet draggable={true} customStyles={{
           container: {
             backgroundColor: colors.lightColor1,
             borderTopLeftRadius: hp("3%"),
             borderTopRightRadius: hp("3%"),
           }
         }} openDuration={250} ref={addFolderSheet}>
-          <AddFilesFolder file={file} />
+          <AddFilesFolder sheetRef={addFolderSheet} file={file} />
         </RBSheet>
       </View>
     </SafeAreaView >
@@ -365,6 +385,7 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold",
     flex: 1,
     flexWrap: "wrap",
+
   },
   backIconContainer: {
     height: hp("4.7%"),
@@ -412,8 +433,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   infoContainer: {
-    padding: hp("2%"),
-    gap: hp("1%")
+    gap: hp("1%"),
+    padding: hp("2%")
   },
   infoRow: {
     flexDirection: 'row',

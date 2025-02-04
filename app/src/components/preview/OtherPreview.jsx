@@ -9,7 +9,6 @@ export default function OtherPreview({ name, fileData }) {
   useEffect(() => {
     if (fileData) {
       setLoading(false);
-      console.log(fileData)
     }
   }, [fileData]);
 

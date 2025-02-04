@@ -120,7 +120,8 @@ const getTabBarDisplay = (route) => {
     routeName === "PasswordPreview" ||
     routeName === "MapView" ||
     routeName === "FavouritesScreen" ||
-    routeName === "FolderPreviewScreen"
+    routeName === "FolderPreviewScreen" ||
+    routeName === "RecycleBin"
   ) {
     return "none";
   }

@@ -12,5 +12,8 @@ router.post("/addfilestofolder", userController.addFilesToFolder)
 router.post("/likeorunlikefile", userController.likeOrUnlikeFile)
 router.get("/listFolder", userController.ListFolder)
 router.delete("/deletefolder", userController.deleteFolder)
+router.put("/renamefolder", userController.renameFolder)
+router.get("/listfavourite", userController.listLiked)
+
 
 module.exports = router;

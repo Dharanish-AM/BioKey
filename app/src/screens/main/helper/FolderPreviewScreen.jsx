@@ -4,16 +4,34 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import colors from '../../../constants/colors'
 import Entypo from '@expo/vector-icons/Entypo';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
-import { FlatList, Pressable } from 'react-native-gesture-handler';
+import { FlatList, Pressable, RefreshControl } from 'react-native-gesture-handler';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import SkeletonLoader from '../../../components/SkeletonLoader';
 import Feather from '@expo/vector-icons/Feather';
+import Toast from 'react-native-toast-message';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { deleteFolders, fetchFolderList, handleFolderRename } from '../../../services/userOperations';
 
 export default function FolderPreviewScreen({ navigation, route }) {
-    const { folder } = route.params;
+    const { folderId } = route.params;
     const [isMore, setIsMore] = useState(false);
-    const [newFolderName, setNewFolderName] = useState(folder?.folderName || '');
+    const [newFolderName, setNewFolderName] = useState(folder?.folderName);
     const [isRename, setIsRename] = useState(false);
+    const dispatch = useDispatch()
+    const userId = useSelector((state) => state.user.userId)
+    const [refreshing, setRefreshing] = useState(false);
+
+    const folder = useSelector(state =>
+        state.user.folders.find(f => f.folderId === folderId)
+        , shallowEqual);
+
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchFolderList(userId, dispatch)
+        setRefreshing(false);
+    }
+
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
@@ -67,8 +85,23 @@ export default function FolderPreviewScreen({ navigation, route }) {
                 },
                 {
                     text: 'Delete',
-                    onPress: () => {
-
+                    onPress: async () => {
+                        const response = await deleteFolders(userId, folderId, dispatch);
+                        if (response.success) {
+                            setIsMore(false)
+                            Toast.show({
+                                text1: 'Folder deleted successfully',
+                                type: "success"
+                            })
+                            navigation.goBack()
+                        }
+                        else {
+                            Toast.show({
+                                text1: 'Failed to delete folder',
+                                text2: response.message,
+                                type: "error"
+                            })
+                        }
                     },
                     style: "destructive"
 
@@ -77,6 +110,28 @@ export default function FolderPreviewScreen({ navigation, route }) {
             { cancelable: false }
         );
     };
+
+    const onRenameFolder = async () => {
+
+
+        const response = await handleFolderRename(userId, folder.folderId, newFolderName, dispatch)
+        if (response.success) {
+            setIsRename(false)
+            setIsMore(false)
+            Toast.show({
+                text1: 'Folder renamed successfully',
+                type: "success"
+            })
+
+        } else {
+            Toast.show({
+                text1: 'Failed to rename folder',
+                text2: response.message,
+                type: "error"
+            })
+        }
+    }
+
 
     return (
         <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
@@ -101,6 +156,14 @@ export default function FolderPreviewScreen({ navigation, route }) {
                                 keyExtractor={(item) => item._id}
                                 data={folder.files}
                                 renderItem={renderItem}
+                                ListEmptyComponent={() => {
+                                    return (
+                                        <View style={styles.emptyList}>
+                                            <Text style={styles.emptyListText}>No files in this folder</Text>
+                                        </View>
+                                    )
+                                }}
+                                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                             />
                         ) : (
                             <FlatList
@@ -119,22 +182,22 @@ export default function FolderPreviewScreen({ navigation, route }) {
             </View>
             {
                 isMore && (
-                    <View onPress={() => {
+                    <Pressable onPress={() => {
                         setIsMore(false);
                     }} style={styles.overlayContainer}>
                         <View style={styles.moreContainer}>
-                            <TouchableOpacity onPress={() => {
+                            <Pressable onPress={() => {
                                 handleRename()
                             }} style={styles.optionButton}>
                                 <Text style={styles.optionButtonText}>Rename Folder</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleDelete} style={[styles.optionButton, {
+                            </Pressable>
+                            <Pressable onPress={handleDelete} style={[styles.optionButton, {
                                 borderBottomWidth: 0
                             }]}>
                                 <Text style={styles.optionButtonText}>Delete Folder</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                         </View>
-                    </View>
+                    </Pressable>
                 )
             }
 
@@ -172,8 +235,8 @@ export default function FolderPreviewScreen({ navigation, route }) {
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => {
-                                onRenameFolder(newFolderName);
-                                setIsRename(false);
+                                onRenameFolder();
+
                             }}
                         >
                             <Text style={styles.renameButtonText}>Rename</Text>
@@ -347,8 +410,7 @@ const styles = StyleSheet.create({
         fontFamily: "Afacad-Regular",
         color: colors.textColor2,
         fontSize: hp("2.5%"),
-        padding: hp("1%")
-
+        padding: hp("1%"),
     },
     renameButtonText: {
         fontSize: hp("2.2%"),
@@ -360,4 +422,16 @@ const styles = StyleSheet.create({
         color: colors.textColor3,
         fontFamily: "Afacad-Regular",
     },
+    emptyList: {
+        flex: 1,
+        width: '100%',
+        height: hp("70%"),
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    emptyListText: {
+        fontSize: hp("2.5%"),
+        color: colors.textColor3,
+        fontFamily: "Afacad-Italic",
+    }
 });

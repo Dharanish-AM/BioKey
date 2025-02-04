@@ -16,7 +16,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
     fetchLikedFiles,
-} from "../../../services/fileOperations";
+} from "../../../services/userOperations";
 import { shallowEqual } from "react-redux";
 import {
     widthPercentageToDP as wp,
@@ -49,6 +49,7 @@ export default function FavouritesScreen({ navigation }) {
     const [isUploading, setIsUploading] = useState(false);
     const [isSelecting, setIsSelecting] = useState(false);
 
+
     const userId = useSelector((state) => state.user.userId);
 
     const { favourites } = useSelector(
@@ -70,7 +71,7 @@ export default function FavouritesScreen({ navigation }) {
 
     const refreshData = async () => {
         setRefreshing(true);
-        await fetchLikedFiles(user, dispatch);
+        await fetchLikedFiles(userId, dispatch);
         setRefreshing(false);
     };
 
@@ -103,7 +104,7 @@ export default function FavouritesScreen({ navigation }) {
         setIsSearchActive(true);
         Animated.parallel([
             Animated.timing(width, {
-                toValue: hp("25%"),
+                toValue: wp("50%"),
                 duration: 400,
                 useNativeDriver: false,
                 easing: Easing.inOut(Easing.ease),

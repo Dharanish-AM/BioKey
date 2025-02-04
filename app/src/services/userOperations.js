@@ -1,7 +1,7 @@
 import axios from "axios";
-import { setFolders, setUser, updateFileLikes } from "../redux/actions";
+import { setFolders, setLikedFiles, setUser, updateFileLikes } from "../redux/actions";
 import store from "../redux/store";
-import { fetchLikedFiles } from "./fileOperations";
+
 
 const getIP = () => {
   const state = store.getState();
@@ -46,6 +46,25 @@ export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
       success: false,
       message: error.response?.data?.message || "An error occurred",
     };
+  }
+};
+
+export const fetchLikedFiles = async (userId, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
+
+    const files = response.data?.files || [];
+
+    dispatch(setLikedFiles(files));
+
+    return files;
+  } catch (error) {
+    console.error('Error fetching liked files:', error.message);
+
+
+    dispatch(setLikedFiles([]));
+
+    return [];
   }
 };
 
@@ -95,5 +114,39 @@ export const deleteFolders = async (userId, folderIds, dispatch) => {
     return response.data
   } else {
     return response.data
+  }
+}
+
+export const handleFolderRename = async (userId, folderId, newFolderName, dispatch) => {
+  const response = await axios.put(`${API_URL}/renamefolder`, {
+    userId,
+    folderId,
+    newFolderName
+  })
+  if (response.status == 200) {
+    await fetchFolderList(userId, dispatch)
+    return response.data
+  } else {
+    return response.data
+  }
+}
+
+export const handleFolderMove = async (userId, folderId, fileId, dispatch) => {
+  try {
+    const response = await axios.post(`${API_URL}/addfilestofolder`, {
+      userId,
+      folderId, fileId
+    })
+    console.log(response.data)
+    if (response.status) {
+      await fetchFolderList(userId, dispatch)
+      return response.data
+    }
+    else {
+      return response.data
+    }
+  }
+  catch (err) {
+    console.log(err)
   }
 }

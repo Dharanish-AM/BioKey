@@ -19,6 +19,8 @@ const TARGET_DIR = path.join(
   "uploads"
 );
 
+const BUCKET_NAME = process.env.MINIO_BUCKET_NAME
+
 const register = async (req, res) => {
   try {
     const { name, email, phone, password, confirmPassword } = req.body;
@@ -371,62 +373,54 @@ const ListFolder = async (req, res) => {
   const { userId } = req.query;
 
   try {
-
     const folders = await Folder.find({ owner: userId }).populate({
-      path: 'files',
-      select: 'name type size thumbnail createdAt'
+      path: "files",
+      select: "name type size thumbnail createdAt",
     });
 
     if (!folders || folders.length === 0) {
       return res.status(404).json({ success: false, message: "No folders found for this user" });
     }
 
-    const folderDetails = [];
+    const folderDetails = await Promise.all(
+      folders.map(async (folder) => {
+        const files = await Promise.all(
+          folder.files.map(async (file) => {
+            let preSignedThumbnailUrl = null;
+            if (file.thumbnail) {
+              try {
+                preSignedThumbnailUrl = await minioClient.presignedGetObject(
+                  process.env.MINIO_BUCKET_NAME,
+                  file.thumbnail,
+                  24 * 60 * 60
+                );
+              } catch (error) {
+                console.error(`Error generating presigned URL for file ${file.name}: `, error);
+              }
+            }
 
-    for (let folder of folders) {
-      const files = [];
 
+            const fileFolders = await Folder.find({ files: file._id }).select("name");
 
-      for (let file of folder.files) {
-        if (file.thumbnail) {
-          try {
-
-            const presignedUrl = await minioClient.presignedGetObject(process.env.MINIO_BUCKET_NAME, file.thumbnail, 24 * 60 * 60);
-            files.push({
+            return {
               _id: file._id,
               name: file.name,
               type: file.type,
               size: file.size,
-              thumbnail: presignedUrl,
-            });
-          } catch (error) {
-            console.error("Error generating presigned URL for file thumbnail: ", error);
-            files.push({
-              _id: file._id,
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              thumbnail: null,
-            });
-          }
-        } else {
+              createdAt: file.createdAt,
+              thumbnail: preSignedThumbnailUrl,
+              folders: fileFolders.map((f) => f.name),
+            };
+          })
+        );
 
-          files.push({
-            fileId: file._id,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            thumbnailUrl: null,
-          });
-        }
-      }
-
-      folderDetails.push({
-        folderId: folder._id,
-        folderName: folder.name,
-        files: files,
-      });
-    }
+        return {
+          folderId: folder._id,
+          folderName: folder.name,
+          files: files,
+        };
+      })
+    );
 
     return res.status(200).json({ success: true, folders: folderDetails });
   } catch (error) {
@@ -438,7 +432,6 @@ const ListFolder = async (req, res) => {
 
 const deleteFolder = async (req, res) => {
   const { userId, folderIds } = req.body;
-  console.log(userId,folderIds)
 
   if (!userId || !folderIds) {
     return res.status(400).json({ success: false, message: "User ID and folder ID(s) are required" });
@@ -473,7 +466,94 @@ const deleteFolder = async (req, res) => {
   }
 };
 
+const renameFolder = async (req, res) => {
+  try {
+    const { userId, folderId, newFolderName } = req.body;
 
+    if (!userId || !folderId || !newFolderName) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+
+    const folder = await Folder.findOneAndUpdate(
+      { _id: folderId, owner: userId },
+      { name: newFolderName },
+      { new: true }
+    );
+
+    if (!folder) {
+      return res.status(404).json({ success: false, message: "Folder not found." });
+    }
+
+    res.status(200).json({ success: true, message: "Folder renamed successfully", folder });
+  } catch (error) {
+    console.error("Error renaming folder:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+const listLiked = async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId format" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const likedFiles = await File.find(
+      { isLiked: true, owner: userId },
+      "name type size createdAt _id isLiked thumbnail"
+    );
+
+    if (!likedFiles || likedFiles.length === 0) {
+      return res.status(200).json({ message: "No liked files found", files: [] });
+    }
+
+    const processedFiles = await Promise.all(
+      likedFiles.map(async (file) => {
+        let preSignedThumbnailUrl = null;
+        if (file.thumbnail) {
+          try {
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 60 * 60);
+          } catch (err) {
+            console.warn(`Thumbnail not found or error fetching for file ${file.name}:`, err.message);
+          }
+        }
+
+
+        const folders = await Folder.find({ files: file._id }).select("name");
+
+        return {
+          _id: file._id,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          createdAt: file.createdAt,
+          isLiked: file.isLiked,
+          thumbnail: preSignedThumbnailUrl,
+          folders: folders.map(folder => folder.name),
+        };
+      })
+    );
+
+    return res.status(200).json({
+      message: "Liked files retrieved successfully",
+      files: processedFiles,
+    });
+  } catch (error) {
+    console.error("Error retrieving liked files:", error.message);
+    return res.status(500).json({ message: "Error retrieving liked files" });
+  }
+};
 
 module.exports = {
   register,
@@ -485,5 +565,7 @@ module.exports = {
   addFilesToFolder,
   likeOrUnlikeFile,
   ListFolder,
-  deleteFolder
+  deleteFolder,
+  renameFolder,
+  listLiked
 };

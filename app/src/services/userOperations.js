@@ -150,3 +150,45 @@ export const handleFolderMove = async (userId, folderId, fileId, dispatch) => {
     console.log(err)
   }
 }
+
+export const updateUserProfile = async (userId, profileData, dispatch) => {
+  try {
+    const response = await axios.put(`${API_URL}/updateuserprofile`, {
+      userId,
+      profileData
+    });
+
+    if (response.status === 200 && response.data.success) {
+      await loadUser(userId, dispatch);
+      return response.data;
+    } else {
+      return response.data;
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return { success: false, message: 'An error occurred' };
+  }
+};
+
+
+export const handleProfileImageSet = async (userId, formData, dispatch) => {
+
+  try {
+    const response = await axios.post(`${API_URL}/updateuserprofileimage`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    if (response.status == 200) {
+      await loadUser(userId, dispatch)
+      return response.data
+    }
+    else {
+      return response.data
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}

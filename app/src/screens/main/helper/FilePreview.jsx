@@ -56,7 +56,6 @@ export default function FilePreviewScreen({ route, navigation }) {
     const fetchFilePreview = async () => {
       try {
         const fileUrl = await previewFile(userId, file._id);
-        console.log(fileUrl)
         switch (file.type) {
           case "images":
             setImageData(fileUrl);
@@ -344,7 +343,7 @@ export default function FilePreviewScreen({ route, navigation }) {
 
 
         </RBSheet>
-        <RBSheet draggable={true}  customStyles={{
+        <RBSheet draggable={true} customStyles={{
           container: {
             backgroundColor: colors.lightColor1,
             borderTopLeftRadius: hp("3%"),

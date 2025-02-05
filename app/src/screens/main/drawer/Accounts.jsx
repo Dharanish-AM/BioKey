@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground } from 'react-native'
-import React, { useRef, useState } from 'react'
+import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -11,40 +11,194 @@ import Feather from '@expo/vector-icons/Feather';
 import Entypo from '@expo/vector-icons/Entypo';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, TextInput } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { BlurView } from 'expo-blur';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import FallBackProfileImage from '../../../assets/images/profile_icon.png';
+import Toast from 'react-native-toast-message';
+import { handleProfileImageSet, updateUserProfile } from '../../../services/userOperations';
+import * as ImagePicker from "expo-image-picker";
 
 export default function Accounts({ navigation }) {
     const [isMoreOption, setIsMoreOption] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const user = useSelector((state) => state.user);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [userData, setUserData] = useState({
+        name: user.userName,
+        email: user.userEmail,
+        phone: user.userPhone?.toString() ?? "",
+        gender: user.userGender,
+        location: user.userLocation
+    });
+    const [initialData, setInitialData] = useState({
+        name: user.userName,
+        email: user.userEmail,
+        phone: user.userPhone?.toString() ?? "",
+        gender: user.userGender,
+        location: user.userLocation
+    });
+    const dispatch = useDispatch()
+
     const RBSheetRef = useRef()
 
     const handleOpenProfile = () => {
         setIsProfileOpen(!isProfileOpen);
     }
 
+    const handleOptionSelect = async (option) => {
 
+        const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (mediaStatus !== "granted") {
+            console.log("Permission to access media library is required!");
+            return null;
+        }
+
+
+        let pickerResult;
+        if (option === 'camera') {
+            const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+            if (cameraStatus !== "granted") {
+                console.log("Permission to access camera is required!");
+                return null;
+            }
+
+            pickerResult = await ImagePicker.launchCameraAsync({
+                allowsEditing: true,
+                quality: 1,
+                allowsEditing: true
+            });
+        } else if (option === 'gallery') {
+            pickerResult = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ["images"],
+                allowsMultipleSelection: false,
+                quality: 1,
+                allowsEditing: true
+            });
+        }
+
+        if (!pickerResult.canceled) {
+            try {
+                const formData = new FormData();
+                formData.append('userId', user.userId);
+
+                formData.append('profileImage', {
+                    uri: pickerResult.assets[0].uri,
+                    type: pickerResult.assets[0].mimeType,
+                    name: pickerResult.assets[0].fileName
+                });
+
+
+                const response = await handleProfileImageSet(user.userId, formData, dispatch);
+
+                if (response?.success) {
+                    RBSheetRef.current.close();
+                    Toast.show({
+                        text1: 'Profile picture updated successfully',
+                        type: "success"
+                    });
+                } else {
+                    Toast.show({
+                        text1: 'Failed to update profile picture',
+                        text2: response.message,
+                        type: "error"
+                    });
+                }
+            } catch (err) {
+                console.log("Error", err);
+            }
+        }
+
+    };
+
+
+
+    const handleSaveChanges = async () => {
+        const isDataChanged = JSON.stringify(userData) !== JSON.stringify(initialData);
+
+        if (isDataChanged) {
+            const response = await updateUserProfile(user.userId, userData, dispatch)
+            if (response.success) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Profile Updated',
+                })
+                console.log('Changes saved');
+            }
+            else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed to update profile',
+                    text2: response.message
+                })
+            }
+        } else {
+            console.log('No changes made');
+        }
+
+        setIsEditing(false);
+        setInitialData(userData);
+    };
+
+    const handleCancelChanges = () => {
+        setUserData(initialData);
+        setIsEditing(false);
+    };
+
+    const handleEditProfile = () => {
+        setIsEditing((prev) => !prev);
+        if (isEditing) {
+            const isDataChanged = JSON.stringify(userData) !== JSON.stringify(initialData);
+            if (isDataChanged) {
+                console.log('Changes saved');
+            } else {
+                console.log('No changes made');
+            }
+        }
+    };
+
+
+    useEffect(() => {
+        setInitialData({
+            name: user.userName,
+            email: user.userEmail,
+            phone: user.userPhone?.toString() ?? "",
+            gender: user.userGender,
+            location: user.userLocation
+        });
+    }, [user]);
+
+    const keyboardShouldPersistTaps = "handled";
+    const keyboardVerticalOffset = Platform.OS === "ios" ? hp("10%") : 0;
+
+    const renderInputField = (label, value, onChange, placeholder, keyboardType) => (
+        <View style={styles.inputContainer}>
+            <Text style={styles.label}>{label}:</Text>
+            <TextInput
+                editable={isEditing}
+                style={[styles.input, isEditing && styles.inputEditing]}
+                value={value}
+                onChangeText={onChange}
+                placeholder={placeholder}
+                keyboardType={keyboardType}
+            />
+        </View>
+    );
 
     return (
         <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
             <StatusBar backgroundColor={colors.lightColor1} barStyle="light-content" />
 
             <View style={styles.innerContainer}>
-                <TouchableOpacity onPress={() => {
-                    RBSheetRef.current.open()
-                }} style={styles.editContainer}>
+                <TouchableOpacity onPress={() => RBSheetRef.current.open()} style={styles.editContainer}>
                     <MaterialCommunityIcons name="pencil-outline" size={hp("2.5%")} color={colors.secondaryColor1} />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handleOpenProfile} style={styles.profileContainer}>
                     {
-                        user.profileImage ?
-                            <Image style={styles.profileImage} source={user.profileImage} />
-                            :
+                        user.profileImage ? <Image style={styles.profileImageOg} source={{
+                            uri: user.profileImage
+                        }} /> :
                             <Image style={styles.profileImage} source={FallBackProfileImage} />
                     }
                 </TouchableOpacity>
@@ -61,46 +215,39 @@ export default function Accounts({ navigation }) {
                     </View>
                 </View>
 
-                <View style={styles.bottom}>
-                    <View style={styles.accountDetails}>
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Name:</Text>
-                            <TextInput editable={isEditing} style={styles.input} value={user.userName} placeholder="Enter Name" />
-                        </View>
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : null} style={styles.bottom}>
+                    <FlatList
+                        data={["name", "email", "phone", "gender", "location"]}
+                        renderItem={({ item }) => renderInputField(item.charAt(0).toUpperCase() + item.slice(1), userData[item], (text) => setUserData((prev) => ({ ...prev, [item]: text })), `Enter ${item.charAt(0).toUpperCase() + item.slice(1)}`, item === "email" ? "email-address" : item === "phone" ? "phone-pad" : "default")}
+                        keyExtractor={(item) => item}
+                        keyboardShouldPersistTaps={keyboardShouldPersistTaps}
 
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Email:</Text>
-                            <TextInput editable={isEditing} style={styles.input} value={user.userEmail} placeholder="Enter Email" keyboardType="email-address" />
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Phone:</Text>
-                            <TextInput editable={isEditing} style={styles.input} value={user?.userPhone?.toString() ?? ""} placeholder="Enter Phone" keyboardType="phone-pad" />
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Gender:</Text>
-                            <TextInput editable={isEditing} style={styles.input} value={user.userGender} placeholder="Enter Gender" />
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Location:</Text>
-                            <TextInput editable={isEditing} style={styles.input} value={user.userLocation} placeholder="Enter Location" />
-                        </View>
-                    </View>
-
-                    <View style={styles.optionsContainer}>
-                        <Pressable onPress={() => {
-                            setIsEditing((prev) => !prev);
-                        }}>
-                            <Text style={styles.option} >{
-                                isEditing ? "Save Changes" : "Edit Profile"
-                            }</Text>
+                        style={{
+                            flexGrow: 1,
+                            width: wp("90%"),
+                        }}
+                    />
+                </KeyboardAvoidingView>
+                <View style={styles.optionsContainer}>
+                    {
+                        isEditing ?
+                            <Pressable onPress={handleSaveChanges}>
+                                <Text style={styles.option}>Save Changes</Text>
+                            </Pressable> :
+                            <Pressable onPress={handleEditProfile}>
+                                <Text style={styles.option}>Edit Profile</Text>
+                            </Pressable>
+                    }
+                    {isEditing && (
+                        <Pressable onPress={handleCancelChanges}>
+                            <Text style={styles.option}>Cancel</Text>
                         </Pressable>
+                    )}
+                    {!isEditing && (
                         <Pressable>
                             <Text style={styles.option}>Change Password</Text>
                         </Pressable>
-                    </View>
+                    )}
                 </View>
             </View>
 
@@ -109,26 +256,24 @@ export default function Accounts({ navigation }) {
                     <View style={styles.overlay}>
                         <View style={styles.moreOptionsContainer}>
                             <TouchableOpacity onPress={() => setIsMoreOption(false)}>
-                                <Text style={[styles.option,
-                                {
-                                    color: colors.red
-                                }
-                                ]}>Delete Account</Text>
+                                <Text style={[styles.option, { color: colors.red }]}>Delete Account</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </TouchableWithoutFeedback>
             )}
-            {
-                isProfileOpen &&
-                <BlurView onTouchEnd={() => {
-                    setIsProfileOpen(false);
-                }} style={styles.blurryContainer}>
-                    <Image style={styles.fullProfileImage} source={ProfileIcon} />
+
+            {isProfileOpen && (
+                <BlurView onTouchEnd={() => setIsProfileOpen(false)} style={styles.blurryContainer}>
+                    {
+                        user.profileImage ? <Image style={styles.fullProfileImage} source={{
+                            uri: user.profileImage
+                        }} /> :
+                            <Image style={styles.fullProfileImage} source={FallBackProfileImage} />
+                    }
                 </BlurView>
+            )}
 
-
-            }
             <RBSheet
                 ref={RBSheetRef}
                 closeOnDragDown={true}
@@ -144,20 +289,18 @@ export default function Accounts({ navigation }) {
                 }}
             >
                 <View style={styles.sheetContainer}>
-                    <Text style={
-                        styles.sheetHeader
-                    }>Choose from</Text>
+                    <Text style={styles.sheetHeader}>Choose from</Text>
                     <View style={styles.sheetOptions}>
-                        <TouchableOpacity><Text style={
-                            styles.sheetOption
-                        }>Take Photo</Text></TouchableOpacity>
-                        <TouchableOpacity><Text style={
-                            styles.sheetOption
-                        }>Choose from Gallery</Text></TouchableOpacity>
+                        <Pressable onPress={() => handleOptionSelect('camera')}>
+                            <Text style={styles.sheetOption}>Take Photo</Text>
+                        </Pressable>
+                        <Pressable onPress={() => handleOptionSelect('gallery')}>
+                            <Text style={styles.sheetOption}>Choose from Gallery</Text>
+                        </Pressable>
                     </View>
                 </View>
-            </RBSheet>
 
+            </RBSheet>
         </SafeAreaView>
     );
 }
@@ -187,6 +330,7 @@ const styles = StyleSheet.create({
     profileContainer: {
         aspectRatio: 1,
         height: hp('18%'),
+        width: hp('18%'),
         backgroundColor: colors.darkColor,
         position: "absolute",
         zIndex: 1,
@@ -195,11 +339,21 @@ const styles = StyleSheet.create({
         borderColor: "#5F2ABD",
         borderWidth: hp('0.2%'),
         padding: hp("0.5%"),
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
     },
     profileImage: {
         width: "100%",
         height: "100%",
         resizeMode: "cover",
+        borderRadius: hp("1000%"),
+    },
+    profileImageOg: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
+        borderRadius: hp("1000%"),
     },
     bottom: {
         width: wp('100%'),
@@ -216,6 +370,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         width: "100%",
         gap: hp("1%"),
+        paddingVertical: hp("1%")
     },
     label: {
         fontSize: hp('2.4%'),
@@ -229,6 +384,9 @@ const styles = StyleSheet.create({
         borderBottomColor: "rgba(166, 173, 186, 0.1)",
         borderBottomWidth: hp('0.1%'),
         paddingBottom: hp("1%"),
+    },
+    inputEditing: {
+        borderBottomColor: "#ddd",
     },
     optionsContainer: {
         width: wp('100%'),
@@ -281,10 +439,9 @@ const styles = StyleSheet.create({
         height: hp("100%"),
     },
     fullProfileImage: {
-        height: "40%",
+        width: wp("100%"),
         aspectRatio: 1,
-        resizeMode: "contain",
-        borderRadius: hp("2%"),
+        resizeMode: "cover",
     },
     sheetContainer: {
         flex: 1,

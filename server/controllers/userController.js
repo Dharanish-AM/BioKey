@@ -126,6 +126,7 @@ const getUser = async (req, res) => {
   try {
     const userId = req.query.userId;
 
+
     if (!userId) {
       return res.status(400).json({ message: "UserId is required." });
     }
@@ -134,18 +135,19 @@ const getUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid userId format." });
     }
 
+
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
+
     if (user.profile) {
-      const profilePath = `${userId}/${user.profile}`;
 
       try {
 
-        const profileStream = await minioClient.getObject(BUCKET_NAME, profilePath);
+        const profileStream = await minioClient.getObject(BUCKET_NAME, user.profile);
 
 
         const imageBuffer = await new Promise((resolve, reject) => {
@@ -157,19 +159,18 @@ const getUser = async (req, res) => {
 
 
         const compressedImageBuffer = await sharp(imageBuffer)
-          .resize({ width: 150 })
+          .resize({ width: 500 })
           .webp({ quality: 100 })
           .toBuffer();
 
 
-        user.profile = `data:image/webp;base64,${compressedImageBuffer.toString(
-          "base64"
-        )}`;
+        user.profile = `data:image/webp;base64,${compressedImageBuffer.toString("base64")}`;
       } catch (err) {
         console.error("Error fetching profile image from MinIO:", err.message);
         user.profile = null;
       }
     }
+
 
     res.status(200).json({
       message: "User fetched successfully.",
@@ -181,6 +182,39 @@ const getUser = async (req, res) => {
   }
 };
 
+
+const updateProfile = async (req, res) => {
+  try {
+    const { userId, profileData } = req.body;
+    console.log(userId, profileData)
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+
+    user.name = profileData.name || user.name;
+    user.email = profileData.email || user.email;
+    user.phone = profileData.phone || user.phone;
+    user.gender = profileData.gender || user.gender;
+    user.location = profileData.location || user.location;
+
+
+    await user.save();
+
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: user
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
 
 const deleteUser = async (req, res) => {
   try {
@@ -555,6 +589,79 @@ const listLiked = async (req, res) => {
   }
 };
 
+const updateProfileImage = async (req, res) => {
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: "Error parsing form data" });
+    }
+
+    const { userId } = fields;
+
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      if (!files?.profileImage) {
+        return res.status(400).json({ success: false, message: 'No image uploaded' });
+      }
+
+      const profileImage = Array.isArray(files.profileImage) ? files.profileImage[0] : files.profileImage;
+      const fileExtension = profileImage.originalFilename
+        ? profileImage.originalFilename.split('.').pop()
+        : "png";
+
+      const fileName = `profile.${fileExtension}`;
+      const userFolder = userId;
+
+      const filePath = profileImage.filepath;
+      if (!filePath) {
+        return res.status(400).json({ success: false, message: "File path is missing" });
+      }
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(400).json({ success: false, message: "File not found at the specified path" });
+      }
+
+      const fileStream = fs.createReadStream(filePath);
+
+      await minioClient.putObject(
+        BUCKET_NAME,
+        `${userFolder}/${fileName}`,
+        fileStream,
+        async (err, etag) => {
+          if (err) {
+            return res.status(500).json({
+              success: false,
+              message: 'Error uploading image to MinIO',
+            });
+          }
+
+          user.profile = `${userId}/${fileName}`;
+          await user.save();
+
+          return res.status(200).json({
+            success: true,
+            message: "Profile picture updated successfully",
+          });
+        }
+      );
+    } catch (error) {
+      console.error("Error processing request:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Error processing request",
+      });
+    }
+  });
+};
+
+
+
+
 module.exports = {
   register,
   login,
@@ -567,5 +674,7 @@ module.exports = {
   ListFolder,
   deleteFolder,
   renameFolder,
-  listLiked
+  listLiked,
+  updateProfile,
+  updateProfileImage
 };

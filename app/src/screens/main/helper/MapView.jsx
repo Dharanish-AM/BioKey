@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import colors from "../../../constants/colors";
 
-export default function MapViewComponent() {
+export default function MapViewComponent({}) {
   const [region, setRegion] = useState({
     latitude: 20.5937,
     longitude: 78.9629,

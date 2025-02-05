@@ -5,13 +5,16 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import colors from '../../../constants/colors';
 import { Entypo, Feather } from '@expo/vector-icons';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { fetchRecentFiles, fetchRecycleBinFiles, permanentDelete } from '../../../services/fileOperations';
+import { fetchRecentFiles, fetchRecycleBinFiles, permanentDelete, restoreFile } from '../../../services/fileOperations';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import RecycleBinIcon from "../../../assets/images/recycle.png"
 import { Pressable, RefreshControl, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Toast from 'react-native-toast-message';
 import { setFirstRender } from '../../../redux/actions';
+import PdfIcon from "../../../assets/images/pdf_icon.png"
+import PlayIcon from "../../../assets/images/play_icon.png"
+import DocsIcon from "../../../assets/images/docs_icon.png"
 
 export default function RecycleBin({ navigation }) {
     const dispatch = useDispatch();
@@ -113,7 +116,101 @@ export default function RecycleBin({ navigation }) {
         );
     };
 
+    const renderItem = ({ item }) => {
+        const renderThumbnail = () => {
+            if (item?.thumbnailUrl) {
+                if (item.type === "images") {
+                    return (
+                        <View style={styles.customThumbnailContainer}>
+                            <Image source={{ uri: item.thumbnailUrl }} style={styles.fileImage} />
+                        </View>
+                    );
+                }
 
+                if (item.type === "videos") {
+                    return (
+                        <View style={styles.videoFileWithPlayContainer}>
+                            <Image source={{ uri: item.thumbnailUrl }} style={styles.videoThumbnail} />
+                            <View style={styles.overlay} />
+                            <Image source={PlayIcon} style={styles.playIcon} />
+                        </View>
+                    );
+                }
+            }
+
+            if (item.name.toLowerCase().endsWith(".pdf")) {
+                return (
+                    <View style={styles.customThumbnailContainer}>
+                        <Image source={PdfIcon} style={styles.pdfImage} />
+                    </View>
+                );
+            }
+
+            if (item.type === "audios") {
+                return (
+                    <View style={styles.customThumbnailContainer}>
+                        <Image source={item.thumbnailUrl ? { uri: item.thumbnailUrl } : AudioFileIcon} style={styles.fileImage} />
+                    </View>
+                );
+            }
+
+            return (
+                <View style={styles.customThumbnailContainer}>
+                    <Image source={DocsIcon} style={styles.documentImage} />
+                </View>
+            );
+        };
+
+        return (
+            <View style={styles.fileContainer}>
+                <View style={styles.fileInfo}>
+                    <View style={styles.fileThumbnail}>
+                        {renderThumbnail()}
+                    </View>
+                    <View style={styles.fileDetails}>
+                        <View style={styles.fileMeta}>
+                            <Text style={styles.fileName}>{item.name} <Text style={{ color: colors.textColor2 }}>-</Text> <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text></Text>
+
+
+                        </View>
+                        <Text style={styles.fileDate}>{new Date(item.deletedAt).toUTCString()}</Text>
+                    </View>
+                </View>
+
+                <TouchableOpacity onPress={() => toggleOptions(item)} style={styles.fileOption}>
+                    <Feather name="more-horizontal" size={hp("3.5%")} color={colors.textColor3} />
+                </TouchableOpacity>
+
+                {selectedFile?.name === item.name && (
+                    <View style={styles.optionsContainer}>
+                        <TouchableOpacity style={styles.optionButton} onPress={() => handleRestoreFile(item)}>
+                            <Text style={styles.optionText}>Restore</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.optionButton} onPress={() => handleDeleteFileOne(item)}>
+                            <Text style={[styles.optionText, { color: "#B82132" }]}>Delete Permanently</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
+        );
+    };
+
+    const handleRestoreFile = async (file) => {
+        const response = await restoreFile(userId, file._id, file.type, dispatch)
+        if (response.success) {
+            Toast.show({
+                type: 'success',
+                text1: 'File Restored!',
+            })
+        }
+        else {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to restore file.',
+                text2: response.message
+            })
+        }
+    }
     return (
         <SafeAreaView style={styles.container} >
             <View style={styles.innerContainer}>
@@ -134,50 +231,7 @@ export default function RecycleBin({ navigation }) {
                     <FlatList
                         data={binFiles}
                         keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item }) => (
-                            <View style={styles.fileContainer}>
-                                <View style={styles.fileInfo}>
-                                    <View style={styles.fileThumbnail}>
-                                        <Image
-                                            source={{ uri: item.thumbnailUrl }}
-                                            style={styles.imageStyle}
-                                        />
-                                    </View>
-                                    <View style={styles.fileDetails}>
-                                        <View style={styles.fileMeta}>
-                                            <Text style={styles.fileName}>{item.name}</Text>
-                                            <Text style={{ color: colors.textColor2 }}>-</Text>
-                                            <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
-                                        </View>
-                                        <Text style={styles.fileDate}>{new Date(item.deletedAt).toUTCString()}</Text>
-                                    </View>
-                                </View>
-
-                                <TouchableOpacity onPress={() => toggleOptions(item)} style={styles.fileOption}>
-                                    <Feather name="more-horizontal" size={hp("3.5%")} color={colors.textColor3} />
-                                </TouchableOpacity>
-
-                                {selectedFile?.name === item.name && (
-                                    <View style={styles.optionsContainer}>
-                                        <TouchableOpacity style={styles.optionButton} onPress={() => {
-                                            console.log("hi")
-                                        }}>
-                                            <Text style={styles.optionText}>Restore</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.optionButton} onPress={() => {
-                                            handleDeleteFileOne(item)
-                                        }} >
-                                            <Text style={[styles.optionText, {
-                                                color: "#B82132"
-                                            }]}>Delete Permanently</Text>
-                                        </TouchableOpacity>
-                                        {/* <TouchableOpacity style={styles.optionButton}>
-                                            <Text style={styles.optionText}>View Details</Text>
-                                        </TouchableOpacity> */}
-                                    </View>
-                                )}
-                            </View>
-                        )}
+                        renderItem={renderItem}
                         ListEmptyComponent={() => (
                             <View style={styles.emptyList}>
                                 <Image style={styles.recycleBinIcon} source={RecycleBinIcon} />
@@ -248,6 +302,11 @@ const styles = StyleSheet.create({
         borderRadius: hp("2%"),
         aspectRatio: 1,
     },
+    customThumbnailContainer: {
+        width: "100%",
+        height: "100%",
+        aspectRatio: 1,
+    },
     imageStyle: {
         width: "100%",
         height: "100%",
@@ -260,12 +319,14 @@ const styles = StyleSheet.create({
     fileMeta: {
         flexDirection: "row",
         alignItems: "center",
-        gap: wp("2%")
+
     },
     fileName: {
         fontSize: hp("2%"),
         color: colors.textColor3,
         fontFamily: "Afacad-Medium",
+        flexWrap: 'wrap',
+        width: "90%"
     },
     fileSize: {
         fontSize: hp("1.9%"),
@@ -328,5 +389,65 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: 'center'
 
-    }
+    }, customThumbnailContainer: {
+        width: "100%",
+        height: "100%",
+        backgroundColor: colors.lightColor2,
+        borderRadius: hp("1.5%"),
+        alignItems: "center",
+        justifyContent: "center",
+
+    },
+    fileImage: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "contain",
+        borderRadius: hp("1.5%"),
+    },
+    pdfImage: {
+        width: "65%",
+        height: "65%",
+        opacity: 0.9,
+    },
+    audioImage: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "contain",
+    },
+    fallBackAudioImage: {
+        width: "60%",
+        height: "60%",
+        resizeMode: "contain",
+    },
+    videoFileWithPlayContainer: {
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: hp("1.5%"),
+
+    },
+    playIcon: {
+        position: "absolute",
+        width: "35%",
+        height: "35%",
+        tintColor: "rgba(202, 202, 202, 0.90)",
+        zIndex: 10,
+    },
+    videoThumbnail: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
+        borderRadius: hp("1.5%"),
+    },
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+        borderRadius: hp("1.5%"),
+    },
+    documentImage: {
+        height: "60%",
+        width: "60%",
+        resizeMode: "contain",
+    },
 });

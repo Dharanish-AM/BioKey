@@ -109,7 +109,7 @@ export default function OthersScreen({ navigation }) {
     setIsSearchActive(true);
     Animated.parallel([
       Animated.timing(width, {
-        toValue: hp("21%"),
+        toValue: hp("25%"),
         duration: 400,
         useNativeDriver: false,
         easing: Easing.inOut(Easing.ease),
@@ -501,9 +501,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

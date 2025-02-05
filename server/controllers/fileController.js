@@ -186,6 +186,8 @@ const moveToRecycleBin = async (req, res) => {
       owner: userId,
       deletedAt: new Date(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      createdAt: file.createdAt,
+      isLiked: file.isLiked,
     }));
 
 
@@ -211,25 +213,22 @@ const moveToRecycleBin = async (req, res) => {
 
 const restoreFile = async (req, res) => {
   try {
-    const { userId, recycleBinId } = req.body;
+    const { userId, RecycleBinId } = req.body;
 
-    if (!userId || !recycleBinId) {
-      return res.status(400).json({ error: "Provide userId and recycleBinId." });
+    if (!userId || !RecycleBinId) {
+      return res.status(400).json({ error: "Provide userId and RecycleBinId." });
     }
 
-
-    const recycleBinIdsArray = Array.isArray(recycleBinId) ? recycleBinId : [recycleBinId];
-
+    const RecycleBinIdsArray = Array.isArray(RecycleBinId) ? RecycleBinId : [RecycleBinId];
 
     const filesToRestore = await RecycleBin.find({
-      _id: { $in: recycleBinIdsArray },
+      _id: { $in: RecycleBinIdsArray },
       owner: userId,
     });
 
     if (!filesToRestore.length) {
       return res.status(404).json({ error: "No matching files found in Recycle Bin." });
     }
-
 
     const restoredFiles = filesToRestore.map((file) => ({
       name: file.name,
@@ -238,13 +237,13 @@ const restoreFile = async (req, res) => {
       thumbnail: file.thumbnail,
       size: file.size,
       owner: userId,
+      createdAt: file.createdAt || new Date(),
+      isLiked: file.isLiked,
     }));
-
 
     await File.insertMany(restoredFiles);
 
-
-    await RecycleBin.deleteMany({ _id: { $in: recycleBinIdsArray } });
+    await RecycleBin.deleteMany({ _id: { $in: RecycleBinIdsArray } });
 
     return res.status(200).json({
       success: true,
@@ -259,6 +258,7 @@ const restoreFile = async (req, res) => {
     });
   }
 };
+
 
 const permanentlyDeleteFileAndThumbnail = async (req, res) => {
   try {
@@ -402,7 +402,7 @@ const getRecentFiles = async (req, res) => {
     }
 
     const files = await File.find({ owner: userId })
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(7)
       .select("name type size createdAt thumbnail isLiked path");
 
@@ -425,7 +425,6 @@ const getRecentFiles = async (req, res) => {
             console.error(`Error fetching thumbnail for ${file.name}:`, err.message);
           }
         }
-
 
         const folders = await Folder.find({ files: file._id }).select("name");
 
@@ -451,6 +450,7 @@ const getRecentFiles = async (req, res) => {
     res.status(500).json({ message: "Error retrieving recent files" });
   }
 };
+
 
 
 const getSpace = async (req, res) => {

@@ -18,7 +18,6 @@ export default function AddFilesFolder({ file, sheetRef }) {
         const response = await handleFolderMove(userId, folder.folderId, file._id, dispatch)
         console.log(response)
         if (response.success) {
-
             sheetRef.current.close()
             Toast.show({
                 type: 'success',
@@ -39,14 +38,23 @@ export default function AddFilesFolder({ file, sheetRef }) {
             <FlatList
                 data={folders}
                 keyExtractor={(item) => item.folderId?.toString() || item.name}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => {
-                        handleFileAddToFolder(item)
-                    }} style={styles.item}>
-                        <Text style={styles.itemText1}>{item.folderName}</Text>
-                        <Text style={styles.itemText2}>{item.files.length} files</Text>
-                    </TouchableOpacity>
-                )}
+                renderItem={({ item }) => {
+                    const fileExists = item.files.some(f => f._id === file._id);
+
+                    return (
+                        <TouchableOpacity
+                            onPress={() => !fileExists && handleFileAddToFolder(item)}
+                            style={styles.item}
+                            disabled={fileExists}
+                        >
+                            <Text style={styles.itemText1}>
+                                {item.folderName}
+                                {fileExists && <Text style={styles.existsText}> (Already Exists)</Text>}
+                            </Text>
+                            <Text style={styles.itemText2}>{item.files.length} files</Text>
+                        </TouchableOpacity>
+                    );
+                }}
             />
         </View>
     );
@@ -77,5 +85,10 @@ const styles = StyleSheet.create({
         fontSize: hp("2%"),
         color: colors.textColor2,
         fontFamily: "Afacad-Regular"
+    },
+    existsText: {
+        fontSize: hp("2%"),
+        color: "#9366E2",
+        fontFamily: "Afacad-Italic",
     }
-})
+});

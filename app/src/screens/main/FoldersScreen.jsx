@@ -168,7 +168,7 @@ export default function FoldersScreen({ navigation }) {
         useNativeDriver: false,
       }),
     ]).start(() => {
-      setIsSearchActive(false);  
+      setIsSearchActive(false);
     });
   };
 
@@ -187,6 +187,14 @@ export default function FoldersScreen({ navigation }) {
   };
 
   const handleCreate = async () => {
+    const isFolderExist = folders.some((folder) => folder.folderName == folderName)
+    if (isFolderExist) {
+      Toast.show({
+        type: "warning",
+        text1: "Folder name already exist!"
+      })
+      return;
+    }
     const response = await handleFolderCreate(userId, folderName, dispatch);
     if (response.success) {
       fetchData();
@@ -393,9 +401,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

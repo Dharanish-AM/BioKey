@@ -154,20 +154,20 @@ export default function PasswordsScreen({ navigation }) {
 
   const renderSkeletonItem = () => (
     <View style={{
-      marginBottom:hp("2%")
+      marginBottom: hp("2%")
     }}>
-        <View>
-            <SkeletonLoader boxHeight={hp("10%")} boxWidth={wp("90%")} />
-        </View>
-        <View style={{ marginTop: hp("2%") }}>
-            <SkeletonLoader
-                boxHeight={hp("2%")}
-                boxWidth={wp("70%")}
-                borderRadius={hp("1.5%")}
-            />
-        </View>
+      <View>
+        <SkeletonLoader boxHeight={hp("10%")} boxWidth={wp("90%")} />
+      </View>
+      <View style={{ marginTop: hp("2%") }}>
+        <SkeletonLoader
+          boxHeight={hp("2%")}
+          boxWidth={wp("70%")}
+          borderRadius={hp("1.5%")}
+        />
+      </View>
     </View>
-);
+  );
 
 
   const renderItem = ({ item }) => {
@@ -300,13 +300,13 @@ export default function PasswordsScreen({ navigation }) {
           {
             !filteredPasswords ? (
               <FlatList
-                data={[1,2,3,4,5,6,7,8,9]}
+                data={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
                 renderItem={renderSkeletonItem}
                 contentContainerStyle={{
                   flexGrow: 1,
                   paddingHorizontal: wp("3.5%"),
                   paddingBottom: hp("3%"),
-                  alignItems:"center"
+                  alignItems: "center"
                 }}
                 style={{
                   width: wp("100%"),
@@ -444,9 +444,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

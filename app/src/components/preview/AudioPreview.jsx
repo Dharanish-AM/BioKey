@@ -19,15 +19,18 @@ export default function AudioPreview({ fileData, thumbnail }) {
   const [duration, setDuration] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
+
   useEffect(() => {
+    let newSound;
     const loadAudio = async () => {
       try {
-        const { sound: newSound } = await Audio.Sound.createAsync(
+        const { sound } = await Audio.Sound.createAsync(
           { uri: fileData },
           { shouldPlay: false, isLooping: true },
           updateStatus
         );
-        setSound(newSound);
+        newSound = sound;
+        setSound(sound);
         setIsLoaded(true);
       } catch (error) {
         console.error("Error loading audio:", error);
@@ -39,13 +42,24 @@ export default function AudioPreview({ fileData, thumbnail }) {
     }
 
     return () => {
-      if (sound) {
-        sound.unloadAsync().catch((error) => {
+      if (newSound) {
+        newSound.unloadAsync().catch((error) => {
           console.error("Error unloading audio during cleanup:", error);
         });
       }
     };
   }, [fileData]);
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.warn("Permission to access audio is required!");
+      }
+    };
+    getPermissions();
+  }, []);
+
 
   useFocusEffect(
     React.useCallback(() => {
@@ -117,9 +131,12 @@ export default function AudioPreview({ fileData, thumbnail }) {
   return (
     <View style={styles.container}>
       <View style={styles.thumbnailContainer}>
-        {
-          thumbnail ? <Image source={{ uri: thumbnail }} style={styles.thumbnail} /> : <Image source={HeadPhoneIcon} style={styles.headphone} />
-        }
+        {thumbnail ? (
+          <Image source={{ uri: thumbnail }} style={styles.thumbnail} onError={(e) => console.error("Thumbnail failed to load", e)} />
+        ) : (
+          <Image source={HeadPhoneIcon} style={styles.headphone} />
+        )}
+
       </View>
       <View style={styles.controlsContainer}>
         <Slider
@@ -176,6 +193,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     resizeMode: "contain",
     borderRadius: hp("2%"),
+    width: "100%",
+    height: "100%"
   },
   controlsContainer: {
     width: "90%",

@@ -37,6 +37,14 @@ const recycleBinSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
+        createdAt: {
+            type: Date,
+            default: true
+        },
+        isLiked: {
+            type: Boolean,
+            default: false
+        }
     },
     {
         timestamps: true,

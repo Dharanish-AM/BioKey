@@ -492,9 +492,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

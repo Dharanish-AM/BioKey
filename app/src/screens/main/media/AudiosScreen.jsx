@@ -41,7 +41,7 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import AudioFileIcon from "../../../assets/images/audiofile_icon.png";
 import Toast from "react-native-toast-message";
 
-export default function PhotosScreen({ navigation }) {
+export default function AudiosScreen({ navigation }) {
   const dispatch = useDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
@@ -492,9 +492,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

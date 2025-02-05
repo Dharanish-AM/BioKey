@@ -27,6 +27,7 @@ import EvilIcons from '@expo/vector-icons/EvilIcons';
 import {
   fetchFilesByCategory,
   fetchRecentFiles,
+  fetchRecycleBinFiles,
   fetchUsedSpace,
   getAllfileMetadata,
   uploadMedia,
@@ -115,6 +116,7 @@ export default function HomeScreen({ navigation }) {
     fetchData();
     getAllfileMetadata(userId, dispatch)
     fetchFolderList(userId, dispatch);
+    fetchRecycleBinFiles(userId, dispatch)
   }, [dispatch]);
 
   useEffect(() => {
@@ -559,7 +561,9 @@ export default function HomeScreen({ navigation }) {
                 }} >
                   <Image style={styles.optionIcon} source={BinIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity onPress={() => {
+                  navigation.navigate("ManageStorage")
+                }} style={styles.optionsIconContainer}>
                   <Image style={styles.optionIcon} source={BrushIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity

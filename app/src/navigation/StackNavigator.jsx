@@ -19,7 +19,6 @@ import OthersScreen from "../screens/main/media/OthersScreen";
 import FilePreviewScreen from "../screens/main/helper/FilePreview";
 import PasswordsScreen from "../screens/main/media/PasswordsScreen";
 import PasswordPreview from "../screens/main/helper/PasswordPreview";
-import MapView from "../screens/main/helper/MapView";
 import UserFormScreen from "../screens/auth/UserFormScreen";
 import FavouritesScreen from "../screens/main/media/FavouriteScreen";
 import FolderPreviewScreen from "../screens/main/helper/FolderPreviewScreen";
@@ -118,7 +117,6 @@ function HomeStack() {
       <Stack.Screen name="OthersScreen" component={OthersScreen} />
       <Stack.Screen name="PasswordsScreen" component={PasswordsScreen} />
       <Stack.Screen name="PasswordPreview" component={PasswordPreview} />
-      <Stack.Screen name="MapView" component={MapView} />
       <Stack.Screen name="FavouritesScreen" component={FavouritesScreen} />
       <Stack.Screen name="RecycleBin" component={RecycleBin} />
       <Stack.Screen name="ManageStorage" component={ManageStorage} />

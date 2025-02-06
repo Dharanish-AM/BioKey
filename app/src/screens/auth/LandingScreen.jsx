@@ -14,7 +14,7 @@ import SupportIcon from "../../assets/images/support_icon.png";
 export default function LandingScreen({navigation}) {
 
   const handleGetStarted = () => {
-      navigation.navigate("DevicePairingScreen")
+      navigation.navigate("UserFormScreen")
   }
 
   return (

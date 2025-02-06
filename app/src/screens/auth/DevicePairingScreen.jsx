@@ -11,8 +11,11 @@ import FingyIcon from "../../assets/images/FINGY.png";
 import Logo from "../../assets/images/BioKey_Logo.png";
 import SupportIcon from "../../assets/images/support_icon.png";
 
-export default function DevicePairingScreen({ navigation }) {
-  const [isConnected, setIsConnected] = useState(true);
+export default function DevicePairingScreen({ navigation, route }) {
+  const form = route.params
+  const [isConnected, setIsConnected] = useState(false);
+
+  console.log(form)
 
   const handlePress = () => {
     navigation.navigate("UserFormScreen")

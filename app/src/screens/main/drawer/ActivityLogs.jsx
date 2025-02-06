@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Callout, Marker } from 'react-native-maps';
 import Entypo from '@expo/vector-icons/Entypo';
 import colors from '../../../constants/colors';
 import {
@@ -54,6 +54,7 @@ const activityData = [
 
 export default function ActivityLogs({ navigation }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(0.02);
 
   const renderItem = ({ item }) => {
     let typeColor, typeText;
@@ -106,18 +107,31 @@ export default function ActivityLogs({ navigation }) {
           initialRegion={{
             latitude: selectedLocation.latitude,
             longitude: selectedLocation.longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+            latitudeDelta: zoomLevel,
+            longitudeDelta: zoomLevel,
           }}
+          zoomEnabled={true}
+          showsUserLocation={true}
+          zoomTapEnabled={true}
+
         >
           <Marker
             coordinate={{
               latitude: selectedLocation.latitude,
               longitude: selectedLocation.longitude,
             }}
-            title="Activity Location"
-            description={selectedLocation.location}
-          />
+       
+          >
+            <Callout>
+              <View style={styles.markerInfo}>
+              <Text style={styles.markerHeader}>Activity Location</Text>
+                <Text style={styles.makerText}>{selectedLocation.location}</Text>
+                <Text>{selectedLocation.device}</Text>
+                <Text>{selectedLocation.ip}</Text>
+                <Text>{selectedLocation.date}</Text>
+              </View>
+            </Callout>
+          </Marker>
         </MapView>
       </View>
     );
@@ -215,11 +229,20 @@ const styles = StyleSheet.create({
   viewLocationText: {
     color: '#9366E2',
     fontFamily: 'Afacad-Medium',
-    fontSize: hp('1.8%'),
+    fontSize: hp('2%'),
   },
   map: {
     flex: 1,
     width: '100%',
     height: '100%',
   },
+  markerInfo:{
+    flexDirection:"column",
+    padding:hp("0.5%")
+  },
+  markerHeader:{
+    fontSize:hp("2%"),
+    fontWeight:"bold",
+    marginBottom:hp("1%")
+  }
 });

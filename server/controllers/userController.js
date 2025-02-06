@@ -1,6 +1,8 @@
 const User = require("../models/userSchema");
 const File = require("../models/fileSchema");
 const Folder = require("../models/folderSchema");
+const Device = require("../models/deviceSchema")
+const Stock = require("../models/stockSchema")
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
@@ -23,72 +25,131 @@ const BUCKET_NAME = process.env.MINIO_BUCKET_NAME
 
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, confirmPassword } = req.body;
+    const { name, email, phone, password, location, gender, serialNumber = null, fingerPrint = null, confirmPassword } = req.body;
 
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      return res.status(400).json({ message: "Please fill in all fields." });
+    if (!name || !email || !phone || !password || !confirmPassword || !location || !gender) {
+      return res.status(400).json({ success: false, message: "Please fill in all fields." });
     }
 
     if (!validateEmail(email)) {
-      return res.status(400).json({ message: "Invalid email format." });
+      return res.status(400).json({ success: false, message: "Invalid email format." });
     }
 
     if (!validatePassword(password)) {
       return res.status(400).json({
-        message:
-          "Password must be at least 8 characters, include one uppercase, one number, and one special character.",
+        success: false,
+        message: "Password must be at least 8 characters, include one uppercase, one number, and one special character.",
       });
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords don't match." });
+      return res.status(400).json({ success: false, message: "Passwords don't match." });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already in use." });
+      return res.status(400).json({ success: false, message: "Email already in use." });
     }
 
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
-
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    let device = null;
+
+    if (serialNumber) {
+      const existingStockDevice = await Stock.findOne({ serialNumber });
+      if (!existingStockDevice) {
+        return res.status(400).json({ success: false, message: "Device with this serial number is not found in stock." });
+      }
+
+      device = await Device.findOne({ serialNumber });
+      if (device) {
+        if (device.owner) {
+          return res.status(400).json({ success: false, message: "Device is already registered to another user." });
+        }
+      } else {
+        device = new Device({
+          serialNumber,
+          owner: null,
+        });
+        await device.save();
+      }
+    }
 
     const user = new User({
       name,
       email,
       phone,
       password: hashedPassword,
+      location,
+      gender,
+      device: device ? device._id : null,
     });
 
     await user.save();
 
-    const userId = user._id;
+    if (device) {
+      device.owner = user._id;
 
+      if (fingerPrint) {
+        const { id, name } = fingerPrint;
 
-    const folderPath = `${userId}/`;
+        if (!id || !name) {
+          return res.status(400).json({ success: false, message: "Fingerprint details are incomplete." });
+        }
 
+        const existingFingerprint = device.fingerprints.find(fp => fp.id === id);
+        if (existingFingerprint) {
+          return res.status(400).json({ success: false, message: "Fingerprint ID already exists for this device." });
+        }
 
+        device.fingerprints.push({ id, name, date: new Date() });
+      }
+
+      await device.save();
+    }
+
+    const folderPath = `${user._id}/`;
     await minioClient.putObject(BUCKET_NAME, folderPath, Buffer.from(''));
 
-    const token = generateToken(userId, name, email);
+    const token = generateToken(user._id, name, email);
+
+    if (serialNumber) {
+      const existingStockDevice = await Stock.findOne({ serialNumber });
+      if (existingStockDevice) {
+        existingStockDevice.assignedTo = user._id;
+        existingStockDevice.deviceStatus = "Active";
+        await existingStockDevice.save();
+      }
+    }
 
     if (token) {
       res.status(201).json({
+        success: true,
         message: "User created successfully.",
         token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          location: user.location,
+          gender: user.gender,
+          device: user.device,
+        },
       });
     } else {
-      res.status(500).json({ message: "Failed to generate token." });
+      res.status(500).json({ success: false, message: "Failed to generate token." });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error creating user." });
+    res.status(500).json({ success: false, message: "Error creating user." });
   }
 };
 
 
-const login = async (req, res) => {
+const loginWithCredentials = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -121,6 +182,11 @@ const login = async (req, res) => {
     res.status(500).json({ message: "Error logging in." });
   }
 };
+
+
+const loginWithFingerPrint = async () => {
+
+}
 
 const getUser = async (req, res) => {
   try {
@@ -664,7 +730,7 @@ const updateProfileImage = async (req, res) => {
 
 module.exports = {
   register,
-  login,
+  loginWithCredentials,
   deleteUser,
   getUser,
   setProfile,

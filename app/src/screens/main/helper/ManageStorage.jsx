@@ -23,6 +23,8 @@ export default function ManageStorage({ navigation }) {
 
     const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata);
     const recycleBinFiles = useSelector((state) => state.files.recycleBinFiles);
+    const user = useSelector((state)=>state.user)
+
 
     useEffect(() => {
         if (pieData.length > 0) {
@@ -158,8 +160,8 @@ export default function ManageStorage({ navigation }) {
                                 donut
                                 showGradient
                                 sectionAutoFocus
-                                radius={hp("11%")}
-                                innerRadius={hp("8%")}
+                                radius={hp("12%")}
+                                innerRadius={hp("9%")}
                                 focusOnPress
                                 showValuesAsLabels
                                 isAnimated
@@ -183,7 +185,10 @@ export default function ManageStorage({ navigation }) {
                                                 {formatFileSize(totalUsedSpace)}
                                             </Text>
                                             <Text style={{ fontSize: hp("2%"), color: colors.textColor3, fontFamily: "Afacad-Medium" }}>
-                                                Total Used
+                                                Used of
+                                            </Text>
+                                            <Text style={{fontSize: hp("2.2%"), color: colors.textColor3, fontWeight: 'bold' }}>
+                                            {formatFileSize(user?.totalSpace)}
                                             </Text>
                                         </View>
                                     );

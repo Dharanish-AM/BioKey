@@ -12,6 +12,7 @@ const sharp = require("sharp");
 const minioClient = require("../config/minio")
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
+const clearBin = require("../utils/clearBin")
 
 const TARGET_DIR = path.join(
   "D:",
@@ -170,7 +171,7 @@ const loginWithCredentials = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials." });
     }
 
-    const token = generateToken(user._id,user.name,user.email);
+    const token = generateToken(user._id, user.name, user.email);
     if (token) {
       res.status(200).json({ success: true, message: "User logged in successfully.", token });
     } else {
@@ -193,18 +194,18 @@ const getUser = async (req, res) => {
 
 
     if (!userId) {
-      return res.status(400).json({success:false, message: "UserId is required." });
+      return res.status(400).json({ success: false, message: "UserId is required." });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ success:false,message: "Invalid userId format." });
+      return res.status(400).json({ success: false, message: "Invalid userId format." });
     }
 
 
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({success:false, message: "User not found." });
+      return res.status(404).json({ success: false, message: "User not found." });
     }
 
 
@@ -238,13 +239,13 @@ const getUser = async (req, res) => {
 
 
     res.status(200).json({
-      success:true,
+      success: true,
       message: "User fetched successfully.",
       user,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success:false,message: "Error fetching user." });
+    res.status(500).json({ success: false, message: "Error fetching user." });
   }
 };
 

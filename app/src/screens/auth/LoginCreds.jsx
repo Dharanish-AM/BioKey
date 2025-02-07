@@ -14,7 +14,8 @@ import { checkTokenIsValid, loginCreds } from '../../services/authOperations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
-import { setAuthState } from '../../redux/actions';
+import { setAuthState, setUser } from '../../redux/actions';
+import { loadUser } from '../../services/userOperations';
 
 export default function LoginCreds({ navigation }) {
     const [email, setEmail] = React.useState('');
@@ -38,42 +39,46 @@ export default function LoginCreds({ navigation }) {
         setError("");
 
         try {
-            const response = await loginCreds(email, password);
+            const loginResponse = await loginCreds(email, password);
 
-            if (response?.success) {
-                const { token } = response;
+            if (loginResponse?.success) {
+                const token = loginResponse.token;
+                await AsyncStorage.setItem("authToken", token);
 
+                const tokenValidationResponse = await checkTokenIsValid(token);
 
-                const isValid = await checkTokenIsValid(token);
-
-                if (isValid) {
-                    await AsyncStorage.setItem("authToken", token);
-                    dispatch(setAuthState(true, token));
+                if (tokenValidationResponse?.success) {
+                    const user = await loadUser(tokenValidationResponse.user.userId);
+                    if (user) {
+                        dispatch(setUser(user));
+                        dispatch(setAuthState(true, token));
+                    }
                     Toast.show({
                         type: "success",
                         text1: "Login success!"
-                    })
+                    });
+
                 } else {
                     Toast.show({
                         type: "error",
                         text1: "Login failed!",
-                        text2: response.message || "Unkown error occured"
-                    })
+                        text2: tokenValidationResponse.message || "Unknown error occurred"
+                    });
                 }
             } else {
                 Toast.show({
                     type: "error",
                     text1: "Login failed!",
-                    text2: response.message || "Unkown error occured"
-                })
+                    text2: loginResponse.message || "Unknown error occurred"
+                });
             }
         } catch (error) {
             console.error("Login error:", error);
             Toast.show({
                 type: "error",
                 text1: "Login failed!",
-                text2: response.message || "Unkown error occured"
-            })
+                text2: "An error occurred. Please try again."
+            });
         }
     };
 
@@ -217,16 +222,19 @@ const styles = StyleSheet.create({
         fontFamily: "Afacad-Regular",
         color: colors.textColor3,
         width: wp("90%"),
-        marginTop: hp("1%")
+        marginTop: hp("1%"),
+        borderColor: "rgba(161,161,161,0.2)",
+        borderWidth: hp("0.1%"),
     },
     forgotPassContainer: {
-        alignSelf: "flex-end"
+        alignSelf: "flex-end",
 
     },
     forgotPassText: {
         fontSize: hp("2.2%"),
         color: "#9366E2",
         fontFamily: "Afacad-Regular",
+        alignSelf: "flex-end"
     },
     buttonContainer: {
         paddingVertical: hp("1.1%"),
@@ -242,12 +250,7 @@ const styles = StyleSheet.create({
     errorText: {
         color: "#BE3144",
         fontSize: hp("2.2%"),
-        marginTop: hp("0.5%"),
         fontFamily: "Afacad-Regular",
     },
-
-
-
-
 
 });

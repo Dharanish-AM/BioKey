@@ -294,7 +294,7 @@ export default function UserFormScreen({ navigation }) {
                         marginTop: hp("2.5%")
                     }}>
                         <Text style={styles.text}>Already have account?  </Text>
-                        <TouchableOpacity onPress={()=>{
+                        <TouchableOpacity onPress={() => {
                             navigation.navigate('AuthScreen')
                         }} ><Text style={styles.link}>Login</Text></TouchableOpacity>
                     </View>
@@ -366,7 +366,8 @@ const styles = StyleSheet.create({
         marginBottom: hp("1%"),
         fontFamily: "Afacad-Regular",
         color: colors.textColor3,
-
+        borderColor: "rgba(161,161,161,0.2)",
+        borderWidth: hp("0.1%"),
     },
     dropdown: {
         backgroundColor: "rgba(42,48,60,0.5)",
@@ -377,6 +378,8 @@ const styles = StyleSheet.create({
         marginBottom: hp("1%"),
         fontFamily: "Afacad-Regular",
         color: colors.textColor3,
+        borderColor: "rgba(161,161,161,0.2)",
+        borderWidth: hp("0.1%"),
     },
     button: {
         paddingVertical: hp("1.5%"),
@@ -415,6 +418,6 @@ const styles = StyleSheet.create({
         fontSize: hp("2.2%"),
         color: "#9366E2",
         fontFamily: "Afacad-Medium",
-        textDecorationLine:"underline"
+        textDecorationLine: "underline"
     }
 });

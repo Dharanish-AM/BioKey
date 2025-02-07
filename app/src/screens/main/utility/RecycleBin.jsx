@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Modal, Animated, Easing } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
@@ -22,6 +22,33 @@ export default function RecycleBin({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const binFiles = useSelector((state) => state.files.recycleBinFiles, shallowEqual);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [scaleValue] = useState(new Animated.Value(0));
+
+    const toggleModal = (file) => {
+        setSelectedFile(file);
+        setModalVisible(true);
+        Animated.spring(scaleValue, {
+            toValue: 1,
+            stiffness: 100,
+            damping: 15,
+            mass: 1,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const closeModal = () => {
+        Animated.timing(scaleValue, {
+            toValue: 0,
+            duration: 250,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+        }).start(() => {
+            setModalVisible(false);
+            setSelectedFile(null);
+        });
+    };
+
 
     const isFirstRender = useSelector(
         (state) => state.appConfig.isFirstRender.recycleBinScreen
@@ -82,38 +109,22 @@ export default function RecycleBin({ navigation }) {
     };
 
     const handleDeleteFileOne = async (file) => {
-        console.log(file)
-        Alert.alert(
-            "Confirm Delete",
-            "Are you sure you want to permanently delete this file?",
-            [
-                {
-                    text: "Cancel",
-                    style: "cancel",
-                },
-                {
-                    text: "Delete File",
-                    style: "destructive",
-                    onPress: async () => {
-                        const response = await permanentDelete(userId, file._id, false, dispatch);
-                        if (response?.success) {
-                            Toast.show({
-                                type: 'success',
-                                text1: 'File Deleted!',
-                                text2: 'The file has been permanently deleted.',
-                            });
-                        } else {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Failed to delete file.',
-                                text2: response?.message || 'An error occurred.',
-                            });
-                        }
-                    },
-                },
-            ],
-            { cancelable: true }
-        );
+        const response = await permanentDelete(userId, file._id, false, dispatch);
+        if (response?.success) {
+            Toast.show({
+                type: 'success',
+                text1: 'File Deleted!',
+                text2: 'The file has been permanently deleted.',
+            });
+            setModalVisible(false)
+            setSelectedFile(null)
+        } else {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to delete file.',
+                text2: response?.message || 'An error occurred.',
+            });
+        }
     };
 
     const renderItem = ({ item }) => {
@@ -177,20 +188,11 @@ export default function RecycleBin({ navigation }) {
                     </View>
                 </View>
 
-                <TouchableOpacity onPress={() => toggleOptions(item)} style={styles.fileOption}>
+                <TouchableOpacity onPress={() => toggleModal(item)} style={styles.fileOption}>
                     <Feather name="more-horizontal" size={hp("3.5%")} color={colors.textColor3} />
                 </TouchableOpacity>
 
-                {selectedFile?.name === item.name && (
-                    <View style={styles.optionsContainer}>
-                        <TouchableOpacity style={styles.optionButton} onPress={() => handleRestoreFile(item)}>
-                            <Text style={styles.optionText}>Restore</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.optionButton} onPress={() => handleDeleteFileOne(item)}>
-                            <Text style={[styles.optionText, { color: "#B82132" }]}>Delete Permanently</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+
             </View>
         );
     };
@@ -238,6 +240,7 @@ export default function RecycleBin({ navigation }) {
                             </View>
                         )}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                        keyboardShouldPersistTaps="handled"
                     />
                 </View>
             </View>
@@ -245,6 +248,37 @@ export default function RecycleBin({ navigation }) {
                 binFiles?.length > 0 && <TouchableOpacity onPress={handleDeleteAll} style={styles.deleteAllButton}>
                     <EvilIcons name="trash" size={hp("6%")} color={colors.textColor3} />
                 </TouchableOpacity>
+            }
+            {
+                (isModalVisible && selectedFile) && <View style={styles.modalOverlay}>
+                    <Animated.View style={[styles.modalContainer, { transform: [{ scale: scaleValue }] }]}>
+                        <Text style={styles.modalTitle}>{selectedFile?.name}</Text>
+
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            width: "100%",
+                            paddingHorizontal: wp("7%"),
+                            marginTop: hp("1%"),
+                            marginBottom: hp("0.5%")
+                        }}>
+                            <TouchableOpacity onPress={() => handleRestoreFile(selectedFile)}>
+                                <Text style={styles.modalButtonText}>Restore</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={() => handleDeleteFileOne(selectedFile)}>
+                                <Text style={[styles.modalButtonText, {
+                                    color: "#F93827"
+                                }]}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
+                            <Text style={styles.modalButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
             }
         </SafeAreaView >
     );
@@ -449,4 +483,48 @@ const styles = StyleSheet.create({
         width: "60%",
         resizeMode: "contain",
     },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.2)",
+        width: wp("100%"),
+        height: hp("100%"),
+        position: 'absolute',
+        zIndex: 2
+    },
+    modalContainer: {
+        width: "70%",
+        backgroundColor: colors.lightColor1,
+        padding: hp("1.5%"),
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "space-between"
+
+    },
+    modalTitle: {
+        fontSize: hp("2.4%"),
+        marginBottom: hp("1%"),
+        fontFamily: "Afacad-Medium",
+        color: colors.textColor3
+    },
+    modalButton: {
+        flex: 1,
+        width: "100%",
+    },
+    modalButtonText: {
+        color: colors.textColor3,
+        fontSize: hp("2.2%"),
+        fontFamily: "Afacad-Regular"
+    },
+    cancelButton: {
+        color: colors.textColor2,
+        fontFamily: "Afacad-Medium",
+        width: "100%",
+        borderTopColor: "rgba(161,161,161,0.2)",
+        borderTopWidth: 1,
+        paddingTop: hp("1.5%"),
+        marginTop: hp("1%"),
+        alignItems: "center"
+    }
 });

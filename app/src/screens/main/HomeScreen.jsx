@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation }) {
     (state) => state.appConfig.isFirstRender.homeScreen
   );
 
-  const user = useSelector((state) => state.user, shallowEqual);
+  const user = useSelector((state) => state.user);
 
   const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata)
 
@@ -361,7 +361,7 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  if (isLoading) {
+  if (isLoading && !user) {
     <SpinnerOverlay visible={isLoading} />
   }
 

@@ -21,7 +21,6 @@ export default function AppNavigator() {
         const token = await AsyncStorage.getItem("authToken");
         const storedIsNewUser = await AsyncStorage.getItem("isNewUser");
 
-
         if (storedIsNewUser === null) {
           setIsNewUser(true);
           await AsyncStorage.setItem("isNewUser", "false");
@@ -33,15 +32,18 @@ export default function AppNavigator() {
           const response = await checkTokenIsValid(token);
           if (response.success) {
             const user = await loadUser(response.user.userId);
-            dispatch(setUser(user));
-            dispatch(setAuthState(true, token));
+            if (user) {
+              dispatch(setUser(user));
+              dispatch(setAuthState(true, token));
+            } else {
+              dispatch(setAuthState(false, ""));
+            }
           } else {
             dispatch(setAuthState(false, ""));
           }
         } else {
           dispatch(setAuthState(false, ""));
         }
-
       } catch (error) {
         console.error("Error loading auth state:", error);
         dispatch(setAuthState(false, ""));

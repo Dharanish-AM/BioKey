@@ -11,6 +11,7 @@ const { getUniqueFilePath, createThumbnail, getFileCategory, getFileSizeFromMinI
 const formidable = require("formidable");
 
 
+
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 const maxThumbnailSize = 204800;
 

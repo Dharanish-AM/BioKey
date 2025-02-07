@@ -26,7 +26,9 @@ export default function AuthScreen({ navigation }) {
             <Image source={Logo} style={styles.logoImage} />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate('SupportScreen')
+          }}>
             <Image source={SupportIcon} style={styles.supportIcon} />
           </TouchableOpacity>
         </View>
@@ -54,7 +56,9 @@ export default function AuthScreen({ navigation }) {
               }]}>Login with Credentials</Text>
 
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button]}>
+            <TouchableOpacity onPress={() => {
+              navigation.navigate("DevicePairingScreen")
+            }} style={[styles.button]}>
 
               <Text style={[styles.buttonText, {
                 color: colors.textColor1

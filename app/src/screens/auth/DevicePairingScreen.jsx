@@ -29,7 +29,9 @@ export default function DevicePairingScreen({ navigation, route }) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity style={styles.supportContainer}>
+          <TouchableOpacity onPress={()=>{
+            navigation.navigate("SupportScreen")
+          }} style={styles.supportContainer}>
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>
@@ -138,16 +140,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   button: {
-    width: "65%",
-    height: "35%",
+    width: "60%",
+    height: "33%",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: hp("5%"),
   },
   buttonText: {
-    fontSize: hp("3%"),
+    fontSize: hp("2.5%"),
     color: colors.textColor3,
-    fontFamily: "Afacad-SemiBold",
+    fontFamily: "Afacad-Medium",
   },
   deviceConnected: {
     backgroundColor: colors.primaryColor

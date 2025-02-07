@@ -11,10 +11,10 @@ const getIP = () => {
 const API_URL = `http://${getIP()}/api/users`;
 
 
-export const loadUser = async (userId, dispatch) => {
+export const loadUser = async (userId) => {
   try {
     const response = await axios.get(`${API_URL}/user-details?userId=${userId}`);
-    await dispatch(setUser(response.data.user));
+    return response.data.user
   } catch (error) {
     console.error("Error fetching profile:", error);
   }

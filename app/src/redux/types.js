@@ -14,3 +14,5 @@ export const SET_USER = "SET_USER";
 export const SET_PASSWORD = "SET_PASSWORD";
 
 export const UPDATE_FILE_LIKE_STATUS = "UPDATE_FILE_LIKE_STATUS"
+
+export const SET_AUTH_STATE = "SET_AUTH_STATE"

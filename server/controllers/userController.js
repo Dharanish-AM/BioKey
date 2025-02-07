@@ -113,7 +113,6 @@ const register = async (req, res) => {
     const folderPath = `${user._id}/`;
     await minioClient.putObject(BUCKET_NAME, folderPath, Buffer.from(''));
 
-    const token = generateToken(user._id, name, email);
 
     if (serialNumber) {
       const existingStockDevice = await Stock.findOne({ serialNumber });
@@ -128,7 +127,6 @@ const register = async (req, res) => {
       res.status(201).json({
         success: true,
         message: "User created successfully.",
-        token,
         user: {
           id: user._id,
           name: user.name,
@@ -153,33 +151,34 @@ const loginWithCredentials = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+
     if (!email || !password) {
-      return res.status(400).json({ message: "Please fill in all fields." });
+      return res.status(400).json({ success: false, message: "Please fill in all fields." });
     }
 
     if (!validateEmail(email)) {
-      return res.status(400).json({ message: "Invalid email format." });
+      return res.status(400).json({ success: false, message: "Invalid email format." });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found." });
+      return res.status(400).json({ success: false, message: "User not found." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials." });
+      return res.status(400).json({ success: false, message: "Invalid credentials." });
     }
 
-    const token = generateToken();
+    const token = generateToken(user._id,user.name,user.email);
     if (token) {
-      res.status(200).json({ message: "User logged in successfully.", token });
+      res.status(200).json({ success: true, message: "User logged in successfully.", token });
     } else {
-      res.status(500).json({ message: "Failed to generate token." });
+      res.status(500).json({ success: false, message: "Failed to generate token." });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error logging in." });
+    res.status(500).json({ success: false, message: "Error logging in." });
   }
 };
 
@@ -194,18 +193,18 @@ const getUser = async (req, res) => {
 
 
     if (!userId) {
-      return res.status(400).json({ message: "UserId is required." });
+      return res.status(400).json({success:false, message: "UserId is required." });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid userId format." });
+      return res.status(400).json({ success:false,message: "Invalid userId format." });
     }
 
 
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({success:false, message: "User not found." });
     }
 
 
@@ -239,12 +238,13 @@ const getUser = async (req, res) => {
 
 
     res.status(200).json({
+      success:true,
       message: "User fetched successfully.",
       user,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error fetching user." });
+    res.status(500).json({ success:false,message: "Error fetching user." });
   }
 };
 

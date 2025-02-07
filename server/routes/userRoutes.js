@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const  checkToken  = require("../utils/checkToken");
 
 router.post("/register", userController.register);
 router.post("/login-credentials", userController.loginWithCredentials);
@@ -16,6 +17,7 @@ router.delete("/deletefolder", userController.deleteFolder)
 router.put("/renamefolder", userController.renameFolder)
 router.get("/listfavourite", userController.listLiked)
 router.post('/updateuserprofileimage', userController.updateProfileImage)
+router.post("/check-token-is-valid",checkToken)
 
 
 module.exports = router;

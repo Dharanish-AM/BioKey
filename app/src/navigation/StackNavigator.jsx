@@ -24,6 +24,7 @@ import FavouritesScreen from "../screens/main/media/FavouriteScreen";
 import FolderPreviewScreen from "../screens/main/helper/FolderPreviewScreen";
 import RecycleBin from "../screens/main/utility/RecycleBin";
 import ManageStorage from "../screens/main/helper/ManageStorage";
+import LoginCreds from "../screens/auth/LoginCreds";
 
 const Stack = createStackNavigator();
 
@@ -36,13 +37,13 @@ function NewUserStack() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="DevicePairingScreen"
-        component={DevicePairingScreen}
+        name="UserFormScreen"
+        component={UserFormScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="UserFormScreen"
-        component={UserFormScreen}
+        name="DevicePairingScreen"
+        component={DevicePairingScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -60,6 +61,16 @@ function NewUserStack() {
         component={FailureScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="LoginCreds"
+        component={LoginCreds}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AuthScreen"
+        component={AuthScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -70,6 +81,11 @@ function AuthStack() {
       <Stack.Screen
         name="AuthScreen"
         component={AuthScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LoginCreds"
+        component={LoginCreds}
         options={{ headerShown: false }}
       />
       <Stack.Screen

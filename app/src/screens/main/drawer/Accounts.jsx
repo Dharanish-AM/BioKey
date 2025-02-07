@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import {
     widthPercentageToDP as wp,
@@ -39,6 +39,7 @@ export default function Accounts({ navigation }) {
         location: user.userLocation
     });
     const dispatch = useDispatch()
+    const [loading, setLoading] = useState(false);
 
     const RBSheetRef = useRef()
 
@@ -47,6 +48,7 @@ export default function Accounts({ navigation }) {
     }
 
     const handleOptionSelect = async (option) => {
+        setLoading(true)
 
         const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (mediaStatus !== "granted") {
@@ -108,7 +110,7 @@ export default function Accounts({ navigation }) {
                 console.log("Error", err);
             }
         }
-
+        setLoading(false)
     };
 
 
@@ -190,6 +192,15 @@ export default function Accounts({ navigation }) {
             <StatusBar backgroundColor={colors.lightColor1} barStyle="light-content" />
 
             <View style={styles.innerContainer}>
+            {
+                loading && <ActivityIndicator size="large" style={{
+                    position: 'absolute',
+                    top: hp('50%'),
+                    left: 0,
+                    right: 0,
+
+                }}  />
+            }
                 <TouchableOpacity onPress={() => RBSheetRef.current.open()} style={styles.editContainer}>
                     <MaterialCommunityIcons name="pencil-outline" size={hp("2.5%")} color={colors.secondaryColor1} />
                 </TouchableOpacity>

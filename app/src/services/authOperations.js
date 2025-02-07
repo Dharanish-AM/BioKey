@@ -22,3 +22,41 @@ export const registerUser = async (form) => {
         console.log(err);
     }
 }
+
+
+export const loginCreds = async (email, password) => {
+    try {
+        const response = await axios.post(`${API_URL}/login-credentials`, { email, password });
+        if (response.status == 200) {
+            console.log("Login Success")
+            return response.data
+        }
+        else {
+            console.log("Login Failed")
+            return response.data
+        }
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
+
+export const checkTokenIsValid = async (token) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/check-token-is-valid`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        return response.data
+
+    } catch (err) {
+        return false;
+    }
+};

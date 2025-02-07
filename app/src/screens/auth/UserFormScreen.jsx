@@ -9,6 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     Keyboard,
+    Pressable,
 } from "react-native";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { Dropdown } from 'react-native-element-dropdown';
@@ -29,13 +30,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function UserFormScreen({ navigation }) {
     const [isDevice, setIsDevice] = useState(false);
     const [form, setForm] = useState({
-        name: "Ajay P S",
-        email: "ajay123@gmail.com",
-        phone: "9568565123",
-        password: "Ajay@123",
-        confirmPassword: "Ajay@123",
-        gender: "Male",
-        location: "Pollachi",
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        gender: "",
+        location: "",
     });
 
     const [isFormFilled, setIsFormFilled] = useState(false);
@@ -268,7 +269,7 @@ export default function UserFormScreen({ navigation }) {
                             textStyle={{
                                 color: colors.textColor3,
                                 fontFamily: "Afacad-Regular",
-                                fontSize: hp("2.5%"),
+                                fontSize: hp("2.2%"),
                                 textDecorationLine: "none",
                             }}
                             style={{
@@ -286,6 +287,17 @@ export default function UserFormScreen({ navigation }) {
                     >
                         <Text style={styles.buttonText}>Create Account</Text>
                     </TouchableOpacity>
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: "center",
+                        alignSelf: "center",
+                        marginTop: hp("2.5%")
+                    }}>
+                        <Text style={styles.text}>Already have account?  </Text>
+                        <TouchableOpacity onPress={()=>{
+                            navigation.navigate('AuthScreen')
+                        }} ><Text style={styles.link}>Login</Text></TouchableOpacity>
+                    </View>
                 </ScrollView>
 
             </KeyboardAvoidingView>
@@ -393,4 +405,16 @@ const styles = StyleSheet.create({
         marginBottom: hp("1%"),
         fontFamily: "Afacad-Medium",
     },
+    text: {
+        fontSize: hp("2.2%"),
+        color: colors.textColor3,
+        fontFamily: "Afacad-Medium",
+
+    },
+    link: {
+        fontSize: hp("2.2%"),
+        color: "#9366E2",
+        fontFamily: "Afacad-Medium",
+        textDecorationLine:"underline"
+    }
 });

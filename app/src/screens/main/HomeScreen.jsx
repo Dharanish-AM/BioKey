@@ -92,18 +92,20 @@ export default function HomeScreen({ navigation }) {
 
 
   useEffect(() => {
-    if (!isFirstRender) return;
+    if (!isFirstRender || !userId) return;
+
     setIsLoading(true);
     dispatch(setFirstRender("homeScreen"));
 
-    const fetchUser = async () => {
-      await loadUser(userId, dispatch);
-    };
-
     const fetchData = async () => {
       try {
-        await fetchRecentFiles(userId, dispatch);
-        fetchUsedSpace(userId, dispatch);
+        await Promise.all([
+          fetchUsedSpace(userId, dispatch),
+          fetchRecentFiles(userId, dispatch),
+          getAllfileMetadata(userId, dispatch),
+          fetchFolderList(userId, dispatch),
+          fetchRecycleBinFiles(userId, dispatch),
+        ]);
       } catch (error) {
         console.error("Error in useEffect:", error);
       } finally {
@@ -111,13 +113,8 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
-
-    fetchUser();
     fetchData();
-    getAllfileMetadata(userId, dispatch)
-    fetchFolderList(userId, dispatch);
-    fetchRecycleBinFiles(userId, dispatch)
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
   useEffect(() => {
     if (!allFilesSearchQuery.trim()) {
@@ -364,12 +361,15 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
+  if (isLoading) {
+    <SpinnerOverlay visible={isLoading} />
+  }
 
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
 
-      <SpinnerOverlay visible={isLoading} />
+
       {isUploading && (
         <ActivityIndicator
           size="large"

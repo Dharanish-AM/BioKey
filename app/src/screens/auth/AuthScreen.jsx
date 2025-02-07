@@ -13,7 +13,7 @@ import Animation from "../../assets/animations/mock_animation.json"
 import PassIcon from "../../assets/images/auth-pass.png"
 import FpIcon from "../../assets/images/auth-gp.png"
 
-export default function AuthScreen() {
+export default function AuthScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} >
       <View style={styles.innerContainer}>
@@ -42,7 +42,9 @@ export default function AuthScreen() {
         </View>
         <View style={styles.bottom}>
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={[styles.button, {
+            <TouchableOpacity onPress={() => {
+              navigation.navigate("LoginCreds")
+            }} style={[styles.button, {
               backgroundColor: "#E2EBFF"
             }]}>
               <Image source={PassIcon} style={styles.buttonIcons} />
@@ -68,14 +70,16 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.footer}>
-            <Text style={styles.bottomText}>Don't have an account?  </Text><Pressable>
+            <Text style={styles.bottomText}>Don't have an account?  </Text><TouchableOpacity onPress={() => {
+              navigation.navigate('UserFormScreen')
+            }} >
               <Text style={{
                 color: "#9366E2",
                 textDecorationLine: 'underline',
                 fontFamily: "Afacad-Medium",
                 fontSize: hp("2.2%")
               }}>Click here</Text>
-            </Pressable>
+            </TouchableOpacity>
 
           </View>
         </View>

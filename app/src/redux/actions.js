@@ -11,8 +11,15 @@ import {
   FETCH_FOLDERS,
   GET_EACH_PASSWORD,
   SET_ALL_FILES_METADATA,
-  SET_RECYCLE_BIN_FILES
+  SET_RECYCLE_BIN_FILES,
+  SET_AUTH_STATE
 } from "./types";
+
+
+export const setAuthState = (isAuthenticated, token) => ({
+  type: SET_AUTH_STATE,
+  payload: { isAuthenticated, token },
+});
 
 export const fetchFilesAction = (type, files = []) => {
   console.log("Dispatching action to fetch files - " + type);
@@ -100,7 +107,7 @@ export const setAllFilesMetadata = (allFiles) => {
   }
 }
 
-export const setRecycleBinFile = (file)=>{
+export const setRecycleBinFile = (file) => {
   return {
     type: SET_RECYCLE_BIN_FILES,
     payload: file

@@ -355,7 +355,6 @@ const styles = StyleSheet.create({
     },
     optionButton: {
         padding: hp("1%"),
-
         flex: 1
     },
     optionText: {

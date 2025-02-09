@@ -1,7 +1,7 @@
-#include <Adafruit_Fingerprint.h>  
-#include <EEPROM.h>                
-#include <WiFi.h>                  
-#include <WebSocketsServer.h>      
+#include <Adafruit_Fingerprint.h>
+#include <EEPROM.h>
+#include <WiFi.h>
+#include <WebSocketsServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
@@ -31,7 +31,7 @@ void setup() {
   isDeviceRegistered = EEPROM.read(0) == 1;
 
   EEPROM.get(1, serialNumber);
-  if (serialNumber == 0xFFFFFFFF) {  
+  if (serialNumber == 0xFFFFFFFF) {
     serialNumber = 123456789;
     EEPROM.put(1, serialNumber);
     EEPROM.commit();
@@ -109,11 +109,11 @@ void handleRegister(uint8_t client) {
 
 int getAvailableID() {
   for (int id = 1; id < MAX_ID; id++) {
-    if (readID(id) == 0) {  
+    if (readID(id) == 0) {
       return id;
     }
   }
-  return -1;  
+  return -1;
 }
 
 
@@ -139,11 +139,14 @@ void handleLogin(uint8_t client) {
       return;
     }
 
-    webSocket.sendTXT(client, "Login successful. Encrypted Key: " + encryptedKey);
+
+    String response = "Login successful. Encrypted Key: " + encryptedKey + " Serial Number: " + String(serialNumber);
+    webSocket.sendTXT(client, response);
   } else {
     webSocket.sendTXT(client, "Login failed.");
   }
 }
+
 
 String encryptUsingAPI(String uniqueKey, String publicKey) {
   HTTPClient http;
@@ -235,7 +238,7 @@ void handleAddFingerprint(uint8_t client) {
 }
 
 void handleSetKey(uint8_t client, String keyData) {
-  int separatorIndex = keyData.indexOf('|');  
+  int separatorIndex = keyData.indexOf('|');
   if (separatorIndex == -1) {
     webSocket.sendTXT(client, "Invalid format. Expected 'uniqueKey|publicKey'.");
     return;
@@ -257,14 +260,14 @@ void handleSetKey(uint8_t client, String keyData) {
   for (int i = 0; i < uniqueKey.length(); i++) {
     EEPROM.write(10 + i, uniqueKey[i]);
   }
-  EEPROM.write(10 + uniqueKey.length(), '\0');  
+  EEPROM.write(10 + uniqueKey.length(), '\0');
 
 
   int publicKeyStart = 10 + uniqueKey.length() + 1;
   for (int i = 0; i < publicKey.length(); i++) {
     EEPROM.write(publicKeyStart + i, publicKey[i]);
   }
-  EEPROM.write(publicKeyStart + publicKey.length(), '\0');  
+  EEPROM.write(publicKeyStart + publicKey.length(), '\0');
 
   EEPROM.commit();
 
@@ -282,7 +285,7 @@ void resetDevice(uint8_t client) {
 
 
   for (int i = 0; i < EEPROM_SIZE; i++) {
-    EEPROM.write(i, 0); 
+    EEPROM.write(i, 0);
   }
   EEPROM.commit();
 

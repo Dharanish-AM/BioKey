@@ -64,12 +64,23 @@ export default function DevicePairingScreen({ navigation, route }) {
         setSerialNumber(serial);
       }
 
-      if (event.data.includes("Encrypted Key:")) {
-        const encryptedKey = event.data.split("Encrypted Key: ")[1].trim();
-        console.log("Received Encrypted Key:", encryptedKey);
-        setUniqueKeyEncrypted(encryptedKey);
-        handleFpLogin();
+      if (event.data.includes("Encrypted Key:") && event.data.includes("Serial Number:")) {
+        const parts = event.data.split("Encrypted Key: ")[1];
+        const [encryptedKey, serialPart] = parts.split(" Serial Number: ");
+
+        if (encryptedKey && serialPart) {
+          const serialNumber = serialPart.trim();
+
+          console.log("Received Encrypted Key:", encryptedKey);
+          console.log("Received Serial Number:", serialNumber);
+
+          setUniqueKeyEncrypted(encryptedKey);
+          setSerialNumber(serialNumber);
+
+          handleFpLogin();
+        }
       }
+
     };
 
     socket.onerror = (error) => {

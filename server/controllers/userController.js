@@ -48,25 +48,29 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    let device = null;
+    let existingStockDevice = null;
     if (serialNumber) {
-      const existingStockDevice = await Stock.findOne({ serialNumber });
+      existingStockDevice = await Stock.findOne({ serialNumber });
+
       if (!existingStockDevice) {
         return res.status(400).json({ success: false, message: "Device with this serial number is not found in stock." });
       }
 
       device = await Device.findOne({ serialNumber });
+
       if (device && device.owner) {
         return res.status(400).json({ success: false, message: "Device is already registered to another user." });
       }
 
       if (!device) {
         device = new Device({ serialNumber, owner: null });
-        existingStockDevice.deviceStatus = "registered"
+        existingStockDevice.deviceStatus = "registered";
+
         await device.save();
         await existingStockDevice.save();
       }
     }
+
 
     const user = new User({
       name,
@@ -109,6 +113,8 @@ const register = async (req, res) => {
       console.log(uniqueKey)
 
       await device.save();
+      existingStockDevice.assignedTo = user._id
+      await existingStockDevice.save()
 
       res.status(201).json({
 

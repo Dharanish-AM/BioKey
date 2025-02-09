@@ -53,6 +53,14 @@ export default function DevicePairingScreen({ navigation, route }) {
     socket.onmessage = (event) => {
       console.log("Message from server:", event.data);
 
+      if(event.data.includes("Device not registered.")){
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Device not registered.",
+        })
+      }
+
       if (event.data.includes("Fingerprint ID:")) {
         const id = event.data.split("Fingerprint ID: ")[1].trim();
         setFingerprintId(id);

@@ -90,6 +90,7 @@ export default function HomeScreen({ navigation }) {
 
   const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata)
 
+  const { usedSpaceBytes, totalSpaceBytes } = useSelector((state) => state.files.usedSpace)
 
   useEffect(() => {
     if (!isFirstRender || !userId) return;
@@ -441,7 +442,7 @@ export default function HomeScreen({ navigation }) {
               <AnimatedCircularProgress
                 size={hp("16%")}
                 width={hp("1.2%")}
-                fill={(user.usedSpace / user.totalSpace) * 100 || 0}
+                fill={(usedSpaceBytes / totalSpaceBytes) * 100 || 0}
                 prefill={0}
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
@@ -474,8 +475,8 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.storageTitle}>Used Space</Text>
                 <Text style={styles.storageValue}>
                   {user && user.usedSpace && user.totalSpace
-                    ? `${formatFileSize(user.usedSpace)} / ${formatFileSize(user.totalSpace)}`
-                    : `0 B / ${formatFileSize(user.totalSpace)}`}
+                    ? `${formatFileSize(usedSpaceBytes)} / ${formatFileSize(totalSpaceBytes)}`
+                    : `0 B / ${formatFileSize(totalSpaceBytes)}`}
                 </Text>
               </View>
               <TouchableOpacity style={styles.premiumContainer}>

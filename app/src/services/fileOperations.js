@@ -2,7 +2,7 @@ import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction, setAllFilesMetadata, setLikedFiles, setRecycleBinFile } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
-import { fetchFolderList } from "./userOperations";
+import { fetchFolderList, loadUser } from "./userOperations";
 
 
 const getIP = () => {
@@ -44,6 +44,7 @@ export const uploadMedia = async (userId, files, dispatch) => {
       }
 
       await fetchUsedSpace(userId, dispatch);
+      await getAllfileMetadata(userId, dispatch)
 
       return { success: true, message: "Upload successful and files updated" };
     } else {
@@ -110,17 +111,10 @@ export const fetchUsedSpace = async (userId, dispatch) => {
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
       const totalSpaceBytes = response.data.totalSpace || 0;
-      const usedSpacePercentage = (
-        (usedSpaceBytes / totalSpaceBytes) *
-        100
-      ).toFixed(2);
-      const usedSpaceWithUnit = formatFileSize(usedSpaceBytes);
-
       dispatch(
         fetchUsedSpaceAction(
           usedSpaceBytes,
-          usedSpacePercentage,
-          usedSpaceWithUnit
+          totalSpaceBytes
         )
       );
     } else {
@@ -164,6 +158,7 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
     await fetchUsedSpace(userId, dispatch);
     await fetchRecycleBinFiles(userId, dispatch)
     await fetchFolderList(userId, dispatch)
+    await getAllfileMetadata(userId, dispatch)
 
     return {
       success: true,
@@ -212,6 +207,7 @@ export const permanentDelete = async (userId, fileId = null, all = false, dispat
     })
     if (response.status == 200) {
       await fetchRecycleBinFiles(userId, dispatch)
+      await getAllfileMetadata(userId, dispatch)
       return response.data
     }
     else {
@@ -234,6 +230,7 @@ export const restoreFile = async (userId, RecycleBinId, type, dispatch) => {
       await fetchRecentFiles(userId, dispatch);
       await fetchUsedSpace(userId, dispatch);
       await fetchRecycleBinFiles(userId, dispatch)
+      await getAllfileMetadata(userId, dispatch)
       return response.data
     }
     else {

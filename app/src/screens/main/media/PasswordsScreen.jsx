@@ -183,7 +183,7 @@ export default function PasswordsScreen({ navigation }) {
       case "facebook":
         iconSource = FacebookIcon;
         break;
-      case "twitter":
+      case "twitter" || "x":
         iconSource = TwitterIcon;
         break;
       case "google":
@@ -337,6 +337,17 @@ export default function PasswordsScreen({ navigation }) {
                     onRefresh={handleRefresh}
                   />
                 }
+                ListEmptyComponent={() => {
+                  return (
+                    <Text style={{
+                      fontSize: hp("2.5%"),
+                      color: colors.textColor2,
+                      fontFamily: "Afacad-Italic",
+                      alignSelf: "center",
+                      marginTop: hp("35%")
+                    }}>No passwords found, try adding!</Text>
+                  )
+                }}
               />)
           }
         </View>

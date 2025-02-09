@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   illustration: {
     width: "98%",
     height: "90%",
-    resizeMode: "stretch",
+    resizeMode: "contain",
   },
   bottom: {
     width: wp("100%"),

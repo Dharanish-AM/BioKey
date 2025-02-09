@@ -288,6 +288,17 @@ export default function FoldersScreen({ navigation }) {
               width: wp("100%"),
               paddingHorizontal: wp("1.5%"),
             }}
+            ListEmptyComponent={() => {
+              return (
+                <Text style={{
+                  fontSize: hp("2.5"),
+                  fontFamily:"Afacad-Italic",
+                  color:colors.textColor2,
+                  alignSelf:"center",
+                  marginTop:hp("30%")
+                }}>No folders found</Text>
+              )
+            }}
           />
         </View>
       </View>{

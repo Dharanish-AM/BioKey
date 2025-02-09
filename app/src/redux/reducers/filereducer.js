@@ -18,14 +18,13 @@ const initialState = {
   loading: false,
   usedSpace: {
     usedSpaceBytes: 0,
-    usedSpacePercentage: 0,
-    usedSpaceWithUnit: "",
+    totalSpaceBytes: 0,
   },
   searchQuery: "",
   filteredFiles: [],
   likedFiles: [],
   allFilesMetadata: [],
-  recycleBinFiles:[]
+  recycleBinFiles: []
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -66,8 +65,7 @@ const fileReducer = (state = initialState, action) => {
         ...state,
         usedSpace: {
           usedSpaceBytes: action.payload.usedSpaceBytes,
-          usedSpacePercentage: action.payload.usedSpacePercentage,
-          usedSpaceWithUnit: action.payload.usedSpaceWithUnit,
+          totalSpaceBytes: action.payload.totalSpaceBytes,
         },
       };
 
@@ -134,7 +132,7 @@ const fileReducer = (state = initialState, action) => {
         allFilesMetadata: action.payload
       }
     case SET_RECYCLE_BIN_FILES:
-      return{
+      return {
         ...state,
         recycleBinFiles: action.payload
       }

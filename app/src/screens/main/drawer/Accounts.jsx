@@ -16,8 +16,9 @@ import { BlurView } from 'expo-blur';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import FallBackProfileImage from '../../../assets/images/profile_icon.png';
 import Toast from 'react-native-toast-message';
-import { handleProfileImageSet, updateUserProfile } from '../../../services/userOperations';
+import { handleProfileImageSet, loadUser, updateUserProfile } from '../../../services/userOperations';
 import * as ImagePicker from "expo-image-picker";
+import { setUser } from '../../../redux/actions';
 
 export default function Accounts({ navigation }) {
     const [isMoreOption, setIsMoreOption] = useState(false);
@@ -94,18 +95,36 @@ export default function Accounts({ navigation }) {
                 const response = await handleProfileImageSet(user.userId, formData, dispatch);
 
                 if (response?.success) {
-                    RBSheetRef.current.close();
-                    Toast.show({
-                        text1: 'Profile picture updated successfully',
-                        type: "success"
-                    });
+                    try {
+                        const userResponse = await loadUser(user.userId);
+
+                        if (userResponse && typeof userResponse === "object") {
+                            dispatch(setUser(userResponse));
+                        } else {
+                            console.error("Invalid userResponse format:", userResponse);
+                        }
+
+                        RBSheetRef.current.close();
+                        Toast.show({
+                            text1: "Profile picture updated successfully",
+                            type: "success",
+                        });
+                    } catch (error) {
+                        console.error("Error loading user:", error);
+                        Toast.show({
+                            text1: "Failed to update profile picture",
+                            text2: "Error fetching user details",
+                            type: "error",
+                        });
+                    }
                 } else {
                     Toast.show({
-                        text1: 'Failed to update profile picture',
+                        text1: "Failed to update profile picture",
                         text2: response.message,
-                        type: "error"
+                        type: "error",
                     });
                 }
+
             } catch (err) {
                 console.log("Error", err);
             }
@@ -120,7 +139,12 @@ export default function Accounts({ navigation }) {
 
         if (isDataChanged) {
             const response = await updateUserProfile(user.userId, userData, dispatch)
+
             if (response.success) {
+                const userResponse = await loadUser(user.userId);
+                if (userResponse && typeof userResponse === "object") {
+                    dispatch(setUser(userResponse));
+                }
                 Toast.show({
                     type: 'success',
                     text1: 'Profile Updated',
@@ -192,15 +216,15 @@ export default function Accounts({ navigation }) {
             <StatusBar backgroundColor={colors.lightColor1} barStyle="light-content" />
 
             <View style={styles.innerContainer}>
-            {
-                loading && <ActivityIndicator size="large" style={{
-                    position: 'absolute',
-                    top: hp('50%'),
-                    left: 0,
-                    right: 0,
+                {
+                    loading && <ActivityIndicator size="large" style={{
+                        position: 'absolute',
+                        top: hp('50%'),
+                        left: 0,
+                        right: 0,
 
-                }}  />
-            }
+                    }} />
+                }
                 <TouchableOpacity onPress={() => RBSheetRef.current.open()} style={styles.editContainer}>
                     <MaterialCommunityIcons name="pencil-outline" size={hp("2.5%")} color={colors.secondaryColor1} />
                 </TouchableOpacity>

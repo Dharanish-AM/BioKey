@@ -408,6 +408,17 @@ export default function PhotosScreen({ navigation }) {
                   tintColor={colors.textColor3}
                 />
               }
+              ListEmptyComponent={() => {
+                return (
+                  <Text style={{
+                    fontSize: hp("2.5%"),
+                    color: colors.textColor2,
+                    fontFamily: "Afacad-Italic",
+                    alignSelf: "center",
+                    marginTop:hp("35%")
+                  }}>No videos found, try adding!</Text>
+                )
+              }}
             />
           )}
         </View>

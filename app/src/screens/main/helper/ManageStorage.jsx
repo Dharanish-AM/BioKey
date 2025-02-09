@@ -23,7 +23,10 @@ export default function ManageStorage({ navigation }) {
 
     const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata);
     const recycleBinFiles = useSelector((state) => state.files.recycleBinFiles);
-    const user = useSelector((state)=>state.user)
+    const user = useSelector((state) => state.user)
+
+    const { usedSpaceBytes, totalSpaceBytes } = useSelector((state) => state.files.usedSpace)
+
 
 
     useEffect(() => {
@@ -131,13 +134,13 @@ export default function ManageStorage({ navigation }) {
         "All Files", "Images", "Videos", "Audios", "Others"
     ]
 
-    const renderItem = ({ item,index }) => (
+    const renderItem = ({ item, index }) => (
         <TouchableOpacity onPress={() => {
             navigation.navigate("FilePreviewScreen", {
                 file: item
             })
         }} style={styles.fileItem}>
-            <Text style={styles.fileName}>{index+1}. {item.name}</Text>
+            <Text style={styles.fileName}>{index + 1}. {item.name}</Text>
             <Text style={styles.fileSize}>{formatFileSize(item.size)}</Text>
         </TouchableOpacity>
     );
@@ -187,8 +190,8 @@ export default function ManageStorage({ navigation }) {
                                             <Text style={{ fontSize: hp("2%"), color: colors.textColor3, fontFamily: "Afacad-Medium" }}>
                                                 Used of
                                             </Text>
-                                            <Text style={{fontSize: hp("2.2%"), color: colors.textColor3, fontWeight: 'bold' }}>
-                                            {formatFileSize(user?.totalSpace)}
+                                            <Text style={{ fontSize: hp("2.2%"), color: colors.textColor3, fontWeight: 'bold' }}>
+                                                {formatFileSize(user?.totalSpace)}
                                             </Text>
                                         </View>
                                     );
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
-        gap: wp("1%"),
+        gap: wp("3%"),
     },
     dotContainer: {
         width: wp("2.5%"),

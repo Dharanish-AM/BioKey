@@ -48,12 +48,15 @@ const uploadFile = async (req, res) => {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
+      let totalSizeChange = 0;
+
       const filePromises = uploadedFiles.map(async (file) => {
         const filePath = file.filepath;
         let uniqueFilePath, thumbnailPath;
         let thumbnailSize = 0;
-        let totalSize = 0;
         try {
+
+
           const originalFileName = file.originalFilename || `default_${Date.now()}`;
           const fileCategory = getFileCategory(originalFileName);
           const fileSize = file.size;
@@ -61,6 +64,7 @@ const uploadFile = async (req, res) => {
           if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
             throw new Error("Insufficient space");
           }
+
           const folderPath = `${userId}/${fileCategory}`;
           uniqueFilePath = await getUniqueFilePath(BUCKET_NAME, folderPath, originalFileName, minioClient);
 
@@ -73,6 +77,11 @@ const uploadFile = async (req, res) => {
             thumbnailSize = await getFileSizeFromMinIO(BUCKET_NAME, thumbnailPath, minioClient);
           }
 
+ 
+ 
+          const totalSize = fileSize + thumbnailSize;
+          totalSizeChange += totalSize;
+
           const fileMetadata = new File({
             name: path.basename(uniqueFilePath),
             path: uniqueFilePath,
@@ -82,16 +91,15 @@ const uploadFile = async (req, res) => {
             owner: userId,
           });
           await fileMetadata.save();
-          totalSize = fileSize + thumbnailSize;
 
           await new Promise(resolve => {
             fs.unlink(filePath, (err) => {
               if (err && err.code !== "ENOENT" && err.code !== "EPERM") {
                 console.error("Error deleting temp file:", err.message);
               }
-              resolve()
+              resolve();
             });
-          })
+          });
 
           return {
             fileName: path.basename(uniqueFilePath),
@@ -104,14 +112,16 @@ const uploadFile = async (req, res) => {
         } catch (error) {
           console.error("File processing error:", error.message);
           try {
-            await minioClient.removeObject(BUCKET_NAME, uniqueFilePath);
+            if (uniqueFilePath) {
+              await minioClient.removeObject(BUCKET_NAME, uniqueFilePath);
+            }
           } catch (cleanupError) {
             console.error("Error removing MinIO file:", cleanupError.message);
           }
           try {
-            await fs.promises.unlink(filePath)
+            await fs.promises.unlink(filePath);
           } catch (deleteError) {
-            console.error("Error deleting temp file:", deleteError.message)
+            console.error("Error deleting temp file:", deleteError.message);
           }
           return { status: "rejected", reason: error.message, size: 0 };
         }
@@ -127,12 +137,14 @@ const uploadFile = async (req, res) => {
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason);
 
-      if (successes.length > 0) {
-        const totalSpaceChange = successes.reduce((acc, file) => acc + file.size, 0);
-        user.usedSpace += totalSpaceChange;
-        await user.save();
-      }
+      console.log(`User ${userId} previous used space: ${user.usedSpace}`);
+      console.log(`Total space change to be added: ${totalSizeChange} bytes`);
 
+      if (successes.length > 0) {
+        user.usedSpace += totalSizeChange;
+        await user.save();
+        console.log(`User ${userId} updated used space: ${user.usedSpace}`);
+      }
 
       if (errors.length > 0) {
         console.error("Upload errors:", errors);
@@ -153,6 +165,7 @@ const uploadFile = async (req, res) => {
     }
   });
 };
+
 
 const moveToRecycleBin = async (req, res) => {
   try {
@@ -265,36 +278,63 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
   try {
     const { userId, fileId, all } = req.body;
 
+    console.log("Received request:", { userId, fileId, all });
+
     if (!userId || (!fileId && !all)) {
       console.error("Missing parameters:", { userId, fileId, all });
       return res.status(400).json({ error: "Missing required parameters: userId or fileId." });
     }
 
-    if (all) {
+    const user = await User.findById(userId);
+    if (!user) {
+      console.error(`User not found: ${userId}`);
+      return res.status(404).json({ error: "User not found." });
+    }
 
+    if (all) {
+      console.log(`Fetching all files from Recycle Bin for user: ${userId}`);
       const files = await RecycleBin.find({ owner: userId });
 
       if (!files.length) {
+        console.warn(`No files found in Recycle Bin for user: ${userId}`);
         return res.status(404).json({ error: "No files found in Recycle Bin." });
       }
 
       let totalSize = 0;
+      const deletePromises = [];
+
       for (const file of files) {
-        totalSize += file.size + (file.thumbnailSize || 0);
-        await minioClient.removeObject(BUCKET_NAME, file.originalPath).catch(err =>
-          console.error("Error deleting file from MinIO:", err)
+        const fileSize = file.size + (file.thumbnailSize || 0);
+        totalSize += fileSize;
+        console.log(`Processing file: ${file.originalPath}, Size: ${fileSize}`);
+
+
+        deletePromises.push(
+          minioClient.removeObject(BUCKET_NAME, file.originalPath)
+            .then(() => console.log(`Deleted file: ${file.originalPath}`))
+            .catch(err => console.error("Error deleting file from MinIO:", err))
         );
+
+
         if (file.thumbnail) {
-          await minioClient.removeObject(BUCKET_NAME, file.thumbnail).catch(err =>
-            console.warn("Failed to delete thumbnail:", file.thumbnail)
+          deletePromises.push(
+            minioClient.removeObject(BUCKET_NAME, file.thumbnail)
+              .then(() => console.log(`Deleted thumbnail: ${file.thumbnail}`))
+              .catch(err => console.warn("Failed to delete thumbnail:", file.thumbnail))
           );
         }
       }
 
-      await Promise.all([
-        User.updateOne({ _id: userId }, { $inc: { usedSpace: -totalSize } }),
-        RecycleBin.deleteMany({ owner: userId })
-      ]);
+      console.log(`Total space to reduce: ${totalSize}`);
+
+
+      await Promise.all(deletePromises);
+
+
+      await User.updateOne({ _id: userId }, { $inc: { usedSpace: -totalSize } });
+      await RecycleBin.deleteMany({ owner: userId });
+
+      console.log(`All files permanently deleted for user: ${userId}`);
 
       return res.status(200).json({
         success: true,
@@ -303,27 +343,40 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
     }
 
 
+    console.log(`Fetching file ${fileId} from Recycle Bin for user: ${userId}`);
     const fileRecord = await RecycleBin.findOne({ _id: fileId, owner: userId });
+
     if (!fileRecord) {
+      console.warn(`File not found in Recycle Bin: ${fileId}`);
       return res.status(404).json({ error: "File not found in Recycle Bin." });
     }
 
     const { originalPath, thumbnail, size, thumbnailSize = 0 } = fileRecord;
     const sizeToReduce = size + thumbnailSize;
+    console.log(`Processing file: ${originalPath}, Size: ${sizeToReduce}`);
 
-    await Promise.all([
-      minioClient.removeObject(BUCKET_NAME, originalPath).catch(err => {
-        throw new Error(`Failed to delete file from MinIO: ${err.message}`);
-      }),
-      thumbnail && minioClient.removeObject(BUCKET_NAME, thumbnail).catch(err =>
-        console.warn(`Failed to delete thumbnail: ${thumbnail}`)
-      )
-    ]);
+    const deleteFilePromises = [
+      minioClient.removeObject(BUCKET_NAME, originalPath)
+        .then(() => console.log(`Deleted file: ${originalPath}`))
+        .catch(err => { throw new Error(`Failed to delete file from MinIO: ${err.message}`); })
+    ];
 
-    await Promise.all([
-      User.updateOne({ _id: userId }, { $inc: { usedSpace: -sizeToReduce } }),
-      RecycleBin.deleteOne({ _id: fileId })
-    ]);
+    if (thumbnail) {
+      deleteFilePromises.push(
+        minioClient.removeObject(BUCKET_NAME, thumbnail)
+          .then(() => console.log(`Deleted thumbnail: ${thumbnail}`))
+          .catch(err => console.warn(`Failed to delete thumbnail: ${thumbnail}`))
+      );
+    }
+
+
+    await Promise.all(deleteFilePromises);
+
+
+    await User.updateOne({ _id: userId }, { $inc: { usedSpace: -sizeToReduce } });
+    await RecycleBin.deleteOne({ _id: fileId });
+
+    console.log(`File permanently deleted for user: ${userId}, File: ${fileId}`);
 
     return res.status(200).json({
       success: true,
@@ -338,6 +391,7 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
     });
   }
 };
+
 
 
 

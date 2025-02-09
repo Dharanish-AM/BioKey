@@ -31,15 +31,13 @@ export const fetchFilesAction = (type, files = []) => {
 
 export const fetchUsedSpaceAction = (
   usedSpaceBytes,
-  usedSpacePercentage,
-  usedSpaceWithUnit
+  totalSpaceBytes
 ) => {
   return {
     type: FETCH_USED_SPACE,
     payload: {
       usedSpaceBytes,
-      usedSpacePercentage,
-      usedSpaceWithUnit,
+      totalSpaceBytes
     },
   };
 };

@@ -155,6 +155,7 @@ export default function PasswordPreview({ navigation, route }) {
             );
 
             if (response.status) {
+              navigation.goBack()
               Toast.show({
                 type: 'success',
                 text1: `Password deleted successfully!`,
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
-    marginBottom:hp("2%")
+    marginBottom: hp("2%")
   },
   backIconContainer: {
     height: hp("5%"),

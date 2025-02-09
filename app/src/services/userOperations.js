@@ -18,7 +18,7 @@ export const loadUser = async (userId) => {
   } catch (error) {
     console.error("Error fetching profile:", error);
   }
-};
+}; 
 
 export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
   try {
@@ -83,7 +83,6 @@ export const fetchFolderList = async (userId, dispatch) => {
       dispatch(setFolders([]));
     }
   } catch (error) {
-    console.error("Error fetching folder list:", error.message);
     dispatch(setFolders([]));
   }
 };
@@ -159,7 +158,6 @@ export const updateUserProfile = async (userId, profileData, dispatch) => {
     });
 
     if (response.status === 200 && response.data.success) {
-      await loadUser(userId, dispatch);
       return response.data;
     } else {
       return response.data;
@@ -181,7 +179,6 @@ export const handleProfileImageSet = async (userId, formData, dispatch) => {
     });
 
     if (response.status == 200) {
-      await loadUser(userId, dispatch)
       return response.data
     }
     else {

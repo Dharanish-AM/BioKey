@@ -1,7 +1,7 @@
-#include <Adafruit_Fingerprint.h>  // Fingerprint sensor library
-#include <EEPROM.h>                // Store fingerprint IDs and keys
-#include <WiFi.h>                  // WiFi for WebSocket
-#include <WebSocketsServer.h>      // WebSocket server
+#include <Adafruit_Fingerprint.h>  
+#include <EEPROM.h>                
+#include <WiFi.h>                  
+#include <WebSocketsServer.h>      
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
@@ -19,7 +19,7 @@ Adafruit_Fingerprint finger(&Serial2);
 WebSocketsServer webSocket(81);
 
 bool isDeviceRegistered = false;
-int serialNumber = 123456789;
+uint32_t serialNumber = 123456789;
 
 void setup() {
   Serial.begin(115200);
@@ -29,11 +29,14 @@ void setup() {
 
   EEPROM.begin(EEPROM_SIZE);
   isDeviceRegistered = EEPROM.read(0) == 1;
+
   EEPROM.get(1, serialNumber);
-
-
+  if (serialNumber == 0xFFFFFFFF) {  
+    serialNumber = 123456789;
     EEPROM.put(1, serialNumber);
     EEPROM.commit();
+  }
+
 
   finger.begin(57600);
   if (!finger.verifyPassword()) {
@@ -106,11 +109,11 @@ void handleRegister(uint8_t client) {
 
 int getAvailableID() {
   for (int id = 1; id < MAX_ID; id++) {
-    if (readID(id) == 0) {  // Check if ID slot is empty
+    if (readID(id) == 0) {  
       return id;
     }
   }
-  return -1;  // No available slots
+  return -1;  
 }
 
 
@@ -144,12 +147,11 @@ void handleLogin(uint8_t client) {
 
 String encryptUsingAPI(String uniqueKey, String publicKey) {
   HTTPClient http;
-  String serverUrl = "http://192.168.56.1:3000/encrypt";  
+  String serverUrl = "http://192.168.56.1:3000/encrypt";
 
   http.begin(serverUrl);
   http.addHeader("Content-Type", "application/json");
 
-  // Create JSON object
   StaticJsonDocument<200> jsonDoc;
   jsonDoc["uniqueKey"] = uniqueKey;
   jsonDoc["publicKey"] = publicKey;
@@ -169,6 +171,7 @@ String encryptUsingAPI(String uniqueKey, String publicKey) {
   http.end();
   return response;
 }
+
 
 
 String readEEPROMString(int start) {
@@ -232,7 +235,7 @@ void handleAddFingerprint(uint8_t client) {
 }
 
 void handleSetKey(uint8_t client, String keyData) {
-  int separatorIndex = keyData.indexOf('|');  // Expecting "uniqueKey|publicKey"
+  int separatorIndex = keyData.indexOf('|');  
   if (separatorIndex == -1) {
     webSocket.sendTXT(client, "Invalid format. Expected 'uniqueKey|publicKey'.");
     return;
@@ -246,18 +249,22 @@ void handleSetKey(uint8_t client, String keyData) {
     return;
   }
 
-  // Store uniqueKey at EEPROM address 10
+
+  for (int i = 10; i < EEPROM_SIZE; i++) {
+    EEPROM.write(i, 0);
+  }
+
   for (int i = 0; i < uniqueKey.length(); i++) {
     EEPROM.write(10 + i, uniqueKey[i]);
   }
-  EEPROM.write(10 + uniqueKey.length(), '\0');  // Null terminator
+  EEPROM.write(10 + uniqueKey.length(), '\0');  
 
-  // Store publicKey after uniqueKey
+
   int publicKeyStart = 10 + uniqueKey.length() + 1;
   for (int i = 0; i < publicKey.length(); i++) {
     EEPROM.write(publicKeyStart + i, publicKey[i]);
   }
-  EEPROM.write(publicKeyStart + publicKey.length(), '\0');  // Null terminator
+  EEPROM.write(publicKeyStart + publicKey.length(), '\0');  
 
   EEPROM.commit();
 
@@ -267,30 +274,32 @@ void handleSetKey(uint8_t client, String keyData) {
 void resetDevice(uint8_t client) {
   Serial.println("Resetting device...");
 
-  // Clear all fingerprints
+
   if (finger.emptyDatabase() != FINGERPRINT_OK) {
     webSocket.sendTXT(client, "Failed to clear fingerprint database.");
     return;
   }
 
-  // Clear EEPROM (reset all stored values)
+
   for (int i = 0; i < EEPROM_SIZE; i++) {
-    EEPROM.write(i, 0);  // Writing 0 instead of 0xFF for a proper reset
+    EEPROM.write(i, 0); 
   }
   EEPROM.commit();
 
-  // Reset key storage locations explicitly
+
   for (int i = 10; i < EEPROM_SIZE; i++) {
     EEPROM.write(i, 0);
   }
   EEPROM.commit();
 
-  // Reset serial number and registration flag
+
   isDeviceRegistered = false;
   serialNumber = 0;
 
   Serial.println("Device reset successful.");
   webSocket.sendTXT(client, "Device reset successful. Restart the device.");
+  delay(1000);
+  ESP.restart();
 }
 
 

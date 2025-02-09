@@ -5,6 +5,7 @@ const  checkToken  = require("../utils/checkToken");
 
 router.post("/register", userController.register);
 router.post("/login-credentials", userController.loginWithCredentials);
+router.post("/login-fingerprint", checkToken, userController.loginWithFingerPrint);
 router.put("/updateuserprofile", userController.updateProfile)
 router.delete("/delete", userController.deleteUser);
 router.get("/user-details", userController.getUser);

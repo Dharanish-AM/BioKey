@@ -95,7 +95,7 @@ export default function UserFormScreen({ navigation }) {
                 else {
                     console.log("device")
                     navigation.navigate("DevicePairingScreen", {
-                        form
+                        form: form
                     })
                 }
             }

@@ -57,7 +57,9 @@ export default function AuthScreen({ navigation }) {
 
             </TouchableOpacity>
             <TouchableOpacity onPress={() => {
-              navigation.navigate("DevicePairingScreen")
+              navigation.navigate("DevicePairingScreen", {
+                type: "login"
+              })
             }} style={[styles.button]}>
 
               <Text style={[styles.buttonText, {

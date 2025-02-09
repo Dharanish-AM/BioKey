@@ -22,8 +22,8 @@ const stockSchema = new mongoose.Schema({
     },
     deviceStatus: {
         type: String,
-        enum: ['Active', 'Inactive'],
-        default: 'Inactive'
+        enum: ['registered', 'unregistered'],
+        default: 'unregistered'
     }
 });
 

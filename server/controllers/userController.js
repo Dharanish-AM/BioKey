@@ -24,23 +24,16 @@ const TARGET_DIR = path.join(
 
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME
 
+const NodeRSA = require("node-rsa");
+
+const { generateUniqueKey, decodeUniqueKey } = require('../utils/uniqueKey');
+
 const register = async (req, res) => {
   try {
     const { name, email, phone, password, location, gender, serialNumber = null, fingerPrint = null, confirmPassword } = req.body;
 
     if (!name || !email || !phone || !password || !confirmPassword || !location || !gender) {
       return res.status(400).json({ success: false, message: "Please fill in all fields." });
-    }
-
-    if (!validateEmail(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format." });
-    }
-
-    if (!validatePassword(password)) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 8 characters, include one uppercase, one number, and one special character.",
-      });
     }
 
     if (password !== confirmPassword) {
@@ -53,11 +46,9 @@ const register = async (req, res) => {
     }
 
     const saltRounds = 10;
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     let device = null;
-
     if (serialNumber) {
       const existingStockDevice = await Stock.findOne({ serialNumber });
       if (!existingStockDevice) {
@@ -65,16 +56,15 @@ const register = async (req, res) => {
       }
 
       device = await Device.findOne({ serialNumber });
-      if (device) {
-        if (device.owner) {
-          return res.status(400).json({ success: false, message: "Device is already registered to another user." });
-        }
-      } else {
-        device = new Device({
-          serialNumber,
-          owner: null,
-        });
+      if (device && device.owner) {
+        return res.status(400).json({ success: false, message: "Device is already registered to another user." });
+      }
+
+      if (!device) {
+        device = new Device({ serialNumber, owner: null });
+        existingStockDevice.deviceStatus = "registered"
         await device.save();
+        await existingStockDevice.save();
       }
     }
 
@@ -95,7 +85,6 @@ const register = async (req, res) => {
 
       if (fingerPrint) {
         const { id, name } = fingerPrint;
-
         if (!id || !name) {
           return res.status(400).json({ success: false, message: "Fingerprint details are incomplete." });
         }
@@ -108,26 +97,25 @@ const register = async (req, res) => {
         device.fingerprints.push({ id, name, date: new Date() });
       }
 
+      const key = new NodeRSA({ b: 2048 });
+      const privateKey = key.exportKey("private");
+      const publicKey = key.exportKey("public");
+
+      device.privateKey = privateKey;
+
+
+      const uniqueKey = generateUniqueKey(user._id, user.email)
+
+      console.log(uniqueKey)
+
       await device.save();
-    }
 
-    const folderPath = `${user._id}/`;
-    await minioClient.putObject(BUCKET_NAME, folderPath, Buffer.from(''));
-
-
-    if (serialNumber) {
-      const existingStockDevice = await Stock.findOne({ serialNumber });
-      if (existingStockDevice) {
-        existingStockDevice.assignedTo = user._id;
-        existingStockDevice.deviceStatus = "Active";
-        await existingStockDevice.save();
-      }
-    }
-
-    if (token) {
       res.status(201).json({
+
         success: true,
-        message: "User created successfully.",
+        message: "User and device registered successfully.",
+        publicKey: publicKey,
+        uniqueKey: uniqueKey,
         user: {
           id: user._id,
           name: user.name,
@@ -139,13 +127,25 @@ const register = async (req, res) => {
         },
       });
     } else {
-      res.status(500).json({ success: false, message: "Failed to generate token." });
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully (No device linked).",
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          location: user.location,
+          gender: user.gender,
+        },
+      });
     }
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Error creating user." });
   }
 };
+
 
 
 const loginWithCredentials = async (req, res) => {
@@ -184,9 +184,50 @@ const loginWithCredentials = async (req, res) => {
 };
 
 
-const loginWithFingerPrint = async () => {
+const loginWithFingerPrint = async (req, res) => {
+  try {
+    const { uniqueKeyEncrypted, serialNumber } = req.body;
 
-}
+    if (!uniqueKeyEncrypted || !serialNumber) {
+      return res.status(400).json({ success: false, message: "Missing required fields." });
+    }
+
+    const device = await Device.findOne({ serialNumber });
+
+    if (!device || !device.privateKey) {
+      return res.status(400).json({ success: false, message: "Device not found or private key missing." });
+    }
+
+    try {
+      const privateKey = new NodeRSA(device.privateKey);
+      const decryptedToken = privateKey.decrypt(uniqueKeyEncrypted, "utf8");
+
+      const decoded = decodeUniqueKey(decryptedToken);
+
+      if (!decoded || !decoded.userId) {
+        return res.status(400).json({ success: false, message: "Invalid token." });
+      }
+
+
+      const token = generateToken(decoded.userId, decoded.name, decoded.email);
+
+      return res.status(200).json({
+        success: true,
+        message: "Login successful.",
+        user: decoded,
+        token,
+      });
+    } catch (err) {
+      console.error("Decryption or token verification failed:", err);
+      return res.status(400).json({ success: false, message: "Failed to authenticate." });
+    }
+  } catch (error) {
+    console.error("Error in loginWithFingerPrint:", error);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+
 
 const getUser = async (req, res) => {
   try {
@@ -743,5 +784,6 @@ module.exports = {
   renameFolder,
   listLiked,
   updateProfile,
-  updateProfileImage
+  updateProfileImage,
+  loginWithFingerPrint
 };

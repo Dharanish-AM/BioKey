@@ -41,6 +41,16 @@ export const loginCreds = async (email, password) => {
     }
 }
 
+export const loginFp = async (uniqueKeyEncrypted, serialNumber) => {
+    try {
+        const response = await axios.post(`${API_URL}/login-fingerprint`, { uniqueKeyEncrypted, serialNumber })
+        return response.data
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
 
 export const checkTokenIsValid = async (token) => {
     try {

@@ -8,7 +8,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { fetchRecentFiles, fetchRecycleBinFiles, permanentDelete, restoreFile } from '../../../services/fileOperations';
 import { formatFileSize } from '../../../utils/formatFileSize';
 import RecycleBinIcon from "../../../assets/images/recycle.png"
-import { Pressable, RefreshControl, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { Pressable, RefreshControl } from 'react-native-gesture-handler';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Toast from 'react-native-toast-message';
 import { setFirstRender } from '../../../redux/actions';
@@ -53,6 +53,15 @@ export default function RecycleBin({ navigation }) {
     const isFirstRender = useSelector(
         (state) => state.appConfig.isFirstRender.recycleBinScreen
     );
+
+    var sortedBinFiles = null
+
+    useEffect(() => {
+        if (binFiles) {
+            sortedBinFiles = [...binFiles].sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+
+        }
+    }, [binFiles])
 
     useEffect(() => {
         if (!isFirstRender) return;
@@ -200,10 +209,13 @@ export default function RecycleBin({ navigation }) {
     const handleRestoreFile = async (file) => {
         const response = await restoreFile(userId, file._id, file.type, dispatch)
         if (response.success) {
+            setModalVisible(false)
+            setSelectedFile(null)
             Toast.show({
                 type: 'success',
                 text1: 'File Restored!',
             })
+
         }
         else {
             Toast.show({
@@ -231,7 +243,7 @@ export default function RecycleBin({ navigation }) {
 
                 <View style={styles.content}>
                     <FlatList
-                        data={binFiles}
+                        data={sortedBinFiles}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={renderItem}
                         ListEmptyComponent={() => (

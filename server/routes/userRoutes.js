@@ -19,6 +19,7 @@ router.put("/renamefolder", userController.renameFolder)
 router.get("/listfavourite", userController.listLiked)
 router.post('/updateuserprofileimage', userController.updateProfileImage)
 router.post("/check-token-is-valid", checkToken)
+router.get("/getallnotifications", userController.getUserNotifications)
 
 
 module.exports = router;

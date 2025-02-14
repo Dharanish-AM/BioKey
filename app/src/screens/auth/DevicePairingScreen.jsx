@@ -23,6 +23,7 @@ import { checkTokenIsValid, loginFp, registerUser } from "../../services/authOpe
 import { loadUser } from "../../services/userOperations";
 import { setAuthState, setUser } from "../../redux/actions";
 import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function DevicePairingScreen({ navigation, route }) {
   const form = route.params?.form || null;
@@ -53,7 +54,7 @@ export default function DevicePairingScreen({ navigation, route }) {
     socket.onmessage = (event) => {
       console.log("Message from server:", event.data);
 
-      if(event.data.includes("Device not registered.")){
+      if (event.data.includes("Device not registered.")) {
         Toast.show({
           type: "error",
           text1: "Error",
@@ -185,8 +186,10 @@ export default function DevicePairingScreen({ navigation, route }) {
       fingerPrint: { id: fingerprintId, name: fingerprintName },
     };
 
+    const notificationToken = AsyncStorage.getItem("expoPushToken")
+
     try {
-      const response = await registerUser(formData);
+      const response = await registerUser(formData, notificationToken);
       if (response?.success) {
         console.log("User registered successfully:", response);
 

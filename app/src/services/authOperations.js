@@ -8,9 +8,13 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}/api/users`;
 
-export const registerUser = async (form) => {
+export const registerUser = async (form, notificationToken) => {
     try {
-        const response = await axios.post(`${API_URL}/register`, form);
+
+        const response = await axios.post(`${API_URL}/register`, {
+            form,
+            notificationToken
+        });
         if (response.status == 200 || 201) {
 
             return response.data;

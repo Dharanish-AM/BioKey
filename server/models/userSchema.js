@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       required: true,
-      enum:["Male","Female","Others"]
+      enum: ["Male", "Female", "Others"]
     },
     location: {
       type: String,
@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema(
     usedSpace: {
       type: Number,
       default: 0
+    },
+    notificationToken: {
+      type: String,
+      default: null
     },
     createdAt: {
       type: Date,

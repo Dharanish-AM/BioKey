@@ -1,40 +1,47 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import React from 'react';
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import colors from '../../../constants/colors';
 import Entypo from '@expo/vector-icons/Entypo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import moment from 'moment';
-
-const notifications = [
-  {
-    date: "2025-02-02",
-    data: [
-      { id: "1", title: "Storage Almost Full! 🚨", content: "Your storage is 95% full. Free up space now.", type: "warning" },
-      { id: "2", title: "Suspicious Activity Detected! ⚠️", content: "We noticed unusual activity on your account.", type: "security" }
-    ],
-  },
-  {
-    date: "2025-02-01",
-    data: [
-      { id: "3", title: "Backup Completed ✅", content: "Your latest backup was successfully completed.", type: "info" }
-    ],
-  },
-  {
-    date: "2025-01-29",
-    data: [
-      { id: "4", title: "New Feature Added! 🎉", content: "Check out the latest update in Biokey.", type: "update" },
-    ],
-  }
-];
-
+import { getNotifications } from '../../../services/userOperations';
+import { useSelector } from 'react-redux';
 
 const formatDate = (date) => moment(date).format("MMM DD, YYYY ddd").toUpperCase();
 
 export default function Notifications({ navigation }) {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+
+  const userId = useSelector((state) => state.user.userId);
+  const token = useSelector((state) => state.auth.token);
+
+  const fetchNotifications = async () => {
+    if (!userId || !token) return;
+
+    setLoading(true);
+    try {
+      const response = await getNotifications(userId, token);
+      setNotifications(response || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [userId, token]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchNotifications();
+    setRefreshing(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -45,38 +52,40 @@ export default function Notifications({ navigation }) {
           <Text style={styles.headerText}>Notifications</Text>
         </View>
 
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.date}
-          renderItem={({ item }) => (
-            <View style={styles.section}>
-              <Text style={styles.dateHeader}>{formatDate(item.date)}</Text>
-
-              {item.data.map((noti) => (
-                <View key={noti.id} style={styles.notificationContainer}>
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={styles.loading} />
+        ) : notifications.length === 0 ? (
+          <View style={styles.noNotificationsContainer}>
+            <Text style={styles.noNotificationsText}>No Notifications</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.section}>
+                <Text style={styles.dateHeader}>{formatDate(item.date)}</Text>
+                <View key={item._id} style={styles.notificationContainer}>
                   <View style={styles.notiLeft}>
                     <View style={styles.notiDot} />
                   </View>
                   <View style={styles.notiRight}>
-                    <Text style={styles.notiHeader}>{noti.title}</Text>
-                    <Text style={styles.notiContent}>{noti.content}</Text>
+                    <Text style={styles.notiHeader}>{item.title}</Text>
+                    <Text style={styles.notiContent}>{item.message}</Text>
                   </View>
                 </View>
-              ))}
-            </View>
-          )}
-          style={
-            {
-              paddingHorizontal: wp("5%"),
-              flexGrow: 1
+              </View>
+            )}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
             }
-          }
-        />
+            style={{ paddingHorizontal: wp("5%"), flexGrow: 1 }}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

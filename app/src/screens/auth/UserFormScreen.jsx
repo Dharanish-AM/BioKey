@@ -105,7 +105,8 @@ export default function UserFormScreen({ navigation }) {
 
     const handleRegisterNoDevice = async () => {
         try {
-            const response = await registerUser(form);
+            const notificationToken = AsyncStorage.getItem("expoPushToken")
+            const response = await registerUser(form, notificationToken);
 
             if (response.success) {
                 Toast.show({

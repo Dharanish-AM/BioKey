@@ -4,6 +4,8 @@
     "slug": "app",
     "version": "1.0.0",
     "scheme": "biokey",
+    "icon": "./src/assets/images/BioKey_Logo.png",
+  
     "android": {
       "package": "com.app.biokey"
     },
@@ -15,6 +17,17 @@
     },
     "platforms": ["ios", "android"],
     "newArchEnabled": true,
-    "plugins": ["expo-audio"]
+    "plugins": ["expo-audio"],
+    "splash": {
+      "image": "./src/assets/images/BioKey_Logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2A303C"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "95757e05-69a2-4bcd-843b-c05470ccbb43"
+      }
+    }
+
   }
 }

@@ -18,7 +18,7 @@ export const loadUser = async (userId) => {
   } catch (error) {
     console.error("Error fetching profile:", error);
   }
-}; 
+};
 
 export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
   try {
@@ -184,6 +184,34 @@ export const handleProfileImageSet = async (userId, formData, dispatch) => {
     else {
       return response.data
     }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+export const registerNotificationToken = async (token) => {
+  try {
+    const response = await axios.post(`${API_URL}/registernotificationtoken`, {
+      token,
+      userId
+    })
+    if (response.status === 200 && response.data.success) {
+      console.log(" Notification token registered successfully");
+    }
+    else {
+      console.log("Failed to register notification token");
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
+export const getNotifications = async (userId, token) => {
+  try {
+    const response = await axios.get(`${API_URL}/getallnotifications?userId=${userId}`)
+    return response.data.notifications
   }
   catch (err) {
     console.log(err)

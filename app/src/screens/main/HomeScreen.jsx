@@ -354,9 +354,6 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.moreIconContainer}>
-            <Image source={MoreIcon} style={styles.moreIcon} />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -1072,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   aboutFile: {
     height: "100%",
-    width: "80%",
+    width: "100%",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
@@ -1083,6 +1080,7 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Regular",
     color: colors.textColor3,
     width: "100%",
+
   },
   fileDetails: {
     height: "30%",

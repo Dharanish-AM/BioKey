@@ -13,6 +13,7 @@ const minioClient = require("../config/minio")
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
 const clearBin = require("../utils/clearBin")
+const UserNotification = require("../models/notificationSchema");
 
 const TARGET_DIR = path.join(
   "D:",
@@ -30,7 +31,7 @@ const { generateUniqueKey, decodeUniqueKey } = require('../utils/uniqueKey');
 
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, location, gender, serialNumber = null, fingerPrint = null, confirmPassword } = req.body;
+    const { name, email, phone, password, location, gender, serialNumber = null, fingerPrint = null, confirmPassword, notificationToken } = req.body;
 
     if (!name || !email || !phone || !password || !confirmPassword || !location || !gender) {
       return res.status(400).json({ success: false, message: "Please fill in all fields." });
@@ -80,6 +81,7 @@ const register = async (req, res) => {
       location,
       gender,
       device: device ? device._id : null,
+      notificationToken
     });
 
     await user.save();
@@ -773,7 +775,22 @@ const updateProfileImage = async (req, res) => {
   });
 };
 
+const getUserNotifications = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    console.log(userId)
 
+    const userNotifications = await UserNotification.findOne({ userId });
+
+    if (!userNotifications) {
+      return res.json({ success: true, notifications: [] });
+    }
+
+    res.json({ success: true, notifications: userNotifications.notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching notifications", error });
+  }
+};
 
 
 module.exports = {
@@ -791,5 +808,6 @@ module.exports = {
   listLiked,
   updateProfile,
   updateProfileImage,
-  loginWithFingerPrint
+  loginWithFingerPrint,
+  getUserNotifications
 };

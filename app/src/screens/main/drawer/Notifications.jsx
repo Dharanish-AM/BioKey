@@ -1,23 +1,44 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+  Animated,
+  LayoutAnimation,
+  UIManager,
+  Platform
+} from "react-native";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
-import colors from '../../../constants/colors';
-import Entypo from '@expo/vector-icons/Entypo';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import moment from 'moment';
-import { getNotifications } from '../../../services/userOperations';
-import { useSelector } from 'react-redux';
+import colors from "../../../constants/colors";
+import Entypo from "@expo/vector-icons/Entypo";
+import { SafeAreaView } from "react-native-safe-area-context";
+import moment from "moment";
+import { clearNotification, getNotifications } from "../../../services/userOperations";
+import { useSelector } from "react-redux";
+import { Swipeable } from "react-native-gesture-handler";
 
-const formatDate = (date) => moment(date).format("MMM DD, YYYY ddd").toUpperCase();
+const formatDate = (date) =>
+  date ? moment(date).format("MMM DD, YYYY ddd").toUpperCase() : "UNKNOWN DATE";
+
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function Notifications({ navigation }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-
   const userId = useSelector((state) => state.user.userId);
   const token = useSelector((state) => state.auth.token);
+
+  
+  const swipeableRef = useRef(null);
 
   const fetchNotifications = async () => {
     if (!userId || !token) return;
@@ -25,7 +46,9 @@ export default function Notifications({ navigation }) {
     setLoading(true);
     try {
       const response = await getNotifications(userId, token);
-      setNotifications(response || []);
+      setNotifications(
+        (response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      );
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
@@ -42,6 +65,62 @@ export default function Notifications({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleDeleteNotification = useCallback(async (item) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+    setNotifications((prev) => prev.filter((noti) => noti._id !== item._id));
+
+    try {
+      const response = await clearNotification(userId, item._id, false, token);
+      if (!response.success) {
+        fetchNotifications();
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      fetchNotifications();
+    }
+  }, [userId, token]);
+
+  const renderItem = ({ item }) => {
+    const renderRightActions = (progress, dragX) => {
+      const translateX = dragX.interpolate({
+        inputRange: [-wp("100%"), -wp("20%"), 0],
+        outputRange: [-wp("100%"), -wp("20%"), 0],
+        extrapolate: "clamp",
+      });
+
+      return (
+        <Animated.View style={[styles.hiddenContainer, { transform: [{ translateX }] }]} />
+      );
+    };
+
+    return (
+      <Swipeable
+        ref={(ref) => {
+          if (ref) swipeableRef.current = ref;
+        }}
+        renderRightActions={renderRightActions}
+        onSwipeableOpen={() => {
+          handleDeleteNotification(item);
+          swipeableRef.current?.close();
+        }}
+      >
+        <View style={styles.section}>
+          <Text style={styles.dateHeader}>{formatDate(item.createdAt)}</Text>
+          <View key={item._id} style={styles.notificationContainer}>
+            <View style={styles.notiLeft}>
+              <View style={styles.notiDot} />
+            </View>
+            <View style={styles.notiRight}>
+              <Text style={styles.notiHeader}>{item.title}</Text>
+              <Text style={styles.notiContent}>{item.message}</Text>
+            </View>
+          </View>
+        </View>
+      </Swipeable>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -54,38 +133,23 @@ export default function Notifications({ navigation }) {
 
         {loading ? (
           <ActivityIndicator size="large" color={colors.primary} style={styles.loading} />
-        ) : notifications.length === 0 ? (
-          <View style={styles.noNotificationsContainer}>
-            <Text style={styles.noNotificationsText}>No Notifications</Text>
-          </View>
         ) : (
           <FlatList
             data={notifications}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.section}>
-                <Text style={styles.dateHeader}>{formatDate(item.date)}</Text>
-                <View key={item._id} style={styles.notificationContainer}>
-                  <View style={styles.notiLeft}>
-                    <View style={styles.notiDot} />
-                  </View>
-                  <View style={styles.notiRight}>
-                    <Text style={styles.notiHeader}>{item.title}</Text>
-                    <Text style={styles.notiContent}>{item.message}</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-            }
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
             style={{ paddingHorizontal: wp("5%"), flexGrow: 1 }}
+            ListEmptyComponent={() => (
+              <Text style={styles.emptyListText}>No new notifications!</Text>
+            )}
           />
         )}
       </View>
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -96,16 +160,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
+    flexDirection: "row",
     width: wp("100%"),
     paddingHorizontal: wp("3%"),
-    alignItems: 'center',
-    marginBottom: hp("1.5%")
+    alignItems: "center",
+    marginBottom: hp("1.5%"),
   },
   headerText: {
     fontSize: hp("3.5%"),
     color: colors.textColor3,
-    fontFamily: 'Afacad-SemiBold',
+    fontFamily: "Afacad-SemiBold",
     marginLeft: wp("1.5%"),
   },
   section: {
@@ -115,18 +179,18 @@ const styles = StyleSheet.create({
   },
   dateHeader: {
     fontSize: hp("2.2%"),
-    fontFamily: 'Afacad-Regular',
+    fontFamily: "Afacad-Regular",
     color: colors.textColor2,
-    marginBottom: hp("1%"),
   },
   notificationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: hp("2%"),
-
+    backgroundColor: colors.white,
+    padding: hp("2%"),
+    borderRadius: 10,
   },
   notiLeft: {
-    alignItems: 'center',
+    alignItems: "center",
     justifyContent: "center",
     marginRight: wp("3%"),
   },
@@ -143,11 +207,24 @@ const styles = StyleSheet.create({
   notiHeader: {
     fontSize: hp("2.3%"),
     color: colors.textColor3,
-    fontFamily: 'Afacad-Medium',
+    fontFamily: "Afacad-Medium",
   },
   notiContent: {
     fontSize: hp("2.1%"),
     color: colors.textColor2,
-    fontFamily: 'Afacad-Regular',
+    fontFamily: "Afacad-Regular",
+  },
+  hiddenContainer: {
+    backgroundColor: colors.secondaryColor1,
+    height: "100%",
+    width: wp("100%"),
+    position: "absolute",
+    right: 0,
+  },
+  emptyListText: {
+    fontSize: hp("2.5%"),
+    color: colors.textColor2,
+    fontFamily: "Afacad-Italic",
+    marginTop: hp("35%"),
   },
 });

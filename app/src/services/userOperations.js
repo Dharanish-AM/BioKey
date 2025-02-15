@@ -217,3 +217,23 @@ export const getNotifications = async (userId, token) => {
     console.log(err)
   }
 }
+
+export const clearNotification = async (userId, notificationId, isAll = false, token) => {
+  try {
+    const response = await axios.post(`${API_URL}/clearnotification`, {
+      userId,
+      notificationId,
+      isAll
+    })
+    if (response.status === 200 && response.data.success) {
+      console.log("Notification cleared successfully");
+      return response.data
+    }
+    else {
+      console.log("Failed to clear notification");
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}

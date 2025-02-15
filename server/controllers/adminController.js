@@ -1,5 +1,5 @@
 const User = require("../models/userSchema");
-const UserNotification = require("../models/notificationSchema");
+const Notification = require("../models/notificationSchema");
 const fetch = require("node-fetch");
 
 const sendPushNotifications = async (req, res) => {

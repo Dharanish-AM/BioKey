@@ -778,7 +778,6 @@ const updateProfileImage = async (req, res) => {
 const getUserNotifications = async (req, res) => {
   try {
     const { userId } = req.query;
-    console.log(userId)
 
     const userNotifications = await UserNotification.findOne({ userId });
 
@@ -791,6 +790,41 @@ const getUserNotifications = async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching notifications", error });
   }
 };
+
+
+const clearNotifications = async (req, res) => {
+  try {
+    const { userId, notificationId, isAll = false } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    let result;
+
+    if (isAll) {
+
+      result = await UserNotification.updateOne(
+        { userId },
+        { $set: { notifications: [] } }
+      );
+    } else if (notificationId) {
+
+      result = await UserNotification.updateOne(
+        { userId },
+        { $pull: { notifications: { _id: notificationId } } }
+      );
+    } else {
+      return res.status(400).json({ success: false, message: "Specify notificationId or set isAll to true" });
+    }
+
+    return res.status(200).json({ success: true, message: "Notification(s) deleted", result });
+  } catch (error) {
+    console.error("Error clearing notifications:", error);
+    return res.status(500).json({ success: false, message: "Server error", error });
+  }
+};
+
 
 
 module.exports = {
@@ -809,5 +843,6 @@ module.exports = {
   updateProfile,
   updateProfileImage,
   loginWithFingerPrint,
-  getUserNotifications
+  getUserNotifications,
+  clearNotifications
 };

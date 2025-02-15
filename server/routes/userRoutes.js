@@ -20,6 +20,7 @@ router.get("/listfavourite", userController.listLiked)
 router.post('/updateuserprofileimage', userController.updateProfileImage)
 router.post("/check-token-is-valid", checkToken)
 router.get("/getallnotifications", userController.getUserNotifications)
+router.post("/clearnotification", userController.clearNotifications)
 
 
 module.exports = router;

@@ -26,7 +26,6 @@ export default function LoginCreds({ navigation }) {
     const dispatch = useDispatch()
     const activityLog = useLocation()
 
-
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
             setError("Please fill all fields!");
@@ -41,47 +40,37 @@ export default function LoginCreds({ navigation }) {
 
         setError("");
 
-        try {
+        const loginResponse = await loginCreds(email, password, activityLog);
 
-            const loginResponse = await loginCreds(email, password, activityLog);
+        if (loginResponse?.success) {
+            const token = loginResponse.token;
+            await AsyncStorage.setItem("authToken", token);
 
-            if (loginResponse?.success) {
-                const token = loginResponse.token;
-                await AsyncStorage.setItem("authToken", token);
+            const tokenValidationResponse = await checkTokenIsValid(token);
 
-                const tokenValidationResponse = await checkTokenIsValid(token);
-
-                if (tokenValidationResponse?.success) {
-                    const user = await loadUser(tokenValidationResponse.user.userId);
-                    if (user) {
-                        dispatch(setUser(user));
-                        dispatch(setAuthState(true, token));
-                    }
-                    Toast.show({
-                        type: "success",
-                        text1: "Login success!"
-                    });
-
-                } else {
-                    Toast.show({
-                        type: "error",
-                        text1: "Login failed!",
-                        text2: tokenValidationResponse || "Unknown error occurred"
-                    });
+            if (tokenValidationResponse?.success) {
+                const user = await loadUser(tokenValidationResponse.user.userId);
+                if (user) {
+                    dispatch(setUser(user));
+                    dispatch(setAuthState(true, token));
                 }
+                Toast.show({
+                    type: "success",
+                    text1: "Login success!"
+                });
+
             } else {
                 Toast.show({
                     type: "error",
                     text1: "Login failed!",
-                    text2: loginResponse || "Unknown error occurred"
+                    text2: tokenValidationResponse.message || "Unknown error occurred"
                 });
             }
-        } catch (error) {
-            console.error("Login error:", error);
+        } else {
             Toast.show({
                 type: "error",
                 text1: "Login failed!",
-                text2: "An error occurred. Please try again."
+                text2: loginResponse.message || "Unknown error occurred"
             });
         }
     };

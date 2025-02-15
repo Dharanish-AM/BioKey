@@ -17,6 +17,7 @@ import LogsIcon from "../assets/images/drawer_history.png";
 import SupportIcon from "../assets/images/drawer_accounts.png";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAuthState } from "../redux/actions";
+import DeviceIcon from "../assets/images/device.png";
 
 export default function DrawerView({ navigation }) {
   const user = useSelector((state) => state.user, shallowEqual);
@@ -66,6 +67,12 @@ export default function DrawerView({ navigation }) {
           <Text style={styles.optionsText}>Accounts</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.optionsButton} onPress={() => {
+          navigation.navigate("ManageDevice");
+        }}>
+          <Image source={DeviceIcon} style={styles.optionsIcon} />
+          <Text style={styles.optionsText}>Manage Device</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.optionsButton} onPress={() => {
           navigation.navigate("Notifications");
         }}>
           <Image source={NotificationsIcon} style={styles.optionsIcon} />
@@ -77,12 +84,7 @@ export default function DrawerView({ navigation }) {
           <Image source={LogsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Activity Logs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("Support");
-        }}>
-          <Image source={SupportIcon} style={styles.optionsIcon} />
-          <Text style={styles.optionsText}>Support</Text>
-        </TouchableOpacity>
+
       </View>
       <View style={styles.bottom}>
         <TouchableOpacity style={styles.logout} onPress={handleLogout}>

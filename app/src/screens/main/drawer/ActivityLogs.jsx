@@ -38,6 +38,10 @@ export default function ActivityLogs({ navigation }) {
     fetchActivityLogs();
   };
 
+  const handleDeleteLog = (logId) => {
+    console.log(logId)
+  }
+
   const renderItem = ({ item }) => {
     let typeColor, typeText;
     switch (item.status) {
@@ -64,7 +68,9 @@ export default function ActivityLogs({ navigation }) {
       hour12: true,
     });
 
+
     return (
+
       <View style={styles.activityItem}>
         <View style={styles.row}>
           <Text style={styles.dateText}>{formattedDate}</Text>
@@ -78,7 +84,8 @@ export default function ActivityLogs({ navigation }) {
             <Text style={styles.viewLocationText}>View Location</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </View >
+
     );
   };
 

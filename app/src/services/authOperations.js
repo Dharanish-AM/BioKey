@@ -34,17 +34,12 @@ export const loginCreds = async (email, password, activityLog) => {
             email, password,
             activityLog
         });
-        if (response.status == 200) {
-            console.log("Login Success")
-            return response.data
-        }
-        else {
-            console.log("Login Failed")
-            return response.data
-        }
+
+        return response.data
     }
     catch (err) {
-        console.log(err);
+        console.log(err)
+        return err
     }
 }
 

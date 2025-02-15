@@ -9,7 +9,7 @@ import {
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useSelector } from "react-redux";
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const version = useSelector((state) => state.appConfig.version)
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
@@ -20,7 +20,17 @@ export default function SettingsScreen() {
         <View style={styles.content}>
           <View style={styles.settingsOptions}>
             {options.map((option, index) => (
-              <TouchableOpacity key={index} style={styles.option}>
+              <TouchableOpacity onPress={() => {
+                if (option == "Support") {
+                  navigation.navigate('Support')
+                }
+                else if (option == "App Preferences") {
+                  navigation.navigate('AppPreferences')
+                }
+                else if (option == "Security & Privacy") {
+                  navigation.navigate('SecurityAndPrivacy')
+                }
+              }} key={index} style={styles.option}>
                 <Text style={styles.text}>{option}</Text>
                 <AntDesign name="right" size={hp("2.5%")} color={colors.textColor2} />
               </TouchableOpacity>
@@ -34,9 +44,9 @@ export default function SettingsScreen() {
 }
 
 const options = [
-  "Manage Devices",
-  "Security & Access",
-  "App Preferences"
+  "App Preferences",
+  "Security & Privacy",
+  "Support"
 ];
 
 const styles = StyleSheet.create({

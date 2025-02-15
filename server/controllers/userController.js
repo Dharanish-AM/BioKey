@@ -159,7 +159,7 @@ const register = async (req, res) => {
 const loginWithCredentials = async (req, res) => {
   try {
     const { email, password, activityLog } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Please fill in all fields." });
     }
@@ -170,29 +170,20 @@ const loginWithCredentials = async (req, res) => {
     const latitude = location.latitude ?? null;
     const longitude = location.longitude ?? null;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      try {
-        await ActivityLog.create({
-          userId: null,
-          deviceName,
-          ipAddress,
-          location: { district: location.district, region: location.region, country: location.country },
-          latitude,
-          longitude,
-          mode: "credentials",
-          status: "Failed",
-        });
-      } catch (logError) {
-        console.warn("Activity Log Error (User Not Found):", logError.message);
-      }
 
+    const user = await User.findOne({ email });
+
+
+    if (!user) {
       return res.status(400).json({ success: false, message: "User not found." });
     }
 
+
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       try {
+
         await ActivityLog.create({
           userId: user._id,
           deviceName,
@@ -210,10 +201,12 @@ const loginWithCredentials = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid credentials." });
     }
 
+
     const token = generateToken(user._id, user.name, user.email);
     if (!token) {
       return res.status(500).json({ success: false, message: "Failed to generate token." });
     }
+
 
     try {
       await ActivityLog.create({
@@ -233,10 +226,11 @@ const loginWithCredentials = async (req, res) => {
     res.status(200).json({ success: true, message: "User logged in successfully.", token });
 
   } catch (error) {
-    console.error(error);
+    console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Error logging in." });
   }
 };
+
 
 
 const loginWithFingerPrint = async (req, res) => {

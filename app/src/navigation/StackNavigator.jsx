@@ -25,7 +25,9 @@ import FolderPreviewScreen from "../screens/main/helper/FolderPreviewScreen";
 import RecycleBin from "../screens/main/utility/RecycleBin";
 import ManageStorage from "../screens/main/helper/ManageStorage";
 import LoginCreds from "../screens/auth/LoginCreds";
-import Support from "../screens/main/drawer/Support";
+import Support from "../screens/main/helper/Support";
+import AppPreferences from "../screens/main/helper/AppPreferences";
+import SecPri from "../screens/main/helper/SecPri";
 
 const Stack = createStackNavigator();
 
@@ -72,7 +74,7 @@ function NewUserStack() {
         component={AuthScreen}
         options={{ headerShown: false }}
       />
-        <Stack.Screen
+      <Stack.Screen
         name="SupportScreen"
         component={Support}
         options={{ headerShown: false }}
@@ -175,6 +177,9 @@ function SettingsStack() {
       }}
     >
       <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <Stack.Screen name="AppPreferences" component={AppPreferences} />
+      <Stack.Screen name="SecurityPrivacy" component={SecPri} />
+      <Stack.Screen name="Support" component={Support} />
     </Stack.Navigator>
   );
 }

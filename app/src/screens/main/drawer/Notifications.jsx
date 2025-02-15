@@ -19,10 +19,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
 import { clearNotification, getNotifications } from "../../../services/userOperations";
 import { useSelector } from "react-redux";
-import { Swipeable } from "react-native-gesture-handler";
+import SwipeableItem from "react-native-swipeable-item";
 
 const formatDate = (date) =>
-  date ? moment(date).format("MMM DD, YYYY ddd").toUpperCase() : "UNKNOWN DATE";
+  date ? moment(date).format("MMM DD, ddd  hh:mm A") : "UNKNOWN DATE";
 
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -37,23 +37,25 @@ export default function Notifications({ navigation }) {
   const userId = useSelector((state) => state.user.userId);
   const token = useSelector((state) => state.auth.token);
 
-  
-  const swipeableRef = useRef(null);
-
   const fetchNotifications = async () => {
     if (!userId || !token) return;
 
     setLoading(true);
     try {
       const response = await getNotifications(userId, token);
-      setNotifications(
-        (response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+      const sortedNotifications = (response || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       );
+
+
+      setNotifications(sortedNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchNotifications();
@@ -67,7 +69,6 @@ export default function Notifications({ navigation }) {
 
   const handleDeleteNotification = useCallback(async (item) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
     setNotifications((prev) => prev.filter((noti) => noti._id !== item._id));
 
     try {
@@ -82,28 +83,17 @@ export default function Notifications({ navigation }) {
   }, [userId, token]);
 
   const renderItem = ({ item }) => {
-    const renderRightActions = (progress, dragX) => {
-      const translateX = dragX.interpolate({
-        inputRange: [-wp("100%"), -wp("20%"), 0],
-        outputRange: [-wp("100%"), -wp("20%"), 0],
-        extrapolate: "clamp",
-      });
-
-      return (
-        <Animated.View style={[styles.hiddenContainer, { transform: [{ translateX }] }]} />
-      );
-    };
-
     return (
-      <Swipeable
-        ref={(ref) => {
-          if (ref) swipeableRef.current = ref;
+      <SwipeableItem
+        key={item._id}
+        item={item}
+        onChange={({ openDirection }) => {
+          if (openDirection === "right") {
+            handleDeleteNotification(item);
+          }
         }}
-        renderRightActions={renderRightActions}
-        onSwipeableOpen={() => {
-          handleDeleteNotification(item);
-          swipeableRef.current?.close();
-        }}
+        snapPointsRight={[wp("100%")]}
+        activationThreshold={0.8}
       >
         <View style={styles.section}>
           <Text style={styles.dateHeader}>{formatDate(item.createdAt)}</Text>
@@ -117,7 +107,7 @@ export default function Notifications({ navigation }) {
             </View>
           </View>
         </View>
-      </Swipeable>
+      </SwipeableItem>
     );
   };
 

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     widthPercentageToDP as wp,
@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import { setAuthState, setUser } from '../../redux/actions';
 import { loadUser } from '../../services/userOperations';
+import useLocation from '../../hooks/useLocation';
 
 export default function LoginCreds({ navigation }) {
     const [email, setEmail] = React.useState('');
@@ -23,6 +24,8 @@ export default function LoginCreds({ navigation }) {
     const [showPassword, setShowPassword] = React.useState(false);
     const [error, setError] = React.useState('')
     const dispatch = useDispatch()
+    const activityLog = useLocation()
+
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
@@ -39,7 +42,8 @@ export default function LoginCreds({ navigation }) {
         setError("");
 
         try {
-            const loginResponse = await loginCreds(email, password);
+
+            const loginResponse = await loginCreds(email, password, activityLog);
 
             if (loginResponse?.success) {
                 const token = loginResponse.token;
@@ -62,14 +66,14 @@ export default function LoginCreds({ navigation }) {
                     Toast.show({
                         type: "error",
                         text1: "Login failed!",
-                        text2: tokenValidationResponse.message || "Unknown error occurred"
+                        text2: tokenValidationResponse || "Unknown error occurred"
                     });
                 }
             } else {
                 Toast.show({
                     type: "error",
                     text1: "Login failed!",
-                    text2: loginResponse.message || "Unknown error occurred"
+                    text2: loginResponse || "Unknown error occurred"
                 });
             }
         } catch (error) {

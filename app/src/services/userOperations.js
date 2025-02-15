@@ -1,5 +1,5 @@
 import axios from "axios";
-import { setFolders, setLikedFiles, setUser, updateFileLikes } from "../redux/actions";
+import { setActivityLogs, setFolders, setLikedFiles, setUser, updateFileLikes } from "../redux/actions";
 import store from "../redux/store";
 
 
@@ -236,4 +236,13 @@ export const clearNotification = async (userId, notificationId, isAll = false, t
   catch (err) {
     console.log(err)
   }
+}
+
+export const getActivityLogs = async (userId, token, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/getactivitylogs?userId=${userId}`)
+    dispatch(setActivityLogs(response.data.logs))
+
+  }
+  catch (err) { console.log(err) }
 }

@@ -19,33 +19,37 @@ export default function AudioPreview({ fileData, thumbnail }) {
   const [duration, setDuration] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
-
   useEffect(() => {
     let newSound;
+
     const loadAudio = async () => {
       try {
+        if (!fileData) {
+          console.warn("No fileData provided");
+          return;
+        }
+        console.log("Loading audio file:", fileData);
+
         const { sound } = await Audio.Sound.createAsync(
           { uri: fileData },
-          { shouldPlay: false, isLooping: true },
+          { shouldPlay: true },
           updateStatus
         );
         newSound = sound;
         setSound(sound);
         setIsLoaded(true);
+        sound.setOnPlaybackStatusUpdate(updateStatus);
       } catch (error) {
         console.error("Error loading audio:", error);
       }
     };
 
-    if (fileData) {
-      loadAudio();
-    }
+    loadAudio();
 
     return () => {
       if (newSound) {
-        newSound.unloadAsync().catch((error) => {
-          console.error("Error unloading audio during cleanup:", error);
-        });
+        console.log("Unloading audio...");
+        newSound.unloadAsync().catch((error) => console.error("Error unloading audio:", error));
       }
     };
   }, [fileData]);
@@ -53,6 +57,7 @@ export default function AudioPreview({ fileData, thumbnail }) {
   useEffect(() => {
     const getPermissions = async () => {
       const { status } = await Audio.requestPermissionsAsync();
+      console.log("Audio Permission Status:", status);
       if (status !== "granted") {
         console.warn("Permission to access audio is required!");
       }
@@ -60,12 +65,12 @@ export default function AudioPreview({ fileData, thumbnail }) {
     getPermissions();
   }, []);
 
-
   useFocusEffect(
     React.useCallback(() => {
       return () => {
         if (sound) {
-          sound.stopAsync();
+          console.log("Stopping audio on screen unfocus...");
+          sound.stopAsync().catch((error) => console.error("Error stopping audio:", error));
         }
       };
     }, [sound])
@@ -75,7 +80,7 @@ export default function AudioPreview({ fileData, thumbnail }) {
     if (status.isLoaded) {
       setDuration(status.durationMillis || 0);
       setPosition(status.positionMillis || 0);
-      setIsPlaying(status.isPlaying || false);
+      setIsPlaying(status.isPlaying);
     } else if (status.error) {
       console.error("Audio playback error:", status.error);
     }
@@ -84,6 +89,12 @@ export default function AudioPreview({ fileData, thumbnail }) {
   const playAudio = async () => {
     try {
       if (sound) {
+        const status = await sound.getStatusAsync();
+        if (!status.isLoaded) {
+          console.error("Audio is not loaded.");
+          return;
+        }
+        console.log("Playing audio...");
         await sound.playAsync();
         setIsPlaying(true);
       }
@@ -95,6 +106,7 @@ export default function AudioPreview({ fileData, thumbnail }) {
   const pauseAudio = async () => {
     try {
       if (sound) {
+        console.log("Pausing audio...");
         await sound.pauseAsync();
         setIsPlaying(false);
       }
@@ -136,8 +148,8 @@ export default function AudioPreview({ fileData, thumbnail }) {
         ) : (
           <Image source={HeadPhoneIcon} style={styles.headphone} />
         )}
-
       </View>
+
       <View style={styles.controlsContainer}>
         <Slider
           value={position}

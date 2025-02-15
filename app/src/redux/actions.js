@@ -12,7 +12,8 @@ import {
   GET_EACH_PASSWORD,
   SET_ALL_FILES_METADATA,
   SET_RECYCLE_BIN_FILES,
-  SET_AUTH_STATE
+  SET_AUTH_STATE,
+  SET_ACTIVITY_LOGS
 } from "./types";
 
 
@@ -111,5 +112,12 @@ export const setRecycleBinFile = (file) => {
   return {
     type: SET_RECYCLE_BIN_FILES,
     payload: file
+  }
+}
+
+export const setActivityLogs = (logs) => {
+  return {
+    type: SET_ACTIVITY_LOGS,
+    payload: logs
   }
 }

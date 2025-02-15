@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Callout, Marker } from 'react-native-maps';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -8,62 +8,44 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-
-const activityData = [
-  {
-    id: '1',
-    type: 'login',
-    date: 'Feb 02, 2025, 3:45 PM',
-    device: 'iPhone 13, Safari',
-    location: 'Coimbatore, India',
-    latitude: 11.0168,
-    longitude: 76.9558,
-    ip: '192.168.1.2',
-  },
-  {
-    id: '2',
-    type: 'failed-login',
-    date: 'Feb 01, 2025, 9:15 AM',
-    device: 'Windows 10, Chrome',
-    location: 'Pollachi, India',
-    latitude: 10.6583,
-    longitude: 77.0086,
-    ip: '103.21.34.12',
-  },
-  {
-    id: '3',
-    type: 'new-device',
-    date: 'Jan 30, 2025, 5:30 PM',
-    device: 'Samsung Galaxy S23',
-    location: 'Coimbatore, India',
-    latitude: 11.0224,
-    longitude: 76.9373,
-    ip: '110.34.23.56',
-  },
-  {
-    id: '4',
-    type: 'failed-login',
-    date: 'Jan 29, 2025, 10:00 AM',
-    device: 'MacBook Air, Safari',
-    location: 'Pollachi, India',
-    latitude: 10.6601,
-    longitude: 77.0021,
-    ip: '203.45.67.89',
-  },
-];
+import { useDispatch, useSelector } from 'react-redux';
+import { getActivityLogs } from '../../../services/userOperations';
 
 export default function ActivityLogs({ navigation }) {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(0.02);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.user.userId);
+  const token = useSelector((state) => state.auth.token);
+  const activityLogs = useSelector((state) => state.user.activityLogs);
+
+
+  const fetchActivityLogs = async () => {
+    if (userId && token) {
+      setRefreshing(true);
+      await getActivityLogs(userId, token, dispatch);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivityLogs();
+  }, [userId, token, dispatch]);
+
+  const onRefresh = () => {
+    fetchActivityLogs();
+  };
 
   const renderItem = ({ item }) => {
     let typeColor, typeText;
-    switch (item.type) {
-      case 'login':
+    switch (item.status) {
+      case 'Success':
         typeColor = '#2ecc71';
         typeText = 'Login Successful';
         break;
-      case 'failed-login':
+      case 'Failed':
         typeColor = '#e74c3c';
         typeText = 'Failed Login Attempt';
         break;
@@ -73,16 +55,25 @@ export default function ActivityLogs({ navigation }) {
         break;
     }
 
+    const formattedDate = new Date(item.date).toLocaleString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
     return (
       <View style={styles.activityItem}>
         <View style={styles.row}>
-          <Text style={styles.dateText}>{item.date}</Text>
+          <Text style={styles.dateText}>{formattedDate}</Text>
           <Text style={[styles.typeText, { color: typeColor }]}>{typeText}</Text>
         </View>
-        <Text style={styles.deviceText}>{item.device}</Text>
-        <Text style={styles.locationText}>{item.location}</Text>
+        <Text style={styles.deviceText}>{item.deviceName}</Text>
+        <Text style={styles.locationText}>{`${item.location.district}, ${item.location.region}`}</Text>
         <View style={styles.row}>
-          <Text style={styles.ipText}>{item.ip}</Text>
+          <Text style={styles.ipText}>{item.ipAddress}</Text>
           <TouchableOpacity onPress={() => setSelectedLocation(item)}>
             <Text style={styles.viewLocationText}>View Location</Text>
           </TouchableOpacity>
@@ -92,43 +83,42 @@ export default function ActivityLogs({ navigation }) {
   };
 
   if (selectedLocation) {
+    const latitude = parseFloat(selectedLocation?.latitude) || 0;
+    const longitude = parseFloat(selectedLocation?.longitude) || 0;
+
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={{
-          position: 'absolute',
-          top: hp("6%"),
-          left: wp("3%"),
-          zIndex: 3
-        }} onPress={() => setSelectedLocation(null)}>
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: hp("6%"),
+            left: wp("3%"),
+            zIndex: 3
+          }}
+          onPress={() => setSelectedLocation(null)}
+        >
           <Entypo name="chevron-thin-left" size={hp('4%')} color={colors.textColor3} />
         </TouchableOpacity>
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: selectedLocation.latitude,
-            longitude: selectedLocation.longitude,
+            latitude,
+            longitude,
             latitudeDelta: zoomLevel,
             longitudeDelta: zoomLevel,
           }}
           zoomEnabled={true}
           showsUserLocation={true}
           zoomTapEnabled={true}
-
         >
-          <Marker
-            coordinate={{
-              latitude: selectedLocation.latitude,
-              longitude: selectedLocation.longitude,
-            }}
-       
-          >
+          <Marker coordinate={{ latitude, longitude }}>
             <Callout>
               <View style={styles.markerInfo}>
-              <Text style={styles.markerHeader}>Activity Location</Text>
-                <Text style={styles.makerText}>{selectedLocation.location}</Text>
-                <Text>{selectedLocation.device}</Text>
-                <Text>{selectedLocation.ip}</Text>
-                <Text>{selectedLocation.date}</Text>
+                <Text style={styles.markerHeader}>Activity Location</Text>
+                <Text style={styles.makerText}>{`${selectedLocation?.location.district}, ${selectedLocation?.location.region}`}</Text>
+                <Text>{selectedLocation?.deviceName}</Text>
+                <Text>{selectedLocation?.ipAddress}</Text>
+                <Text>{new Date(selectedLocation?.date).toLocaleString()}</Text>
               </View>
             </Callout>
           </Marker>
@@ -146,12 +136,19 @@ export default function ActivityLogs({ navigation }) {
           </TouchableOpacity>
           <Text style={styles.headerText}>Activity Logs</Text>
         </View>
-        <FlatList
-          data={activityData}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.activityList}
-        />
+        {activityLogs.length === 0 ? (
+          <Text style={styles.noLogsText}>No activity logs found.</Text>
+        ) : (
+          <FlatList
+            data={activityLogs}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.activityList}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -236,13 +233,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  markerInfo:{
-    flexDirection:"column",
-    padding:hp("0.5%")
+  markerInfo: {
+    flexDirection: "column",
+    padding: hp("0.5%")
   },
-  markerHeader:{
-    fontSize:hp("2%"),
-    fontWeight:"bold",
-    marginBottom:hp("1%")
+  markerHeader: {
+    fontSize: hp("2%"),
+    fontWeight: "bold",
+    marginBottom: hp("1%")
   }
 });

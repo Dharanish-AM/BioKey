@@ -30,7 +30,6 @@ const deviceSchema = new mongoose.Schema(
           default: Date.now()
         },
       },
-
     ],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
@@ -41,10 +40,6 @@ const deviceSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
-    },
-    logs: {
-      type: Array,
-      default: [],
     },
     privateKey: {
       type: String,

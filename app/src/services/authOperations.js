@@ -28,9 +28,12 @@ export const registerUser = async (form, notificationToken) => {
 }
 
 
-export const loginCreds = async (email, password) => {
+export const loginCreds = async (email, password, activityLog) => {
     try {
-        const response = await axios.post(`${API_URL}/login-credentials`, { email, password });
+        const response = await axios.post(`${API_URL}/login-credentials`, {
+            email, password,
+            activityLog
+        });
         if (response.status == 200) {
             console.log("Login Success")
             return response.data

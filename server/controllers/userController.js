@@ -12,8 +12,8 @@ const sharp = require("sharp");
 const minioClient = require("../config/minio")
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
-const clearBin = require("../utils/clearBin")
 const UserNotification = require("../models/notificationSchema");
+const ActivityLog = require("../models/activityLogsSchema");
 
 const TARGET_DIR = path.join(
   "D:",
@@ -158,33 +158,80 @@ const register = async (req, res) => {
 
 const loginWithCredentials = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-
+    const { email, password, activityLog } = req.body;
+    
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Please fill in all fields." });
     }
 
-    if (!validateEmail(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format." });
-    }
+    const deviceName = activityLog?.deviceName || "Unknown";
+    const ipAddress = activityLog?.ip || "N/A";
+    const location = activityLog?.location || { district: "N/A", region: "N/A", country: "N/A" };
+    const latitude = location.latitude ?? null;
+    const longitude = location.longitude ?? null;
 
     const user = await User.findOne({ email });
     if (!user) {
+      try {
+        await ActivityLog.create({
+          userId: null,
+          deviceName,
+          ipAddress,
+          location: { district: location.district, region: location.region, country: location.country },
+          latitude,
+          longitude,
+          mode: "credentials",
+          status: "Failed",
+        });
+      } catch (logError) {
+        console.warn("Activity Log Error (User Not Found):", logError.message);
+      }
+
       return res.status(400).json({ success: false, message: "User not found." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      try {
+        await ActivityLog.create({
+          userId: user._id,
+          deviceName,
+          ipAddress,
+          location: { district: location.district, region: location.region, country: location.country },
+          latitude,
+          longitude,
+          mode: "credentials",
+          status: "Failed",
+        });
+      } catch (logError) {
+        console.warn("Activity Log Error (Invalid Credentials):", logError.message);
+      }
+
       return res.status(400).json({ success: false, message: "Invalid credentials." });
     }
 
     const token = generateToken(user._id, user.name, user.email);
-    if (token) {
-      res.status(200).json({ success: true, message: "User logged in successfully.", token });
-    } else {
-      res.status(500).json({ success: false, message: "Failed to generate token." });
+    if (!token) {
+      return res.status(500).json({ success: false, message: "Failed to generate token." });
     }
+
+    try {
+      await ActivityLog.create({
+        userId: user._id,
+        deviceName,
+        ipAddress,
+        location: { district: location.district, region: location.region, country: location.country },
+        latitude,
+        longitude,
+        mode: "credentials",
+        status: "Success",
+      });
+    } catch (logError) {
+      console.warn("Activity Log Error (Successful Login):", logError.message);
+    }
+
+    res.status(200).json({ success: true, message: "User logged in successfully.", token });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Error logging in." });
@@ -825,6 +872,28 @@ const clearNotifications = async (req, res) => {
   }
 };
 
+const getActivityLogs = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const logs = await ActivityLog.find({ userId }).sort({ date: -1 });
+
+    return res.status(200).json({ success: true, logs: logs.length > 0 ? logs : [] });
+
+  } catch (err) {
+    console.error("Error fetching activity logs:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};
+
 
 
 module.exports = {
@@ -844,5 +913,6 @@ module.exports = {
   updateProfileImage,
   loginWithFingerPrint,
   getUserNotifications,
-  clearNotifications
+  clearNotifications,
+  getActivityLogs
 };

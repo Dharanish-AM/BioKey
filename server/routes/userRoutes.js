@@ -21,6 +21,7 @@ router.post('/updateuserprofileimage', userController.updateProfileImage)
 router.post("/check-token-is-valid", checkToken)
 router.get("/getallnotifications", userController.getUserNotifications)
 router.post("/clearnotification", userController.clearNotifications)
+router.get("/getactivitylogs", userController.getActivityLogs)
 
 
 module.exports = router;

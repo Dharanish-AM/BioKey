@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Image, TouchableOpacity, TouchableWithoutFeedback, ImageBackground, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Modal, Keyboard } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import {
     widthPercentageToDP as wp,
@@ -16,9 +16,10 @@ import { BlurView } from 'expo-blur';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import FallBackProfileImage from '../../../assets/images/profile_icon.png';
 import Toast from 'react-native-toast-message';
-import { handleProfileImageSet, loadUser, updateUserProfile } from '../../../services/userOperations';
+import { changePassword, handleProfileImageSet, loadUser, updateUserProfile } from '../../../services/userOperations';
 import * as ImagePicker from "expo-image-picker";
 import { setUser } from '../../../redux/actions';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Accounts({ navigation }) {
     const [isMoreOption, setIsMoreOption] = useState(false);
@@ -41,8 +42,30 @@ export default function Accounts({ navigation }) {
     });
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false);
+    const [isChangePassword, setIsChangePassword] = useState(false);
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [modalError, setModalError] = useState("");
+    const token = useSelector((state) => state.auth.token)
+    const userId = useSelector((state) => state.user.userId)
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const RBSheetRef = useRef()
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
     const handleOpenProfile = () => {
         setIsProfileOpen(!isProfileOpen);
@@ -183,6 +206,64 @@ export default function Accounts({ navigation }) {
         }
     };
 
+    const handleChangePassword = async () => {
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            setModalError("Please fill all fields");
+            return;
+        }
+
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[\W_]).{9,}$/;
+
+        if (!passwordRegex.test(newPassword)) {
+            setModalError(
+                "New password must be at least 9 characters long, contain at least one uppercase letter, and one special character."
+            );
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setModalError("New password and confirm password do not match.");
+            return;
+        }
+
+        if (!userId || !token) {
+            setModalError("User authentication is required.");
+            return;
+        }
+
+        try {
+            const response = await changePassword(userId, oldPassword, newPassword, token);
+
+            if (response?.success) {
+                Toast.show({
+                    text1: "Password changed successfully",
+                    type: "success",
+                });
+
+                setOldPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setModalError(null);
+                setIsChangePassword(false);
+            } else {
+                Toast.show({
+                    text1: "Failed to change password",
+                    type: "error",
+                    text2: response?.message || "An error occurred",
+                });
+            }
+        } catch (error) {
+            console.error("Change password error:", error);
+            Toast.show({
+                text1: "Error",
+                type: "error",
+                text2: "Something went wrong. Please try again.",
+            });
+        }
+    };
+
+
 
     useEffect(() => {
         setInitialData({
@@ -279,7 +360,9 @@ export default function Accounts({ navigation }) {
                         </Pressable>
                     )}
                     {!isEditing && (
-                        <Pressable>
+                        <Pressable onPress={() => {
+                            setIsChangePassword(true)
+                        }}>
                             <Text style={styles.option}>Change Password</Text>
                         </Pressable>
                     )}
@@ -288,7 +371,7 @@ export default function Accounts({ navigation }) {
 
             {isMoreOption && (
                 <TouchableWithoutFeedback onPress={() => setIsMoreOption(false)}>
-                    <View style={styles.overlay}>
+                    <View style={styles.overlay1}>
                         <View style={styles.moreOptionsContainer}>
                             <TouchableOpacity onPress={() => setIsMoreOption(false)}>
                                 <Text style={[styles.option, { color: colors.red }]}>Delete Account</Text>
@@ -336,6 +419,92 @@ export default function Accounts({ navigation }) {
                 </View>
 
             </RBSheet>
+            <Modal visible={isChangePassword} transparent={true} animationType="fade">
+                <View style={styles.overlay}>
+                    <View style={[styles.modalContainer, isKeyboardVisible && { marginBottom: hp("25%") }]}>
+                        {modalError && <Text style={styles.errorText}>{modalError}</Text>}
+
+                        <View>
+                            <Text style={styles.modalLabel}>Old Password:</Text>
+                            <View >
+                                <TextInput
+                                    value={oldPassword}
+                                    onChangeText={setOldPassword}
+                                    style={styles.modalInput}
+                                    placeholder="Enter your old password"
+                                    secureTextEntry={!showOldPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowOldPassword(!showOldPassword)}>
+                                    <Ionicons
+                                        name={showOldPassword ? "eye-off" : "eye"}
+                                        size={hp("2.5%")}
+                                        color="gray"
+                                        style={styles.eyeIcon}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <View>
+                            <Text style={styles.modalLabel}>New Password:</Text>
+                            <View >
+                                <TextInput
+                                    value={newPassword}
+                                    onChangeText={setNewPassword}
+                                    style={styles.modalInput}
+                                    placeholder="Enter your new password"
+                                    secureTextEntry={!showNewPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                                    <Ionicons
+                                        name={showNewPassword ? "eye-off" : "eye"}
+                                        size={hp("2.5%")}
+                                        color="gray"
+                                        style={styles.eyeIcon}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+
+                        <View>
+                            <Text style={styles.modalLabel}>Confirm New Password:</Text>
+                            <View >
+                                <TextInput
+                                    value={confirmPassword}
+                                    onChangeText={setConfirmPassword}
+                                    style={styles.modalInput}
+                                    placeholder="Enter your new password"
+                                    secureTextEntry={!showConfirmPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                    <Ionicons
+                                        name={showConfirmPassword ? "eye-off" : "eye"}
+                                        size={hp("2.5%")}
+                                        color="gray"
+                                        style={styles.eyeIcon}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+
+                        <View style={styles.buttonContainer}>
+                            <Text onPress={() => {
+                                setIsChangePassword(false);
+                                setOldPassword("");
+                                setNewPassword("");
+                                setConfirmPassword("");
+                            }} style={styles.modalOptions}>Cancel</Text>
+
+                            <Text style={[styles.modalOptions, { color: "#9366E2" }]} onPress={handleChangePassword}>
+                                Change Password
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
         </SafeAreaView>
     );
 }
@@ -456,7 +625,7 @@ const styles = StyleSheet.create({
         left: wp("43%"),
         top: hp("12%")
     },
-    overlay: {
+    overlay1: {
         position: 'absolute',
         top: 0,
         left: 0,
@@ -502,5 +671,63 @@ const styles = StyleSheet.create({
         borderBottomColor: "rgba(166, 173, 186, 0.1)",
         borderBottomWidth: hp("0.1%"),
         paddingBottom: hp("1%")
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: '80%',
+        backgroundColor: colors.lightColor1,
+        borderRadius: hp("2%"),
+        padding: hp("2%")
+    },
+    modalHeader: {
+        fontFamily: "Afacad-Medium",
+        fontSize: hp("2.5%"),
+        color: colors.textColor3,
+        marginBottom: hp("1%")
+    },
+    modalLabel: {
+        fontFamily: "Afacad-Regular",
+        fontSize: hp("2.3%"),
+        color: colors.textColor3,
+        marginTop: hp("1%")
+    },
+    modalInput: {
+        height: hp("5.5%"),
+        width: "100%",
+        borderColor: "rgba(161,161,161,0.2)",
+        borderWidth: hp("0.1%"),
+        borderRadius: hp("1%"),
+        padding: hp("1.2%"),
+        fontSize: hp("2.1%"),
+        color: colors.textColor3,
+        fontFamily: "Afacad-Regular",
+        marginTop: hp("1%")
+    },
+    eyeIcon: {
+        position: "absolute",
+        right: hp("2%"),
+        bottom: hp("1.5%"),
+        opacity: 0.7
+    },
+    modalOptions: {
+        fontFamily: "Afacad-Regular",
+        fontSize: hp("2.1%"),
+        color: colors.textColor3,
+    },
+    errorText: {
+        fontFamily: "Afacad-Regular",
+        fontSize: hp("2.1%"),
+        color: "#F93827",
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: hp("2.5%")
     }
 });

@@ -246,3 +246,18 @@ export const getActivityLogs = async (userId, token, dispatch) => {
   }
   catch (err) { console.log(err) }
 }
+
+export const changePassword = async (userId, oldPassword, newPassword, token) => {
+  try {
+    const response = await axios.post(`${API_URL}/changepassword`, {
+      userId,
+      oldPassword,
+      newPassword,
+    });
+
+    return response.data;
+  } catch (err) {
+    console.log(err);
+    return { success: false, message: "An error occurred while changing password" };
+  }
+};

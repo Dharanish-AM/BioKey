@@ -22,6 +22,7 @@ router.post("/check-token-is-valid", checkToken)
 router.get("/getallnotifications", userController.getUserNotifications)
 router.post("/clearnotification", userController.clearNotifications)
 router.get("/getactivitylogs", userController.getActivityLogs)
+router.post("/changepassword", userController.changePassword)
 
 
 module.exports = router;

@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
     },
     notificationToken: {
       type: String,
-      default: null
+      default: ""
     },
     createdAt: {
       type: Date,

@@ -16,7 +16,6 @@ export const registerUser = async (form, notificationToken) => {
             notificationToken
         });
         if (response.status == 200 || 201) {
-
             return response.data;
         }
         else {

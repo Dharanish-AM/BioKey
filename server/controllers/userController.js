@@ -29,132 +29,159 @@ const NodeRSA = require("node-rsa");
 
 const { generateUniqueKey, decodeUniqueKey } = require('../utils/uniqueKey');
 
+
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, location, gender, serialNumber = null, fingerPrint = null, confirmPassword, notificationToken } = req.body;
+    console.log("Received request body:", req.body);
+
+    const { form, notificationToken } = req.body;
+    if (!form) {
+      return res.status(400).json({ success: false, message: "Invalid request data." });
+    }
+
+    const {
+      name, email, phone, password, confirmPassword, location, gender,
+      serialNumber = null, fingerPrint = null
+    } = form;
+
+    console.log("Extracted Data:", { name, email, phone, location, gender, serialNumber, fingerPrint, notificationToken });
+
 
     if (!name || !email || !phone || !password || !confirmPassword || !location || !gender) {
+      console.log("Validation failed: Missing fields");
       return res.status(400).json({ success: false, message: "Please fill in all fields." });
     }
 
     if (password !== confirmPassword) {
+      console.log("Validation failed: Passwords don't match");
       return res.status(400).json({ success: false, message: "Passwords don't match." });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log("Validation failed: Email already in use");
       return res.status(400).json({ success: false, message: "Email already in use." });
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("Hashing password...");
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("Password hashed successfully.");
 
+    let device = null;
     let existingStockDevice = null;
+
     if (serialNumber) {
+      console.log(`Checking stock for serial number: ${serialNumber}`);
       existingStockDevice = await Stock.findOne({ serialNumber });
 
       if (!existingStockDevice) {
-        return res.status(400).json({ success: false, message: "Device with this serial number is not found in stock." });
+        console.log("Validation failed: Device not found in stock");
+        return res.status(400).json({ success: false, message: "Device not found in stock." });
       }
 
       device = await Device.findOne({ serialNumber });
 
       if (device && device.owner) {
+        console.log("Validation failed: Device already registered");
         return res.status(400).json({ success: false, message: "Device is already registered to another user." });
       }
 
       if (!device) {
+        console.log("Registering new device...");
         device = new Device({ serialNumber, owner: null });
         existingStockDevice.deviceStatus = "registered";
 
         await device.save();
         await existingStockDevice.save();
+        console.log("Device registered successfully.");
       }
     }
 
+    const formattedNotificationToken = typeof notificationToken === "string" ? notificationToken : JSON.stringify(notificationToken);
 
+    console.log("Creating new user...");
     const user = new User({
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-      location,
-      gender,
+      name, email, phone, password: hashedPassword, location, gender,
       device: device ? device._id : null,
-      notificationToken
+      notificationToken: formattedNotificationToken
     });
 
     await user.save();
+    console.log(`User created successfully: ${user._id}`);
 
     if (device) {
+      console.log("Linking user to device...");
       device.owner = user._id;
 
-      if (fingerPrint) {
+      if (fingerPrint && fingerPrint.id && fingerPrint.name) {
+        console.log("Processing fingerprint data...");
         const { id, name } = fingerPrint;
-        if (!id || !name) {
-          return res.status(400).json({ success: false, message: "Fingerprint details are incomplete." });
-        }
 
-        const existingFingerprint = device.fingerprints.find(fp => fp.id === id);
-        if (existingFingerprint) {
+        if (device.fingerprints.some(fp => fp.id === id)) {
+          console.log("Validation failed: Fingerprint ID already exists");
           return res.status(400).json({ success: false, message: "Fingerprint ID already exists for this device." });
         }
 
         device.fingerprints.push({ id, name, date: new Date() });
+        console.log("Fingerprint added successfully.");
       }
 
-      const key = new NodeRSA({ b: 2048 });
-      const privateKey = key.exportKey("private");
-      const publicKey = key.exportKey("public");
+      console.log("Generating RSA keys...");
+      try {
+        const key = new NodeRSA({ b: 2048 });
+        const privateKey = key.exportKey("private");
+        const publicKey = key.exportKey("public");
 
-      device.privateKey = privateKey;
+        device.privateKey = privateKey;
+        console.log("Keys generated successfully.");
 
+        const uniqueKey = generateUniqueKey(user._id, user.email);
+        console.log(`Generated unique key: ${uniqueKey}`);
 
-      const uniqueKey = generateUniqueKey(user._id, user.email)
+        await device.save();
+        existingStockDevice.assignedTo = user._id;
+        await existingStockDevice.save();
+        console.log("Device updated and linked to user.");
 
-      console.log(uniqueKey)
-
-      await device.save();
-      existingStockDevice.assignedTo = user._id
-      await existingStockDevice.save()
-
-      res.status(201).json({
-
-        success: true,
-        message: "User and device registered successfully.",
-        publicKey: publicKey,
-        uniqueKey: uniqueKey,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          location: user.location,
-          gender: user.gender,
-          device: user.device,
-        },
-      });
-    } else {
-      res.status(201).json({
-        success: true,
-        message: "User registered successfully (No device linked).",
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          location: user.location,
-          gender: user.gender,
-        },
-      });
+        return res.status(201).json({
+          success: true,
+          message: "User and device registered successfully.",
+          publicKey,
+          uniqueKey,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            location: user.location,
+            gender: user.gender,
+            device: user.device,
+          },
+        });
+      } catch (error) {
+        console.error("Error generating RSA keys:", error);
+        return res.status(500).json({ success: false, message: "Error registering device." });
+      }
     }
+
+    console.log("User registered without a device.");
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully (No device linked).",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        location: user.location,
+        gender: user.gender,
+      },
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Error creating user." });
+    console.error("Error occurred:", error);
+    return res.status(500).json({ success: false, message: "Error creating user." });
   }
 };
-
-
 
 const loginWithCredentials = async (req, res) => {
   try {
@@ -888,6 +915,40 @@ const getActivityLogs = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    console.log("first")
+    const { userId, oldPassword, newPassword } = req.body;
+    console.log(userId, oldPassword, newPassword);
+
+
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Old password is incorrect" });
+    }
+
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Password changed successfully" });
+
+  } catch (err) {
+    console.error("Error changing password:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 
 
 module.exports = {
@@ -908,5 +969,6 @@ module.exports = {
   loginWithFingerPrint,
   getUserNotifications,
   clearNotifications,
-  getActivityLogs
+  getActivityLogs,
+  changePassword
 };

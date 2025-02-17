@@ -107,7 +107,6 @@ export default function UserFormScreen({ navigation }) {
         try {
             const notificationToken = AsyncStorage.getItem("expoPushToken")
             const response = await registerUser(form, notificationToken);
-
             if (response.success) {
                 Toast.show({
                     text1: "Account created successfully!",
@@ -115,6 +114,7 @@ export default function UserFormScreen({ navigation }) {
                 });
 
                 await AsyncStorage.setItem("isNewUser", "false");
+                navigation.navigate("AuthScreen")
 
             } else {
                 Toast.show({
@@ -129,7 +129,7 @@ export default function UserFormScreen({ navigation }) {
             Toast.show({
                 type: "error",
                 text1: "Something went wrong!",
-                text2: "Please check your internet connection and try again.",
+                text2: response.message
             });
         }
     };

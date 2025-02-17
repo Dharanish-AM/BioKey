@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "biokey",
     "icon": "./src/assets/images/BioKey_Logo.png",
-  
+    "orientation":"portrait",
     "android": {
       "package": "com.app.biokey"
     },

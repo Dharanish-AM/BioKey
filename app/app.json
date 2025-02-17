@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "biokey",
     "icon": "./src/assets/images/BioKey_Logo.png",
-    "orientation":"portrait",
+    "orientation": "portrait",
     "android": {
       "package": "com.app.biokey"
     },
@@ -15,9 +15,15 @@
     "updates": {
       "enabled": true
     },
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "newArchEnabled": true,
-    "plugins": ["expo-audio"],
+    "plugins": [
+      "expo-audio",
+      "expo-asset"
+    ],
     "splash": {
       "image": "./src/assets/images/BioKey_Logo.png",
       "resizeMode": "contain",
@@ -27,7 +33,10 @@
       "eas": {
         "projectId": "95757e05-69a2-4bcd-843b-c05470ccbb43"
       }
-    }
-
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/models/*.glb"
+    ]
   }
 }

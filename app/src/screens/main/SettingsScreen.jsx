@@ -28,7 +28,7 @@ export default function SettingsScreen({ navigation }) {
                   navigation.navigate('AppPreferences')
                 }
                 else if (option == "Security & Privacy") {
-                  navigation.navigate('SecurityAndPrivacy')
+                  navigation.navigate('SecurityPrivacy')
                 }
               }} key={index} style={styles.option}>
                 <Text style={styles.text}>{option}</Text>

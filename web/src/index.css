@@ -6,7 +6,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
   --primary-color: #6419e6;
   --secondary-color1: #1f242d;
   --secondary-color2: #191d24;
@@ -19,6 +18,7 @@
   --border-color-light: #e5e7eb;
   --red: #da4d4d;
   --gradient-bg: linear-gradient(180deg, #263238 0%, #37474f 100%);
+  color: var(--text-color3);
 }
 
 body {
@@ -27,4 +27,9 @@ body {
   display: flex;
   width: 100vw;
   height: 100vh;
+}
+
+button{
+  color: var(--text-color3);
+  font-family: Afacad;
 }

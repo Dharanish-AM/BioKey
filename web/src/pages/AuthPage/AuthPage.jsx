@@ -1,11 +1,13 @@
 import "./AuthPage.css";
 import Illustration from "../../assets/images/landing-illustration.png";
 import Logo from "../../assets/icons/BioKey_Logo.png";
-import { Fingerprint, KeyRound } from 'lucide-react';
+import { Fingerprint, Headset, KeyRound } from "lucide-react";
 import { useState } from "react";
-
+import Login from "../../components/Login";
+import SignUp from "../../components/SignUp";
 export default function AuthPage() {
     const [isFingerPrint, setIsFingerPrint] = useState(false);
+    const [isSignUp, setIsSignUp] = useState(false);
 
     return (
         <div className="authpage-container">
@@ -14,69 +16,51 @@ export default function AuthPage() {
                     <img className="logo" src={Logo} alt="BioKey Logo" />
                     <div className="logo-text">BioKey</div>
                 </div>
+                <Headset
+                    color="var(--text-color2)"
+                    style={{
+                        opacity: 0.9,
+                        cursor: "pointer",
+                    }}
+                    size={"2em"}
+                />
             </div>
+
             <div className="authpage-content">
                 <div className="authpage-left">
-                    <div className="authpage-left-card">
-                        <div className="authpage-left-card-toggle-btn">
-                            <button
-                                className={`auth-toggle-btn ${!isFingerPrint ? 'active' : ''}`}
-                                onClick={() => setIsFingerPrint(false)}
-                            >
-                                <KeyRound
-                                    size={"1.1em"}
-                                    className={`toggle-icon ${!isFingerPrint ? 'active-icon' : ''}`}
-                                />
-                                Credentials
-                            </button>
-                            <button
-                                className={`auth-toggle-btn ${isFingerPrint ? 'active' : ''}`}
-                                onClick={() => setIsFingerPrint(true)}
-                            >
-                                <Fingerprint
-                                    size={"1.1em"}
-                                    className={`toggle-icon ${isFingerPrint ? 'active-icon' : ''}`}
-                                />
-                                Fingerprint
-                            </button>
-                        </div>
-                        <form className="authpage-form">
-                            <div className="authpage-form-groups">
-                                <div className="auth-form-group">
-                                    <label className="auth-form-label">Email:</label>
-                                    <input
-                                        type="email"
-                                        className="auth-form-input"
-                                        id="email"
-                                        placeholder="Enter your email . . ."
-                                    />
+                    <div className={`authpage-left-card ${isSignUp ? 'signup' : 'login'}`}>
+                        {
+                            !isSignUp && (
+                                <div className="authpage-left-card-toggle-btn">
+                                    <button
+                                        className={`auth-toggle-btn ${!isFingerPrint ? "active" : ""}`}
+                                        onClick={() => setIsFingerPrint(false)}
+                                    >
+                                        <KeyRound
+                                            size={"1.1em"}
+                                            className={`toggle-icon ${!isFingerPrint ? "active-icon" : ""}`}
+                                        />
+                                        Credentials
+                                    </button>
+                                    <button
+                                        className={`auth-toggle-btn ${isFingerPrint ? "active" : ""}`}
+                                        onClick={() => setIsFingerPrint(true)}
+                                    >
+                                        <Fingerprint
+                                            size={"1.1em"}
+                                            className={`toggle-icon ${isFingerPrint ? "active-icon" : ""}`}
+                                        />
+                                        Fingerprint
+                                    </button>
                                 </div>
-                                <div className="auth-form-group">
-                                    <label className="auth-form-label">Password:</label>
-                                    <input
-                                        type="password"
-                                        className="auth-form-input"
-                                        id="password"
-                                        placeholder="Enter your password . . ."
-                                    />
-                                </div>
-                            </div>
-                            <button className="auth-form-btn" type="submit">
-                                Sign in
-                            </button>
-                        </form>
-                        <div className="signup-navigate-text">
-                            Don&apos;t have an account?{" "}
-                            <span
-                                style={{
-                                    color: "#9366E2",
-                                    cursor: "pointer",
-                                    textDecorationLine: "underline",
-                                }}
-                            >
-                                Create One
-                            </span>
-                        </div>
+                            )
+                        }
+
+                        {isSignUp ? (
+                            <SignUp toggleForm={() => setIsSignUp(false)} />
+                        ) : (
+                            <Login toggleForm={() => setIsSignUp(true)} />
+                        )}
                     </div>
                 </div>
                 <div className="authpage-right">

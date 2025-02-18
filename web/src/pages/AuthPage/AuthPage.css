@@ -7,9 +7,10 @@
 
 .authpage-header {
   width: 100%;
-  height: 15%;
+  height: 13%;
   display: flex;
-
+  align-items: center;
+  justify-content: space-between;
   box-sizing: border-box;
   padding: 1.5em;
 }
@@ -36,9 +37,21 @@
   margin-top: 0.5em;
 }
 
+.header-subtitle {
+  font-size: 1.6em;
+  color: #fff;
+  margin-bottom: 0.5em;
+}
+
+.header-description {
+  font-size: 1em;
+  color: #e0e3f8;
+  line-height: 1.3;
+}
+
 .authpage-content {
   width: 100%;
-  height: 85%;
+  height: 87%;
   display: flex;
   flex-direction: row;
 }
@@ -51,21 +64,32 @@
   align-items: center;
 }
 
-.authpage-left-card {
+.authpage-left-card.login {
   background-color: var(--light-color1);
   border-radius: 1.5em;
-  padding: 2em;
+  padding: 2.5em 2.5em;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  width: 60%;
+  width: 55%;
+}
+
+.authpage-left-card.signup {
+  background-color: var(--light-color1);
+  border-radius: 1.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  padding: 2.5em;
 }
 
 .authpage-left-card-toggle-btn {
   font-size: 2em;
   font-weight: 600;
-  margin-bottom: 1em;
+  margin-bottom: 1.5em;
   flex-direction: row;
   display: flex;
   justify-content: space-between;
@@ -82,13 +106,17 @@
   font-size: 0.6em;
   font-weight: 500;
   flex: 1;
-  padding: 0.5em;
+  padding: 0.7em;
   border-radius: 0.5em;
   background-color: transparent;
   transition: all 0.5s ease;
   cursor: pointer;
   gap: 0.5em;
   color: var(--text-color2);
+}
+
+.auth-toggle-btn:hover {
+  background-color: var(--primary-color);
 }
 
 .auth-toggle-btn.active {
@@ -130,10 +158,37 @@
   background-color: var(--light-color2);
   border: none;
   outline: none;
-  color: var(--text-color2);
+  color: var(--text-color3);
   font-family: Afacad;
   font-size: 1.2em;
   border-radius: 0.4em;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.radio-options {
+  display: flex;
+  margin-top: 0.5em;
+  gap: 3em;
+}
+
+.radio-options label {
+  display: flex;
+  gap: 0.3em;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.auth-form-group select {
+  border-radius: 0.5em;
+  font-size: 1.2em;
+  outline: none;
+  color: #757575;
+  transition: 0.3s;
 }
 
 .auth-form-btn {
@@ -156,7 +211,7 @@
   font-size: 1.2em;
   color: var(--text-color2);
   text-align: center;
-  margin-top: 1.5em;
+  margin-top: 2em;
 }
 
 .authpage-right {
@@ -169,4 +224,53 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.authpage-form-signup {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.authpage-form-groups-signup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2em;
+}
+
+.link-text {
+  color: #9366e2;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-text:hover {
+  color: #7a4dc4;
+}
+
+.radio {
+  accent-color: #9366e2;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  -webkit-appearance: none;
+  appearance: none;
+  border: 2px solid #9366e2;
+  transition: all 0.3s ease;
+}
+
+.radio:checked {
+  background-color: #9366e2;
+  border-color: #9366e2;
+}
+
+.radio:hover {
+  background-color: #d1b3e0;
+  border-color: #d1b3e0;
+}
+
+.radio:checked:hover {
+  background-color: #9366e2;
+  border-color: #9366e2;
 }

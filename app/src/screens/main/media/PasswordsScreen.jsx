@@ -44,6 +44,7 @@ import { getAllPasswords } from "../../../services/passwordOperations";
 import AddPasswordSheet from "../../../components/AddPasswordSheet";
 import { shallowEqual } from "react-redux";
 import { setFirstRender } from "../../../redux/actions";
+import SkeletonLoader from "../../../components/SkeletonLoader";
 
 export default function PasswordsScreen({ navigation }) {
   const [width] = useState(new Animated.Value(0));
@@ -151,6 +152,24 @@ export default function PasswordsScreen({ navigation }) {
     });
   };
 
+  const renderSkeletonItem = () => (
+    <View style={{
+      marginBottom: hp("2%")
+    }}>
+      <View>
+        <SkeletonLoader boxHeight={hp("10%")} boxWidth={wp("90%")} />
+      </View>
+      <View style={{ marginTop: hp("2%") }}>
+        <SkeletonLoader
+          boxHeight={hp("2%")}
+          boxWidth={wp("70%")}
+          borderRadius={hp("1.5%")}
+        />
+      </View>
+    </View>
+  );
+
+
   const renderItem = ({ item }) => {
     let iconSource;
 
@@ -164,7 +183,7 @@ export default function PasswordsScreen({ navigation }) {
       case "facebook":
         iconSource = FacebookIcon;
         break;
-      case "twitter":
+      case "twitter" || "x":
         iconSource = TwitterIcon;
         break;
       case "google":
@@ -280,7 +299,25 @@ export default function PasswordsScreen({ navigation }) {
         <View style={styles.center}>
           {
             !filteredPasswords ? (
-              <Text style={styles.noPasswordsText}>No passwords found</Text>
+              <FlatList
+                data={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
+                renderItem={renderSkeletonItem}
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  paddingHorizontal: wp("3.5%"),
+                  paddingBottom: hp("3%"),
+                  alignItems: "center"
+                }}
+                style={{
+                  width: wp("100%"),
+                }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                  />
+                }
+              />
             ) : (
               <FlatList
                 data={filteredPasswords}
@@ -300,6 +337,17 @@ export default function PasswordsScreen({ navigation }) {
                     onRefresh={handleRefresh}
                   />
                 }
+                ListEmptyComponent={() => {
+                  return (
+                    <Text style={{
+                      fontSize: hp("2.5%"),
+                      color: colors.textColor2,
+                      fontFamily: "Afacad-Italic",
+                      alignSelf: "center",
+                      marginTop: hp("35%")
+                    }}>No passwords found, try adding!</Text>
+                  )
+                }}
               />)
           }
         </View>
@@ -407,9 +455,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

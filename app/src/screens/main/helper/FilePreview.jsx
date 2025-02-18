@@ -34,6 +34,8 @@ import VideoPreview from '../../../components/preview/VideoPreview';
 import AudioPreview from '../../../components/preview/AudioPreview';
 import OtherPreview from '../../../components/preview/OtherPreview';
 import { useSelector } from "react-redux";
+import Toast from "react-native-toast-message";
+import AddFilesFolder from "../../../components/AddFilesFolder";
 
 export default function FilePreviewScreen({ route, navigation }) {
   const { file } = route.params;
@@ -45,14 +47,15 @@ export default function FilePreviewScreen({ route, navigation }) {
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLiked, setIsLike] = useState(false)
+  const addFolderSheet = useRef()
 
   const userId = useSelector((state) => state.user.userId);
+
 
   useEffect(() => {
     const fetchFilePreview = async () => {
       try {
         const fileUrl = await previewFile(userId, file._id);
-
         switch (file.type) {
           case "images":
             setImageData(fileUrl);
@@ -173,16 +176,17 @@ export default function FilePreviewScreen({ route, navigation }) {
             const result = await deleteFile(userId, file._id, file.type, dispatch);
 
             if (result.success === false) {
-              Alert.alert(`Error`, `Error deleting file: ${result.message}`, [
-                { text: "OK" },
-              ]);
+              Toast.show({
+                type: 'error',
+                text1: `Error deleting file.`,
+                text2: `Status code: ${response?.message}`
+              })
             } else {
-              Alert.alert("Success", "File deleted successfully.", [
-                {
-                  text: "OK",
-                  onPress: () => navigation.goBack(),
-                },
-              ]);
+              navigation.goBack()
+              Toast.show({
+                type: 'success',
+                text1: `File deleted successfully!`,
+              })
             }
           },
         },
@@ -243,7 +247,9 @@ export default function FilePreviewScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => console.log("Add Folder Icon Pressed")}
+            onPress={() => {
+              addFolderSheet.current.open()
+            }}
             style={styles.opticonContainer}
           >
             <Image source={AddFolder} style={styles.opticon} />
@@ -264,7 +270,6 @@ export default function FilePreviewScreen({ route, navigation }) {
         </View>
         <RBSheet
           ref={refRBSheet}
-          height={hp("35%")}
           openDuration={400}
           draggable={true}
           closeDuration={300}
@@ -277,7 +282,7 @@ export default function FilePreviewScreen({ route, navigation }) {
               borderTopLeftRadius: hp("3%"),
               borderTopRightRadius: hp("3%"),
               backgroundColor: colors.lightColor2,
-              transform: [{ translateY: 0 }],
+              height: hp("40%")
             },
             mask: {
               backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -286,8 +291,13 @@ export default function FilePreviewScreen({ route, navigation }) {
         >
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Text style={[styles.infotext, styles.head]}>File Name:</Text>
-              <Text style={[styles.infotext, styles.value]}>{file.name}</Text>
+              <Text style={[styles.infotext, styles.head,
+
+              ]}>File Name:</Text>
+              <Text style={[styles.infotext, styles.value, {
+                flexWrap: "wrap",
+                width: "90%",
+              }]}>{file.name}</Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -310,6 +320,20 @@ export default function FilePreviewScreen({ route, navigation }) {
             </View>
 
             <View style={styles.infoRow}>
+              <Text style={[styles.infotext, styles.head]}>Folders:</Text>
+              <Text style={[styles.infotext, styles.value]}>{file.folders && file.folders.map((item, index) => {
+                return (
+                  <View key={index}>
+                    <Text style={[styles.infotext, styles.value]}>
+                      {file.folders && file.folders.length > 0 ? `${item}, ` : "No Folders"}
+                    </Text>
+
+                  </View>
+                )
+              })}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
               <Text style={[styles.infotext, styles.head]}>Created At:</Text>
               <Text style={[styles.infotext, styles.value]}>
                 {new Date(file.createdAt).toLocaleString()}
@@ -318,6 +342,15 @@ export default function FilePreviewScreen({ route, navigation }) {
           </View>
 
 
+        </RBSheet>
+        <RBSheet draggable={true} customStyles={{
+          container: {
+            backgroundColor: colors.lightColor1,
+            borderTopLeftRadius: hp("3%"),
+            borderTopRightRadius: hp("3%"),
+          }
+        }} ref={addFolderSheet}>
+          <AddFilesFolder sheetRef={addFolderSheet} file={file} />
         </RBSheet>
       </View>
     </SafeAreaView >
@@ -351,6 +384,7 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold",
     flex: 1,
     flexWrap: "wrap",
+
   },
   backIconContainer: {
     height: hp("4.7%"),
@@ -398,8 +432,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   infoContainer: {
-    padding: hp("2%"),
-    gap: hp("1%")
+    gap: hp("1%"),
+    padding: hp("2%")
   },
   infoRow: {
     flexDirection: 'row',

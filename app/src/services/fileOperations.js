@@ -1,7 +1,9 @@
 import axios from "axios";
-import { fetchFilesAction, fetchUsedSpaceAction, setLikedFiles } from "../redux/actions";
+import { fetchFilesAction, fetchUsedSpaceAction, setAllFilesMetadata, setLikedFiles, setRecycleBinFile } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
+import { fetchFolderList, loadUser } from "./userOperations";
+
 
 const getIP = () => {
   const state = store.getState();
@@ -42,6 +44,7 @@ export const uploadMedia = async (userId, files, dispatch) => {
       }
 
       await fetchUsedSpace(userId, dispatch);
+      await getAllfileMetadata(userId, dispatch)
 
       return { success: true, message: "Upload successful and files updated" };
     } else {
@@ -108,17 +111,10 @@ export const fetchUsedSpace = async (userId, dispatch) => {
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
       const totalSpaceBytes = response.data.totalSpace || 0;
-      const usedSpacePercentage = (
-        (usedSpaceBytes / totalSpaceBytes) *
-        100
-      ).toFixed(2);
-      const usedSpaceWithUnit = formatFileSize(usedSpaceBytes);
-
       dispatch(
         fetchUsedSpaceAction(
           usedSpaceBytes,
-          usedSpacePercentage,
-          usedSpaceWithUnit
+          totalSpaceBytes
         )
       );
     } else {
@@ -157,9 +153,12 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
 
     console.log("File deleted successfully:", response.data);
 
-    fetchFilesByCategory(userId, type, dispatch);
-    fetchRecentFiles(userId, dispatch);
-    fetchUsedSpace(userId, dispatch);
+    await fetchFilesByCategory(userId, type, dispatch);
+    await fetchRecentFiles(userId, dispatch);
+    await fetchUsedSpace(userId, dispatch);
+    await fetchRecycleBinFiles(userId, dispatch)
+    await fetchFolderList(userId, dispatch)
+    await getAllfileMetadata(userId, dispatch)
 
     return {
       success: true,
@@ -196,23 +195,82 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
   }
 };
 
-
-export const fetchLikedFiles = async (userId, dispatch) => {
-  console.log("Called")
+export const permanentDelete = async (userId, fileId = null, all = false, dispatch) => {
+  console.log(userId, fileId)
   try {
-    const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
-
-    const files = response.data?.files || [];
-
-    dispatch(setLikedFiles(files));
-
-    return files;
-  } catch (error) {
-    console.error('Error fetching liked files:', error.message);
-
-
-    dispatch(setLikedFiles([]));
-
-    return [];
+    const response = await axios.delete(`${API_URL}/permanentdelete`, {
+      data: {
+        userId,
+        fileId,
+        all
+      }
+    })
+    if (response.status == 200) {
+      await fetchRecycleBinFiles(userId, dispatch)
+      await getAllfileMetadata(userId, dispatch)
+      return response.data
+    }
+    else {
+      return response.data
+    }
   }
-};
+  catch (err) {
+    console.err(" Error deleting file:", err);
+  }
+}
+
+export const restoreFile = async (userId, RecycleBinId, type, dispatch) => {
+  try {
+    const response = await axios.post(`${API_URL}/restorefile`, {
+      userId,
+      RecycleBinId
+    })
+    if (response.status == 200) {
+      await fetchFilesByCategory(userId, type, dispatch);
+      await fetchRecentFiles(userId, dispatch);
+      await fetchUsedSpace(userId, dispatch);
+      await fetchRecycleBinFiles(userId, dispatch)
+      await getAllfileMetadata(userId, dispatch)
+      return response.data
+    }
+    else {
+      return response.data
+    }
+  } catch (err) {
+    console.error("Error Restoring File", err)
+  }
+}
+
+export const fetchRecycleBinFiles = async (userId, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/recyclebinfiles?userId=${userId}`)
+    if (response.status == 200) {
+      dispatch(setRecycleBinFile(response.data.files))
+      return response.data
+    }
+    else {
+      return response.data
+    }
+  }
+  catch (err) {
+    console.error("Error fetching recycle bin files:", err)
+  }
+}
+
+
+
+export const getAllfileMetadata = async (userId, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/allfilemetadata?userId=${userId}`,);
+    if (response.status == 200) {
+      dispatch(setAllFilesMetadata(response.data.files))
+      return response.data;
+    }
+    else {
+      return response.data;
+    }
+  }
+  catch (err) {
+    console.error('Error fetching all file metadata:', err.message);
+  }
+}

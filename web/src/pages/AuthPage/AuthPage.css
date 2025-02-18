@@ -1,0 +1,32 @@
+.authpage-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.authpage-header {
+  width: 100%;
+  height: 10%;
+  background-color: red;
+}
+
+.authpage-content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+
+  flex-direction: row;
+}
+
+.authpage-left {
+  width: 50%;
+  flex: 1;
+  display: flex;
+  background-color: green;
+}
+.authpage-right {
+  width: 50%;
+  flex: 1;
+  display: flex;
+  background-color: yellow;
+}

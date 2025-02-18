@@ -6,6 +6,7 @@ const jsmediatags = require("jsmediatags");
 const mime = require("mime-types");
 const os = require("os");
 const { exec } = require('child_process');
+const { v4: uuidv4 } = require("uuid"); 
 
 
 const getFileCategory = (filename) => {
@@ -19,39 +20,58 @@ const getFileCategory = (filename) => {
     return "others";
 };
 
+
+
 const createThumbnail = async (filePath, userId, fileCategory, fileName, minioClient) => {
     try {
-
-        const thumbnailPath = `${userId}/thumbnails/${fileCategory}/${path.basename(fileName, path.extname(fileName))}.webp`;
+        const fileBaseName = path.basename(fileName, path.extname(fileName));
+        const thumbnailPath = `${userId}/thumbnails/${fileCategory}/${fileBaseName}.webp`;
 
         if (fileCategory === "images") {
-            const buffer = await sharp(filePath, { failOnError: false }).resize(500, 500).webp().toBuffer();
+            
+            const buffer = await sharp(filePath, { failOnError: false })
+                .resize(500, 500)
+                .webp()
+                .toBuffer();
             await minioClient.putObject(process.env.MINIO_BUCKET_NAME, thumbnailPath, buffer);
-
             return thumbnailPath;
-        } else if (fileCategory === "videos") {
+        }
+
+        else if (fileCategory === "videos") {
             return new Promise((resolve, reject) => {
+                const tempFolder = os.tmpdir();
+                const tempFileName = `thumbnail_${Date.now()}_${uuidv4()}.webp`;
+                const tempThumbnailPath = path.join(tempFolder, tempFileName);
+
                 ffmpeg(filePath)
                     .screenshots({
                         count: 1,
                         timemarks: ["00:00:01.000"],
-                        folder: '/tmp',
-                        filename: 'thumbnail.webp',
+                        folder: tempFolder,
+                        filename: tempFileName,
                         size: "500x?",
                     })
                     .on("end", async () => {
-                        const thumbnailBuffer = await fs.promises.readFile('/tmp/thumbnail.webp');
-                        await minioClient.putObject(process.env.MINIO_BUCKET_NAME, thumbnailPath, thumbnailBuffer);
-
-                        await deleteTempFile('/tmp/thumbnail.webp');
-
-                        resolve(thumbnailPath);
-                    })
-                    .on("error", (err) =>
-                        reject({ error: "Error creating video thumbnail", details: err })
-                    );
+                        setTimeout(async () => {
+                            try {
+                                if (fs.existsSync(tempThumbnailPath)) {
+                                    const thumbnailBuffer = await fs.promises.readFile(tempThumbnailPath);
+                                    await minioClient.putObject(process.env.MINIO_BUCKET_NAME, thumbnailPath, thumbnailBuffer);
+                                    await fs.promises.unlink(tempThumbnailPath); 
+                                    resolve(thumbnailPath);
+                                } else {
+                                    reject(new Error("Thumbnail file not found after processing"));
+                                }
+                            } catch (error) {
+                                console.error("Error processing video thumbnail:", error);
+                                reject(error);
+                            }
+                        }, 500); 
+                    });
             });
-        } else if (fileCategory === "audios") {
+        }
+
+        else if (fileCategory === "audios") {
             return new Promise((resolve, reject) => {
                 jsmediatags.read(filePath, {
                     onSuccess: async (tag) => {
@@ -75,14 +95,10 @@ const createThumbnail = async (filePath, userId, fileCategory, fileName, minioCl
                                     .toBuffer();
 
                                 await minioClient.putObject(process.env.MINIO_BUCKET_NAME, thumbnailPath, resizedBuffer);
-
                                 resolve(thumbnailPath);
                             } catch (error) {
                                 console.error("Error resizing audio thumbnail:", error);
-                                reject({
-                                    error: "Error resizing audio thumbnail",
-                                    details: error.message,
-                                });
+                                reject({ error: "Error resizing audio thumbnail", details: error.message });
                             }
                         } else {
                             console.log("No album art found in audio file.");
@@ -91,20 +107,22 @@ const createThumbnail = async (filePath, userId, fileCategory, fileName, minioCl
                     },
                     onError: (error) => {
                         console.error("Error reading audio metadata:", error);
-                        reject({
-                            error: "Error reading audio metadata",
-                            details: error.message,
-                        });
+                        reject({ error: "Error reading audio metadata", details: error.message });
                     },
                 });
             });
-        } else {
-            return null;
+        }
+
+        else {
+            return null; 
         }
     } catch (error) {
         throw { error: "Error creating thumbnail", details: error };
     }
 };
+
+
+
 
 
 const getUniqueFilePath = async (bucketName, folderPath, fileName, minioClient) => {

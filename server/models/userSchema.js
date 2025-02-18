@@ -25,7 +25,8 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      required: true
+      required: true,
+      enum: ["Male", "Female", "Others"]
     },
     location: {
       type: String,
@@ -40,21 +41,6 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
-    folders: [
-      {
-        name: {
-          type: String,
-          required: true,
-        },
-        files: [
-          {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "File",
-            default: [],
-          },
-        ],
-      },
-    ],
     totalSpace: {
       type: Number,
       default: 5368709120
@@ -62,6 +48,10 @@ const userSchema = new mongoose.Schema(
     usedSpace: {
       type: Number,
       default: 0
+    },
+    notificationToken: {
+      type: String,
+      default: ""
     },
     createdAt: {
       type: Date,

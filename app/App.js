@@ -1,4 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
+import "setimmediate"
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";

@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Keyboard,
 } from "react-native"
 import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,11 +22,14 @@ import SpinnerOverlay from "../../components/SpinnerOverlay";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
 import {
   fetchFilesByCategory,
   fetchRecentFiles,
+  fetchRecycleBinFiles,
   fetchUsedSpace,
+  getAllfileMetadata,
   uploadMedia,
 } from "../../services/fileOperations";
 import { pickMedia } from "../../utils/mediaPicker";
@@ -52,13 +56,18 @@ import CloudIcon from "../../assets/images/cloud_icon.png";
 import BottomDocs from "../../assets/images/document_bottom.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 import { setFirstRender } from "../../redux/actions";
-import { loadUser } from "../../services/userOperations";
+import { fetchFolderList, loadUser } from "../../services/userOperations";
 import Toast from "react-native-toast-message";
+import { BlurView } from "expo-blur";
+import { Pressable, TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [allFilesSearchQuery, setAllFilesSearchQuery] = useState('')
+  const [filteredAllFilesMetadata, setFilteredAllFilesMetadata] = useState(allFilesMetadata)
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
@@ -77,23 +86,27 @@ export default function HomeScreen({ navigation }) {
     (state) => state.appConfig.isFirstRender.homeScreen
   );
 
-  const user = useSelector((state) => state.user, shallowEqual);
+  const user = useSelector((state) => state.user);
 
+  const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata)
 
+  const { usedSpaceBytes, totalSpaceBytes } = useSelector((state) => state.files.usedSpace)
 
   useEffect(() => {
-    if (!isFirstRender) return;
+    if (!isFirstRender || !userId) return;
+
     setIsLoading(true);
     dispatch(setFirstRender("homeScreen"));
 
-    const fetchUser = async () => {
-      await loadUser(userId, dispatch);
-    };
-
     const fetchData = async () => {
       try {
-        await fetchRecentFiles(userId, dispatch);
-        fetchUsedSpace(userId, dispatch);
+        await Promise.all([
+          fetchUsedSpace(userId, dispatch),
+          fetchRecentFiles(userId, dispatch),
+          getAllfileMetadata(userId, dispatch),
+          fetchFolderList(userId, dispatch),
+          fetchRecycleBinFiles(userId, dispatch),
+        ]);
       } catch (error) {
         console.error("Error in useEffect:", error);
       } finally {
@@ -101,12 +114,21 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
-
-    fetchUser();
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, userId]);
 
+  useEffect(() => {
+    if (!allFilesSearchQuery.trim()) {
+      setFilteredAllFilesMetadata(allFilesMetadata);
+      return;
+    }
 
+    const filteredFiles = allFilesMetadata.filter((file) =>
+      file.name.toLowerCase().includes(allFilesSearchQuery.toLowerCase())
+    );
+
+    setFilteredAllFilesMetadata(filteredFiles);
+  }, [allFilesSearchQuery, allFilesMetadata]);
 
   const showAlert = (title, message, onConfirm) => {
     Alert.alert(title, message, [
@@ -242,35 +264,66 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(true);
     await fetchRecentFiles(userId, dispatch);
     await fetchUsedSpace(userId, dispatch);
+    await getAllfileMetadata(userId, dispatch)
     setRefreshing(false);
   };
 
 
-  const getThumbnailSource = (item) => {
-    const isPdf = item.name.toLowerCase().endsWith(".pdf");
-    const { type, thumbnail } = item;
-
-
-    if (isPdf) return PdfIcon;
-
-
-    if (type === "audios" && !thumbnail) return AudioFileIcon;
-
-
-    if (type === "others" && !thumbnail) return DocsFileIcon;
-
-
-    if (thumbnail) {
-      return { uri: thumbnail };
-    }
-
-
-    return DocsFileIcon;
-  };
-
-
   const renderItem = ({ item }) => {
-    const thumbnailSource = getThumbnailSource(item);
+    const renderThumbnail = () => {
+      if (item?.thumbnail) {
+        if (item.type === "images") {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+            </View>
+          );
+        }
+
+        if (item.type === "videos") {
+          return (
+            <View style={styles.videoFileWithPlayContainer}>
+              <Image
+                source={{ uri: item.thumbnail }}
+                style={styles.videoThumbnail}
+              />
+              <View style={styles.overlay} />
+              <Image source={PlayIcon} style={styles.playIcon} />
+            </View>
+          );
+        }
+      }
+
+      if (item.name.toLowerCase().endsWith(".pdf")) {
+        return (
+          <View style={styles.customThumbnailContainer}>
+            <Image source={PdfIcon} style={styles.pdfImage} />
+          </View>
+        );
+      }
+
+      if (item.type === "audios") {
+        if (item.thumbnail) {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+            </View>
+          );
+        } else {
+          return (
+            <View style={styles.customThumbnailContainer}>
+              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
+            </View>
+          );
+        }
+      }
+
+      return (
+        <View style={styles.customThumbnailContainer}>
+          <Image source={DocsFileIcon} style={styles.documentImage} />
+        </View>
+      );
+    };
 
     return (
       <TouchableOpacity
@@ -283,54 +336,15 @@ export default function HomeScreen({ navigation }) {
         }}
       >
         <View style={styles.recentFileImageContainer}>
-
-          {!item?.thumbnail ? "" : item.type === "others" && item.name.includes("pdf") ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={PdfIcon} style={styles.pdfImage} />
-            </View>
-          ) : item.type === "audios" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={AudioFileIcon} style={styles.fallBackAudioImage} />
-            </View>
-          ) : item.type === "others" && !item.thumbnail ? (
-            <View style={styles.customThumbnailContainer}>
-              <Image source={DocsFileIcon} style={styles.documentImage} />
-            </View>
-          ) : item.type === "videos" ? (
-            <View style={styles.videoFileWithPlayContainer}>
-              <Image
-                source={thumbnailSource}
-                style={[
-                  styles.videoThumbnail,
-                ]}
-              />
-              <View style={styles.overlay} />
-              <Image source={PlayIcon} style={styles.playIcon} />
-            </View>
-          ) : (
-            <View style={styles.customThumbnailContainer}>
-              <Image
-                source={thumbnailSource}
-                style={[
-                  styles.fileImage,
-                ]}
-              />
-            </View>
-          )}
+          {renderThumbnail()}
         </View>
         <View style={styles.fileDetailsContainer}>
           <View style={styles.aboutFile}>
-            <Text
-              style={styles.recentFileName}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
+            <Text style={styles.recentFileName} numberOfLines={1} ellipsizeMode="tail">
               {item.name}
             </Text>
             <View style={styles.fileDetails}>
-              <Text style={styles.recentFileSize}>
-                {formatFileSize(item.size)}
-              </Text>
+              <Text style={styles.recentFileSize}>{formatFileSize(item.size)}</Text>
               <Text style={styles.modifiedTime}>
                 {new Date(item.createdAt).toLocaleString("en-US", {
                   hour: "2-digit",
@@ -340,19 +354,20 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.moreIconContainer}>
-            <Image source={MoreIcon} style={styles.moreIcon} />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
 
+  if (isLoading && !user) {
+    <SpinnerOverlay visible={isLoading} />
+  }
+
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
 
-      <SpinnerOverlay visible={isLoading} />
+
       {isUploading && (
         <ActivityIndicator
           size="large"
@@ -398,7 +413,24 @@ export default function HomeScreen({ navigation }) {
               style={styles.searchInput}
               placeholder="Search files . . ."
               placeholderTextColor="rgba(166, 173, 186, 0.5)"
+              onChangeText={setAllFilesSearchQuery}
+              value={allFilesSearchQuery}
+              onSubmitEditing={() => {
+                setAllFilesSearchQuery("")
+                Keyboard.dismiss()
+              }}
             />
+            {
+              allFilesSearchQuery.trim() != "" && allFilesSearchQuery.length > 0 ? <Pressable style={{
+                padding: hp("1%"),
+              }} onPress={() => {
+                setAllFilesSearchQuery("")
+                Keyboard.dismiss()
+              }}>
+                <Ionicons name="close-outline" size={hp("2.7%")} color='rgba(166, 166, 166, 0.6)' />
+              </Pressable> : null
+            }
+
           </View>
         </View>
         <View style={styles.center}>
@@ -407,7 +439,7 @@ export default function HomeScreen({ navigation }) {
               <AnimatedCircularProgress
                 size={hp("16%")}
                 width={hp("1.2%")}
-                fill={(user.usedSpace / user.totalSpace) * 100 || 0}
+                fill={(usedSpaceBytes / totalSpaceBytes) * 100 || 0}
                 prefill={0}
                 duration={2000}
                 tintColor="rgba(100, 25, 230, 0.8)"
@@ -440,8 +472,8 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.storageTitle}>Used Space</Text>
                 <Text style={styles.storageValue}>
                   {user && user.usedSpace && user.totalSpace
-                    ? `${formatFileSize(user.usedSpace)} / ${formatFileSize(user.totalSpace)}`
-                    : `0 B / ${formatFileSize(user.totalSpace)}`}
+                    ? `${formatFileSize(usedSpaceBytes)} / ${formatFileSize(totalSpaceBytes)}`
+                    : `0 B / ${formatFileSize(totalSpaceBytes)}`}
                 </Text>
               </View>
               <TouchableOpacity style={styles.premiumContainer}>
@@ -522,10 +554,14 @@ export default function HomeScreen({ navigation }) {
                 >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer} >
+                <TouchableOpacity style={styles.optionsIconContainer} onPress={() => {
+                  navigation.navigate("RecycleBin");
+                }} >
                   <Image style={styles.optionIcon} source={BinIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer}>
+                <TouchableOpacity onPress={() => {
+                  navigation.navigate("ManageStorage")
+                }} style={styles.optionsIconContainer}>
                   <Image style={styles.optionIcon} source={BrushIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -631,6 +667,37 @@ export default function HomeScreen({ navigation }) {
           </View>
         </RBSheet>
       </View>
+      {allFilesSearchQuery.trim() !== "" && filteredAllFilesMetadata.length > 0 && (
+        <View style={styles.searchResultsContainer}>
+          {/* <Text style={styles.searchText}>Search results for: {allFilesSearchQuery}</Text> */}
+          <FlatList
+            data={filteredAllFilesMetadata}
+            keyExtractor={(file) => file._id}
+            renderItem={({ item }) => (
+              <Pressable onPress={() => {
+                Keyboard.dismiss();
+                navigation.navigate("FilePreviewScreen", {
+                  file: item,
+                  thumbnail: item.thumbnail ? item.thumbnail : null
+                })
+              }} style={styles.searchItem}>
+                <Text style={styles.searchFileName}>{item.name}</Text>
+                <View style={{
+                  flexDirection: "row",
+                  gap: wp("5%")
+                }}>
+                  <Text style={styles.searchFileSize}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+                  <Text style={styles.searchFileSize}>{formatFileSize(item.size)}</Text>
+                </View>
+              </Pressable>
+            )}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          />
+        </View>
+      )}
+
+
     </SafeAreaView>
   );
 }
@@ -938,6 +1005,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("1.5%"),
     alignItems: "center",
     justifyContent: "center",
+
   },
   fileImage: {
     width: "100%",
@@ -965,19 +1033,21 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: hp("1.5%"),
+
   },
   playIcon: {
     position: "absolute",
     width: "35%",
     height: "35%",
-    tintColor: "rgba(202, 202, 202, 0.80)",
+    tintColor: "rgba(202, 202, 202, 0.90)",
     zIndex: 10,
-    opacity: 0.95,
   },
   videoThumbnail: {
     width: "100%",
     height: "100%",
-    resizeMode: "contain",
+    resizeMode: "cover",
+    borderRadius: hp("1.5%"),
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -999,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   aboutFile: {
     height: "100%",
-    width: "80%",
+    width: "100%",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
@@ -1010,6 +1080,7 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Regular",
     color: colors.textColor3,
     width: "100%",
+
   },
   fileDetails: {
     height: "30%",
@@ -1087,4 +1158,48 @@ const styles = StyleSheet.create({
     textAlign: "center",
     width: "40%",
   },
+  searchResultsContainer: {
+    position: "absolute",
+    zIndex: 1,
+    width: wp("95%"),
+    top: hp("15.5%"),
+    maxHeight: hp("39%"),
+    borderRadius: hp("2%"),
+    padding: hp("2%"),
+    alignSelf: "center",
+    backgroundColor: colors.lightColor1,
+    borderColor: "rgba(166, 166, 166, 0.15)",
+    borderWidth: hp("0.15%")
+  },
+
+  searchText: {
+    fontSize: hp("2.2%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Medium",
+  },
+
+  searchItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: hp("1.5%"),
+    borderBottomColor: "rgba(166, 166, 166, 0.15)",
+    borderBottomWidth: hp("0.1%"),
+  },
+
+  searchFileName: {
+    fontSize: hp("2%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Regular",
+    flex: 1,
+    flexWrap: "wrap",
+  },
+
+  searchFileSize: {
+    fontSize: hp("1.8%"),
+    color: colors.textColor3,
+    fontFamily: "Afacad-Regular",
+  },
+
+
 });

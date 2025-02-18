@@ -1,0 +1,10 @@
+#root {
+  flex: 1;
+  display: flex;
+  background-color: var(--secondary-color1);
+}
+
+.App {
+  display: flex;
+  flex: 1;
+}

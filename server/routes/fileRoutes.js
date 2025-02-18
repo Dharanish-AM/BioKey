@@ -3,12 +3,17 @@ const fileController = require("../controllers/fileController");
 const router = express.Router();
 
 router.post("/upload", fileController.uploadFile);
-router.delete("/delete", fileController.deleteFileAndThumbnail);
+router.delete("/delete", fileController.moveToRecycleBin);
+router.delete("/permanentdelete", fileController.permanentlyDeleteFileAndThumbnail)
+router.post("/restorefile", fileController.restoreFile)
 router.get("/recent", fileController.getRecentFiles);
 router.get("/usedspace", fileController.getSpace);
 router.get("/list", fileController.listFile);
-router.get("/listfavourite", fileController.listLiked)
+
 router.get("/previewfile", fileController.loadFile)
+router.get("/allfilemetadata", fileController.allFileMetaData)
+router.get("/recyclebinfiles",fileController.getRecycleBinFiles)
 
 
 module.exports = router;
+ 

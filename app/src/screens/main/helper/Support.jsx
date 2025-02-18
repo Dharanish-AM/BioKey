@@ -37,7 +37,8 @@ export default function Support({ navigation }) {
                     </View>
 
                     <View style={styles.additionalInfoContainer}>
-                        <View>  <Text style={styles.sectionHeader}>Working Hours</Text>
+                        <View>
+                            <Text style={styles.sectionHeader}>Working Hours</Text>
                             <Text style={styles.text}>Mon - Fri: 9 AM - 6 PM</Text>
                             <Text style={styles.text}>Sat - Sun: Closed</Text>
                         </View>
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         width: "100%",
-        paddingHorizontal:wp("1%")
+        paddingHorizontal: wp("2%")
     },
     contactItem: {
         flexDirection: 'row',

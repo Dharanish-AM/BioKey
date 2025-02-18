@@ -4,27 +4,47 @@ const deviceSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       default: "FINGY",
     },
     serialNumber: {
-      type: String,
+      type: Number,
       unique: true,
       required: true,
     },
+    key: {
+      type: String,
+      default: "",
+    },
+    fingerprints: [
+      {
+        id: {
+          type: Number,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        date: {
+          type: Date,
+          default: Date.now()
+        },
+      },
+    ],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      default: null
     },
     status: {
       type: String,
       enum: ["active", "inactive"],
       default: "active",
     },
-    logs: {
-      type: [],
-      default: [],
+    privateKey: {
+      type: String,
+      default: "",
+      required: false
     },
     createdAt: {
       type: Date,
@@ -36,6 +56,5 @@ const deviceSchema = new mongoose.Schema(
   }
 );
 
-deviceSchema.index({ serialNumber: 1 });
 
 module.exports = mongoose.model("Device", deviceSchema);

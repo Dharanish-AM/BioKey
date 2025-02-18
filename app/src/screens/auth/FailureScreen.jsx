@@ -24,7 +24,9 @@ export default function FailureScreen({ navigation }) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity style={styles.supportContainer}>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("SupportScreen")
+          }} style={styles.supportContainer}>
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>

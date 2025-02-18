@@ -41,7 +41,7 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import AudioFileIcon from "../../../assets/images/audiofile_icon.png";
 import Toast from "react-native-toast-message";
 
-export default function PhotosScreen({ navigation }) {
+export default function AudiosScreen({ navigation }) {
   const dispatch = useDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const [initialLoading, setIsInitialLoading] = useState(false);
@@ -304,7 +304,7 @@ export default function PhotosScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay2 visible={isUploading} />
+      <SpinnerOverlay visible={isUploading} />
       {isSelecting && (
         <ActivityIndicator
           size="large"
@@ -408,6 +408,17 @@ export default function PhotosScreen({ navigation }) {
                   tintColor={colors.textColor3}
                 />
               }
+              ListEmptyComponent={() => {
+                return (
+                  <Text style={{
+                    fontSize: hp("2.5%"),
+                    color: colors.textColor2,
+                    fontFamily: "Afacad-Italic",
+                    alignSelf: "center",
+                    marginTop: hp("35%")
+                  }}>No audios found, try adding!</Text>
+                )
+              }}
             />
           )}
         </View>
@@ -492,9 +503,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

@@ -1,0 +1,37 @@
+[
+  {
+    "serialNumber": 12345678,
+    "manufacturedDate": "2023-01-15",
+    "assignedTo": null,
+    "warrantyExpiration": "2025-01-15",
+    "deviceStatus": "Inactive"
+  },
+  {
+    "serialNumber": 23456789,
+    "manufacturedDate": "2023-03-20",
+    "assignedTo": null,
+    "warrantyExpiration": "2025-03-20",
+    "deviceStatus": "Inactive"
+  },
+  {
+    "serialNumber": 34567890,
+    "manufacturedDate": "2023-06-10",
+    "assignedTo": null,
+    "warrantyExpiration": "2025-06-10",
+    "deviceStatus": "Inactive"
+  },
+  {
+    "serialNumber": 45678901,
+    "manufacturedDate": "2023-09-01",
+    "assignedTo": null,
+    "warrantyExpiration": "2025-09-01",
+    "deviceStatus": "Inactive"
+  },
+  {
+    "serialNumber": 56789012,
+    "manufacturedDate": "2023-11-05",
+    "assignedTo": null,
+    "warrantyExpiration": "2025-11-05",
+    "deviceStatus": "Inactive"
+  }
+]

@@ -7,7 +7,8 @@ import {
   Animated,
   TouchableOpacity,
   TextInput,
-  RefreshControl
+  RefreshControl,
+  Modal
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,34 +17,49 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { Easing } from "react-native-reanimated";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { fetchFolderList, handleFolderCreate, deleteFolders } from "../../services/userOperations";
+import Toast from "react-native-toast-message";
+
 import BackIcon from "../../assets/images/back_icon.png";
 import FolderImage from "../../assets/images/folder (2).png";
 import SearchIcon from "../../assets/images/new_search_icon.png";
-import FilterIcon from "../../assets/images/filter_icon.png";
-import { Easing } from "react-native-reanimated";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { fetchFolderList } from "../../services/userOperations";
 import PlusIcon from "../../assets/images/plus_icon.png";
+import Feather from '@expo/vector-icons/Feather';
+import EvilIcons from '@expo/vector-icons/EvilIcons';
 
-export default function FoldersScreen() {
+export default function FoldersScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.user.userId);
+  const folders = useSelector((state) => state.user.folders, shallowEqual);
+
   const [filteredFolders, setFilteredFolders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateFolder, setIsCreateFolder] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [selectedFolders, setSelectedFolders] = useState([]);
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
+  const [isLongPressed, setIsLongPressed] = useState(false);
   const [width] = useState(new Animated.Value(0));
   const [opacity] = useState(new Animated.Value(0));
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchOpacity] = useState(new Animated.Value(0));
   const [iconsOpacity] = useState(new Animated.Value(1));
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(true)
-  const userId = useSelector((state) => state.user.userId);
 
+  useEffect(() => {
+    setFilteredFolders(folders);
+  }, [folders]);
 
-  const folders = useSelector(
-    (state) => state.user.folders,
-    shallowEqual
-  );
+  useEffect(() => {
+    if (folders?.length > 0) return;
+    fetchData();
+  }, [userId, dispatch]);
 
   const fetchData = async () => {
+    console.log("first")
     setIsLoading(true);
     try {
       await fetchFolderList(userId, dispatch);
@@ -60,16 +76,55 @@ export default function FoldersScreen() {
     setIsRefreshing(false);
   };
 
-  useEffect(() => {
-    const fetchDataEffect = async () => {
-      await fetchData();
-    };
-    fetchDataEffect();
-  }, [userId, dispatch]);
+  const handleLongPress = (folderId) => {
+    setIsMultiSelect(true);
+    setIsLongPressed(true);
+    setSelectedFolders((prevSelected) =>
+      prevSelected.includes(folderId) ? prevSelected : [...prevSelected, folderId]
+    );
+  };
 
-  useEffect(() => {
-    setFilteredFolders(folders);
-  }, [folders]);
+  const cancelSelection = () => {
+    setIsLongPressed(false);
+    setSelectedFolders([]);
+    setIsMultiSelect(false);
+  };
+
+  const handleSelectFolder = (folder) => {
+    if (isMultiSelect) {
+      setSelectedFolders((prevSelected) => {
+        if (prevSelected.includes(folder.folderId)) {
+          const updatedSelection = prevSelected.filter(id => id !== folder.folderId);
+          if (updatedSelection.length === 0) {
+            setIsMultiSelect(false);
+          }
+          return updatedSelection;
+        } else {
+          return [...prevSelected, folder.folderId];
+        }
+      });
+    } else {
+      navigation.navigate("FolderPreviewScreen", { folderId: folder.folderId });
+    }
+  };
+
+  const handleDeleteFolders = async () => {
+    if (selectedFolders.length === 0) return;
+    console.log(selectedFolders)
+    try {
+      const response = await deleteFolders(userId, selectedFolders, dispatch);
+      if (response.success) {
+        cancelSelection();
+        Toast.show({ text1: "Folders deleted successfully", type: "success" });
+      }
+      else {
+        Toast.show({ text1: "Error deleting folders", type: "error" });
+      }
+
+    } catch (error) {
+      Toast.show({ text1: "Failed to delete folders", type: "error" });
+    }
+  };
 
   const handleSearchIconClick = () => {
     setIsSearchActive(true);
@@ -80,7 +135,7 @@ export default function FoldersScreen() {
         useNativeDriver: false,
         easing: Easing.inOut(Easing.ease),
       }),
-      Animated.timing(opacity, {
+      Animated.timing(searchOpacity, {
         toValue: 1,
         duration: 400,
         useNativeDriver: false,
@@ -101,41 +156,69 @@ export default function FoldersScreen() {
         toValue: 0,
         duration: 400,
         useNativeDriver: false,
-        easing: Easing.inOut(Easing.ease),
       }),
-      Animated.timing(opacity, {
+      Animated.timing(searchOpacity, {
         toValue: 0,
         duration: 400,
         useNativeDriver: false,
-        easing: Easing.inOut(Easing.ease),
       }),
       Animated.timing(iconsOpacity, {
         toValue: 1,
         duration: 400,
         useNativeDriver: false,
-        easing: Easing.inOut(Easing.ease),
       }),
-    ]).start(() => setIsSearchActive(false));
+    ]).start(() => {
+      setIsSearchActive(false);
+    });
   };
 
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = folders.filter((folderItem) =>
-      folderItem.name.toLowerCase().includes(text.toLowerCase())
+      folderItem.folderName.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredFolders(filteredData);
   };
 
+  const handleCreateFolder = () => setIsCreateFolder(true);
+  const handleCancel = () => {
+    setFolderName("");
+    setIsCreateFolder(false);
+  };
+
+  const handleCreate = async () => {
+    const isFolderExist = folders.some((folder) => folder.folderName == folderName)
+    if (isFolderExist) {
+      Toast.show({
+        type: "warning",
+        text1: "Folder name already exist!"
+      })
+      return;
+    }
+    const response = await handleFolderCreate(userId, folderName, dispatch);
+    if (response.success) {
+      fetchData();
+      Toast.show({ text1: "Folder Created Successfully", type: "success" });
+    } else {
+      Toast.show({ text1: "Failed to Create Folder", text2: response.message, type: "error" });
+    }
+    handleCancel();
+  };
+
   const renderItem = ({ item }) => {
+    const isSelected = selectedFolders.includes(item.folderId);
     return (
-      <TouchableOpacity key={item._id} style={styles.folderItem}>
-        <View style={styles.folderImageContainer}>
-          <Image source={FolderImage} style={styles.folderIcon} />
-        </View>
-        <Text style={styles.folderName}>{item.name}</Text>
+      <TouchableOpacity
+        onLongPress={() => handleLongPress(item.folderId)}
+        onPress={() => handleSelectFolder(item)}
+        style={[styles.folderItem, isSelected && styles.selectedFolder]}
+      >
+        <Image source={FolderImage} style={styles.folderIcon} />
+        <Text style={styles.folderName}>{item.folderName}</Text>
       </TouchableOpacity>
     );
   };
+
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
@@ -143,44 +226,56 @@ export default function FoldersScreen() {
         <View style={styles.top}>
           <Text style={styles.screenTitle}>Folders</Text>
 
-          <View style={styles.filterContainer}>
-            <Animated.View
-              style={[styles.filterContainer, { opacity: iconsOpacity }]}
-            >
+          {
+            isMultiSelect ? (
+              isLongPressed && <View style={{
+                flexDirection: "row",
+                alignItems: 'center',
+                justifyContent: "center",
+                marginTop: "2%"
+              }}>
+                <Feather onPress={cancelSelection} name="x" size={hp("3.8%")} color={colors.textColor3} />
 
-              {!isSearchActive && (
-                <TouchableOpacity
-                  style={styles.searchIconContainer}
-                  onPress={handleSearchIconClick}
-                >
-                  <Image source={SearchIcon} style={styles.searchIcon} />
-                </TouchableOpacity>
-              )}
-            </Animated.View>
-
-            {isSearchActive && (
+              </View>
+            ) : <View style={styles.filterContainer}>
               <Animated.View
-                style={[styles.inputContainer, { width, opacity }]}
+                style={[styles.filterContainer, { width, opacity: iconsOpacity }]}
               >
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChangeText={handleSearchChange}
-                  autoFocus={true}
-                  onSubmitEditing={handleCancelSearch}
-                  returnKeyType="done"
-                />
+
+                {!isSearchActive && (
+                  <TouchableOpacity
+                    style={styles.searchIconContainer}
+                    onPress={handleSearchIconClick}
+                  >
+                    <Image source={SearchIcon} style={styles.searchIcon} />
+                  </TouchableOpacity>
+                )}
               </Animated.View>
-            )}
-          </View>
+
+              {isSearchActive && (
+                <Animated.View
+                  style={[styles.inputContainer, { width: width, opacity: searchOpacity }]}
+                >
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChangeText={handleSearchChange}
+                    autoFocus={true}
+                    onSubmitEditing={handleCancelSearch}
+                    returnKeyType="done"
+                  />
+                </Animated.View>
+              )}
+            </View>
+          }
         </View>
 
         <View style={styles.center}>
           <FlatList
             data={filteredFolders}
             renderItem={renderItem}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item) => item.folderId}
             numColumns={2}
             refreshControl={
               <RefreshControl
@@ -193,15 +288,71 @@ export default function FoldersScreen() {
               width: wp("100%"),
               paddingHorizontal: wp("1.5%"),
             }}
+            ListEmptyComponent={() => {
+              return (
+                <Text style={{
+                  fontSize: hp("2.5"),
+                  fontFamily:"Afacad-Italic",
+                  color:colors.textColor2,
+                  alignSelf:"center",
+                  marginTop:hp("30%")
+                }}>No folders found</Text>
+              )
+            }}
           />
         </View>
-      </View>
-      <TouchableOpacity
-        style={styles.addButton}
-      >
-        <Image source={PlusIcon} style={styles.plusIcon} />
-      </TouchableOpacity>
-    </SafeAreaView>
+      </View>{
+        isCreateFolder && <View style={styles.modalContainer}></View>
+      }
+      {
+        isMultiSelect && isLongPressed ? (
+          <TouchableOpacity onPress={() => {
+            handleDeleteFolders()
+          }} style={styles.trashIconContainer}>
+            <EvilIcons name="trash" size={hp("5%")} color={colors.textColor3} />
+          </TouchableOpacity>
+        ) : <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleCreateFolder}
+        >
+          <Image source={PlusIcon} style={styles.plusIcon} />
+        </TouchableOpacity>
+      }
+      {
+        isCreateFolder && (
+
+          <Modal
+            visible={isCreateFolder}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={handleCancel}
+          >
+
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Enter Folder Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Folder Name"
+                value={folderName}
+                onChangeText={setFolderName}
+              />
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={handleCancel}>
+                  <Text style={[styles.option, {
+                    color: colors.textColor2
+                  }]} >Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleCreate}>
+                  <Text style={styles.option} >Create</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+          </Modal>
+
+        )
+      }
+    </SafeAreaView >
   );
 }
 
@@ -261,9 +412,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {
@@ -333,5 +484,68 @@ const styles = StyleSheet.create({
     width: "50%",
     height: "50%",
     opacity: 0.9,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: wp("100%"),
+    height: hp("100%"),
+    position: "absolute",
+  },
+  modalContent: {
+    width: wp('80%'),
+    padding: wp('5%'),
+    backgroundColor: colors.lightColor2,
+    borderRadius: hp("2%"),
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [
+      { translateX: wp("-40%") },
+      { translateY: hp("-10.5%") },
+    ],
+    alignSelf: "center"
+  },
+  modalTitle: {
+    fontSize: hp('2.7%'),
+    marginBottom: hp('2%'),
+    color: colors.textColor3,
+    fontFamily: "Afacad-SemiBold"
+  },
+  input: {
+
+    borderColor: "rgba(166, 166, 166, 0.3)",
+    borderWidth: 0.5,
+    marginBottom: hp('3%'),
+    padding: hp("1.5%"),
+    borderRadius: hp("1%"),
+    fontFamily: "Afacad-Regular",
+    fontSize: hp("2.1%"),
+    color: colors.textColor2
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  option: {
+    fontFamily: "Afacad-Regular",
+    color: "#9366E2",
+    fontSize: hp("2.1%"),
+  },
+  selectedFolder: {
+    backgroundColor: "rgba(180, 100, 255, 0.3)",
+    borderRadius: 10,
+  },
+  trashIconContainer: {
+    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+    position: "absolute",
+    right: wp("7%"),
+    bottom: hp("3%"),
+    width: hp("8%"),
+    aspectRatio: 1,
+    borderRadius: hp("500%"),
+    alignItems: "center", justifyContent: "center"
   },
 });

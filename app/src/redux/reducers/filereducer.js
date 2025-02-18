@@ -4,7 +4,9 @@ import {
   FETCH_USED_SPACE,
   SET_SEARCH_QUERY,
   SET_TAB_BAR_VISIBLE,
-  UPDATE_FILE_LIKE_STATUS
+  UPDATE_FILE_LIKE_STATUS,
+  SET_ALL_FILES_METADATA,
+  SET_RECYCLE_BIN_FILES
 } from "../types";
 
 const initialState = {
@@ -16,12 +18,13 @@ const initialState = {
   loading: false,
   usedSpace: {
     usedSpaceBytes: 0,
-    usedSpacePercentage: 0,
-    usedSpaceWithUnit: "",
+    totalSpaceBytes: 0,
   },
   searchQuery: "",
   filteredFiles: [],
-  likedFiles: []
+  likedFiles: [],
+  allFilesMetadata: [],
+  recycleBinFiles: []
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -62,8 +65,7 @@ const fileReducer = (state = initialState, action) => {
         ...state,
         usedSpace: {
           usedSpaceBytes: action.payload.usedSpaceBytes,
-          usedSpacePercentage: action.payload.usedSpacePercentage,
-          usedSpaceWithUnit: action.payload.usedSpaceWithUnit,
+          totalSpaceBytes: action.payload.totalSpaceBytes,
         },
       };
 
@@ -124,6 +126,16 @@ const fileReducer = (state = initialState, action) => {
         likedFiles: action.payload
       };
 
+    case SET_ALL_FILES_METADATA:
+      return {
+        ...state,
+        allFilesMetadata: action.payload
+      }
+    case SET_RECYCLE_BIN_FILES:
+      return {
+        ...state,
+        recycleBinFiles: action.payload
+      }
     default:
       return state;
   }

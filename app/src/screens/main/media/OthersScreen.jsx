@@ -39,6 +39,7 @@ import SpinnerOverlay2 from "../../../components/SpinnerOverlay2";
 import DocsFileIcon from "../../../assets/images/document_icon.png";
 import PdfIcon from "../../../assets/images/pdf_icon.png";
 import Toast from "react-native-toast-message";
+import SpinnerOverlay from "../../../components/SpinnerOverlay";
 
 export default function OthersScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -108,7 +109,7 @@ export default function OthersScreen({ navigation }) {
     setIsSearchActive(true);
     Animated.parallel([
       Animated.timing(width, {
-        toValue: hp("21%"),
+        toValue: hp("25%"),
         duration: 400,
         useNativeDriver: false,
         easing: Easing.inOut(Easing.ease),
@@ -312,7 +313,7 @@ export default function OthersScreen({ navigation }) {
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-      <SpinnerOverlay2 visible={isUploading} />
+      <SpinnerOverlay visible={isUploading} />
       {isSelecting && (
         <ActivityIndicator
           size="large"
@@ -416,6 +417,17 @@ export default function OthersScreen({ navigation }) {
                   tintColor={colors.textColor3}
                 />
               }
+              ListEmptyComponent={() => {
+                return (
+                  <Text style={{
+                    fontSize: hp("2.5%"),
+                    color: colors.textColor2,
+                    fontFamily: "Afacad-Italic",
+                    alignSelf: "center",
+                    marginTop:hp("35%")
+                  }}>No files found, try adding!</Text>
+                )
+              }}
             />
           )}
         </View>
@@ -500,9 +512,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     height: "100%",
-    fontSize: hp("1.7%"),
+    fontSize: hp("2%"),
     flex: 1,
-    fontFamily: "Montserrat-Medium",
+    fontFamily: "Afacad-Medium",
     color: colors.textColor3,
   },
   filterIconContainer: {

@@ -5,7 +5,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { shallowEqual } from "react-redux";
 
 import ProfileIcon from "../assets/images/profile_icon.png";
@@ -15,9 +15,20 @@ import AccountsIcon from "../assets/images/drawer_support.png";
 import NotificationsIcon from "../assets/images/drawer_noti.png";
 import LogsIcon from "../assets/images/drawer_history.png";
 import SupportIcon from "../assets/images/drawer_accounts.png";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setAuthState } from "../redux/actions";
+import DeviceIcon from "../assets/images/device.png";
 
 export default function DrawerView({ navigation }) {
   const user = useSelector((state) => state.user, shallowEqual);
+  const dispatch = useDispatch()
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("authToken")
+    dispatch(setAuthState(false, ""))
+
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -43,7 +54,6 @@ export default function DrawerView({ navigation }) {
               <Text style={styles.userName}>{user.userName}</Text>
               <Text style={styles.userEmail}>{user.userEmail}</Text>
             </View>
-            <Image source={DownArrow} style={styles.downArrow} />
           </View>
         </View>
       </View>
@@ -57,6 +67,12 @@ export default function DrawerView({ navigation }) {
           <Text style={styles.optionsText}>Accounts</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.optionsButton} onPress={() => {
+          navigation.navigate("ManageDevice");
+        }}>
+          <Image source={DeviceIcon} style={styles.optionsIcon} />
+          <Text style={styles.optionsText}>Manage Device</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.optionsButton} onPress={() => {
           navigation.navigate("Notifications");
         }}>
           <Image source={NotificationsIcon} style={styles.optionsIcon} />
@@ -68,15 +84,10 @@ export default function DrawerView({ navigation }) {
           <Image source={LogsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Activity Logs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("Support");
-        }}>
-          <Image source={SupportIcon} style={styles.optionsIcon} />
-          <Text style={styles.optionsText}>Support</Text>
-        </TouchableOpacity>
+
       </View>
       <View style={styles.bottom}>
-        <TouchableOpacity style={styles.logout}>
+        <TouchableOpacity style={styles.logout} onPress={handleLogout}>
           <Image source={LogoutIcon} style={styles.logoutIcon} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>

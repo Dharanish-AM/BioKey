@@ -14,7 +14,7 @@ import SupportIcon from "../../assets/images/support_icon.png";
 export default function LandingScreen({navigation}) {
 
   const handleGetStarted = () => {
-      navigation.navigate("DevicePairingScreen")
+      navigation.navigate("UserFormScreen")
   }
 
   return (
@@ -25,7 +25,9 @@ export default function LandingScreen({navigation}) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity style={styles.supportContainer}>
+          <TouchableOpacity onPress={()=>{
+            navigation.navigate("SupportScreen")
+          }} style={styles.supportContainer}>
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
   illustration: {
     width: "98%",
     height: "90%",
-    resizeMode: "stretch",
+    resizeMode: "contain",
   },
   bottom: {
     width: wp("100%"),

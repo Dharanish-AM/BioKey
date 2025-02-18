@@ -9,8 +9,18 @@ import {
   UPDATE_FILE_LIKE_STATUS,
   FETCH_LIKED_FILES,
   FETCH_FOLDERS,
-  GET_EACH_PASSWORD
+  GET_EACH_PASSWORD,
+  SET_ALL_FILES_METADATA,
+  SET_RECYCLE_BIN_FILES,
+  SET_AUTH_STATE,
+  SET_ACTIVITY_LOGS
 } from "./types";
+
+
+export const setAuthState = (isAuthenticated, token) => ({
+  type: SET_AUTH_STATE,
+  payload: { isAuthenticated, token },
+});
 
 export const fetchFilesAction = (type, files = []) => {
   console.log("Dispatching action to fetch files - " + type);
@@ -22,15 +32,13 @@ export const fetchFilesAction = (type, files = []) => {
 
 export const fetchUsedSpaceAction = (
   usedSpaceBytes,
-  usedSpacePercentage,
-  usedSpaceWithUnit
+  totalSpaceBytes
 ) => {
   return {
     type: FETCH_USED_SPACE,
     payload: {
       usedSpaceBytes,
-      usedSpacePercentage,
-      usedSpaceWithUnit,
+      totalSpaceBytes
     },
   };
 };
@@ -53,10 +61,12 @@ export const setFirstRender = (screen) => ({
   screen,
 });
 
-export const setUser = (user) => ({
-  type: SET_USER,
-  payload: user,
-});
+export const setUser = (user) => {
+  return {
+    type: SET_USER,
+    payload: user,
+  }
+}
 
 export const setPasswords = (passwords) => ({
   type: SET_PASSWORD,
@@ -87,5 +97,27 @@ export const setFolders = (folders) => {
   return {
     type: FETCH_FOLDERS,
     payload: folders
+  }
+}
+
+
+export const setAllFilesMetadata = (allFiles) => {
+  return {
+    type: SET_ALL_FILES_METADATA,
+    payload: allFiles
+  }
+}
+
+export const setRecycleBinFile = (file) => {
+  return {
+    type: SET_RECYCLE_BIN_FILES,
+    payload: file
+  }
+}
+
+export const setActivityLogs = (logs) => {
+  return {
+    type: SET_ACTIVITY_LOGS,
+    payload: logs
   }
 }

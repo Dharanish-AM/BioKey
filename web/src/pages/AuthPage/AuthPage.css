@@ -3,11 +3,11 @@
   flex-direction: column;
   flex: 1;
   background-color: var(--secondary-color1);
+  height: 100vh;
 }
 
 .authpage-header {
   width: 100%;
-  height: 13%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,34 +24,22 @@
 }
 
 .logo {
-  height: 4.5rem;
+  height: 4em;
   aspect-ratio: 1;
   object-fit: contain;
 }
 
 .logo-text {
-  font-size: 2.4em;
+  font-size: 2.2em;
   font-weight: bold;
   color: #e0e3f8;
   margin-left: 0.2em;
   margin-top: 0.5em;
 }
 
-.header-subtitle {
-  font-size: 1.6em;
-  color: #fff;
-  margin-bottom: 0.5em;
-}
-
-.header-description {
-  font-size: 1em;
-  color: #e0e3f8;
-  line-height: 1.3;
-}
-
 .authpage-content {
   width: 100%;
-  height: 87%;
+  flex: 1;
   display: flex;
   flex-direction: row;
 }
@@ -72,7 +60,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 55%;
+  width: 65%;
+  max-height: 500px;
 }
 
 .authpage-left-card.signup {
@@ -82,14 +71,22 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 80%;
+  width: 75%;
   padding: 2.5em;
+  overflow: hidden;
+}
+
+@media (max-width: 1920px) {
+  .authpage-left-card.signup {
+    height: 63vh;
+    max-height: none;
+  }
 }
 
 .authpage-left-card-toggle-btn {
   font-size: 2em;
   font-weight: 600;
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
   flex-direction: row;
   display: flex;
   justify-content: space-between;
@@ -154,7 +151,7 @@
 }
 
 .auth-form-input {
-  padding: 0.7em;
+  padding: 0.7rem;
   background-color: var(--light-color2);
   border: none;
   outline: none;
@@ -198,7 +195,7 @@
   border-radius: 0.4em;
   font-weight: 600;
   font-size: 1.2em;
-  margin-top: 1.5em;
+  margin-top: 1.2em;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -218,12 +215,10 @@
   width: 50%;
   flex: 1;
   display: flex;
-}
-
-.illustration {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  background-image: url("../../../src/assets/images/landing-illustration.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .authpage-form-signup {
@@ -231,8 +226,12 @@
   flex-direction: column;
   flex: 1;
   width: 100%;
+  overflow-y: scroll;
 }
 
+.authpage-form-signup::-webkit-scrollbar {
+  width: 0px;
+}
 .authpage-form-groups-signup {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -273,4 +272,14 @@
 .radio:checked:hover {
   background-color: #9366e2;
   border-color: #9366e2;
+}
+
+.forgot-password {
+  color: var(--text-color2);
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  color: #9366e2;
 }

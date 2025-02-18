@@ -9,7 +9,7 @@ export default function SignUp({ toggleForm }) {
         setGenderSelected(event.target.value !== "");
     };
     return (
-        <form className="authpage-form">
+        <form className="authpage-form-signup">
             <div className="authpage-form-groups-signup">
                 <div className="auth-form-group">
                     <label className="auth-form-label">Name:</label>
@@ -50,7 +50,7 @@ export default function SignUp({ toggleForm }) {
                     <input type="password" className="auth-form-input" id="confirmPassword" placeholder="Confirm your password . . ." />
                 </div>
                 <div className="auth-form-group radio-group">
-                    <label className="auth-form-label">Pair Fingerprint:</label>
+                    <label className="auth-form-label">Pair Fingy:</label>
                     <div className="radio-options">
                         <label>
                             <input className="radio" type="radio" name="pairFinger" value="yes" /> Yes

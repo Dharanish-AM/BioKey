@@ -21,6 +21,13 @@ export default function Login({ toggleForm }) {
                         placeholder="Enter your password . . ."
                     />
                 </div>
+                <div style={{
+                    width:"100%",
+                    alignItems:"end",
+                    textAlign:"end"
+                }} >
+                   <span className="forgot-password">Forgot Password ?</span>
+                </div>
             </div>
             <button className="auth-form-btn" type="submit">
                 Sign in

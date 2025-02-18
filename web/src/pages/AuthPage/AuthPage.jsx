@@ -64,7 +64,7 @@ export default function AuthPage() {
                     </div>
                 </div>
                 <div className="authpage-right">
-                    <img className="illustration" src={Illustration} alt="Illustration" />
+                    
                 </div>
             </div>
         </div>

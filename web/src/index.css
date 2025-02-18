@@ -1,0 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&display=swap");
+
+:root {
+  font-family: Afacad, Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  --primary-color: #6419e6;
+  --secondary-color1: #1f242d;
+  --secondary-color2: #191d24;
+  --text-color1: #ffffff;
+  --text-color2: #a6adba;
+  --dark-color: #171b1f;
+  --light-color1: #2a303c;
+  --light-color2: #242933;
+  --text-color3: #e1e1e1;
+  --border-color-light: #e5e7eb;
+  --red: #da4d4d;
+  --gradient-bg: linear-gradient(180deg, #263238 0%, #37474f 100%);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}

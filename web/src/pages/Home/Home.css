@@ -2,5 +2,6 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  background-color: var(--secondary-color1);
+  background-color: var(--light-color2);
+  border-top-left-radius: 15px;
 }

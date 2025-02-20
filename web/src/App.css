@@ -6,4 +6,22 @@
 .App {
   display: flex;
   flex: 1;
+  background-color: var(--secondary-color1);
+}
+
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
 }

@@ -56,20 +56,20 @@
   padding: 1em;
 }
 
-.home-storage-header{
+.home-storage-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.premium-btn{
-  background-color: rgba(140,117,29,0.3);
+.premium-btn {
+  background-color: rgba(140, 117, 29, 0.3);
   padding: 0.3em 0.7em;
   border-radius: 10px;
   font-size: 1.1rem;
   font-weight: 400;
-  color: rgba(255,224,104,0.5);
+  color: rgba(255, 224, 104, 0.5);
   cursor: pointer;
 }
 
@@ -77,7 +77,6 @@
   font-size: 1.3rem;
   color: var(--text-color3);
   font-weight: 500;
-
 }
 
 .home-storage-content {
@@ -106,8 +105,8 @@
   margin-top: 0.5em;
 }
 
-.home-storage-space-text{
-  font-size: 1.1rem;
+.home-storage-space-text {
+  font-size: 1rem;
   color: var(--text-color2);
   font-weight: 400;
 }
@@ -182,49 +181,10 @@
   border-radius: 7px;
 }
 
-.quick-access-item-icon-image {
+.quick-access-item-icon {
   width: 2em;
   aspect-ratio: 1;
-  background-image: url("../../../src/assets/icons/image_icon.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.quick-access-item-icon-video {
-  width: 2em;
-  aspect-ratio: 1;
-  background-image: url("../../../src/assets/icons/videos_icon.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.quick-access-item-icon-audio {
-  width: 2em;
-  aspect-ratio: 1;
-  background-image: url("../../../src/assets/icons/audio_icon.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.quick-access-item-icon-other {
-  width: 2em;
-  aspect-ratio: 1;
-  background-image: url("../../../src/assets/icons/docs_icon.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.quick-access-item-icon-password {
-  width: 2em;
-  aspect-ratio: 1;
-  background-image: url("../../../src/assets/icons/pass_icon.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  object-fit: contain;
 }
 
 .quick-access-item-text {
@@ -263,4 +223,20 @@
 }
 
 .recent-file-text {
+}
+
+.premium-btn:hover,
+.home-card-see-all:hover {
+  transform: scale(1.03);
+  transition: all 0.2s ease-in-out;
+}
+
+.quick-access-item {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.quick-access-item:hover {
+  transform: translateY(-5px);
 }

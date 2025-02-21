@@ -2,13 +2,14 @@ import "./Header.css";
 import { Search, Bell } from "lucide-react";
 
 import ProfileIcon from "../../assets/images/profile_icon_1.png"
+import Logo from "../../assets/icons/BioKey_Logo.png"
+
 export default function Header() {
     return (
         <div className="header-container">
 
             <div className="header-logo">
-                <div className="header-logo-img">
-                </div>
+                <img src={Logo} alt="Logo" className="header-logo-img" />
                 <div className="header-logo-text">BioKey</div>
             </div>
 

@@ -38,7 +38,10 @@ export default function Home() {
                     </div>
                 </div>
                 <div className="home-recent-files">
-                    <div className="home-card-title">Recent Files</div>
+                    <div className="home-recent-files-header">
+                        <div className="home-card-title">Recent Files</div>
+                        <div className="home-card-see-all">View All</div>
+                    </div>
                     <div className="recent-files-list">
                         <div className="recent-file-item">
                             <div className="recent-file-icon">Icon</div>

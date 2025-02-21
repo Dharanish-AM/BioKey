@@ -61,7 +61,13 @@
   font-size: 1.3rem;
   color: var(--text-color3);
   font-weight: 500;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.7em;
+}
+
+.home-card-see-all {
+  font-size: 1.2rem;
+  color: #9366e2;
+  cursor: pointer;
 }
 
 .home-quick-access {
@@ -100,9 +106,15 @@
 .home-recent-files {
   display: flex;
   flex-direction: column;
-  background-color: var(--light-color1);
   width: 100%;
   flex: 1;
+}
+
+.home-recent-files-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .recent-files-list {

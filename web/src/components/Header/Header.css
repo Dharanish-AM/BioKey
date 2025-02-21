@@ -1,7 +1,7 @@
 .header-container {
   display: flex;
   width: 100%;
-  height: 6rem;
+  height: 5.5rem;
   background-color: var(--secondary-color1);
   align-items: center;
   justify-content: space-between;
@@ -37,7 +37,7 @@
 .header-search-container {
   display: flex;
   flex-direction: row;
-  height: 75%;
+  height: 80%;
   align-items: center;
   width: 30%;
   position: relative;
@@ -77,6 +77,7 @@
 }
 
 .header-notifications-container {
+  cursor: pointer;
 }
 
 .header-profile-container {
@@ -84,6 +85,7 @@
   align-items: center;
   justify-content: center;
   height: 85%;
+  cursor: pointer;
 }
 
 .header-profile-img {

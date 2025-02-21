@@ -19,7 +19,7 @@ export default function Header() {
                     type="text"
                     placeholder="Search any files..."
                     className="header-search-input"
-                    
+
                 />
             </div>
 

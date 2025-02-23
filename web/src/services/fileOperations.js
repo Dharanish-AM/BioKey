@@ -12,18 +12,15 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}/api/files`;
 
-export const uploadMedia = async (userId, files, dispatch) => {
+export const uploadMedia = async (userId, files, token, dispatch) => {
   const formData = new FormData();
   formData.append("userId", userId);
 
   files.forEach((file) => {
-    const { uri, fileName, name } = file;
-    const fileNameToUse = fileName || name;
-    formData.append("file", {
-      uri,
-      name: fileNameToUse,
-    });
+    console.log("Uploading file:", file);
+    formData.append("file", file);
   });
+
 
   try {
     const response = await axios.post(`${API_URL}/upload`, formData, {
@@ -43,8 +40,9 @@ export const uploadMedia = async (userId, files, dispatch) => {
         };
       }
 
-      await fetchUsedSpace(userId, dispatch);
-      await getAllfileMetadata(userId, dispatch)
+      await fetchRecentFiles(userId, token, dispatch);
+      await fetchUsedSpace(userId, token, dispatch);
+      await getAllfileMetadata(userId, token, dispatch)
 
       return { success: true, message: "Upload successful and files updated" };
     } else {
@@ -91,7 +89,7 @@ export const fetchFilesByCategory = async (userId, category, dispatch) => {
   }
 };
 
-export const fetchRecentFiles = async (userId, dispatch) => {
+export const fetchRecentFiles = async (userId, token, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
 
@@ -105,7 +103,7 @@ export const fetchRecentFiles = async (userId, dispatch) => {
   }
 };
 
-export const fetchUsedSpace = async (userId, dispatch) => {
+export const fetchUsedSpace = async (userId, token, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
     if (response.status === 200) {
@@ -258,19 +256,20 @@ export const fetchRecycleBinFiles = async (userId, dispatch) => {
 }
 
 
-
-export const getAllfileMetadata = async (userId, dispatch) => {
+export const getAllfileMetadata = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/allfilemetadata?userId=${userId}`,);
-    if (response.status == 200) {
-      dispatch(setAllFilesMetadata(response.data.files))
+    const response = await axios.get(`${API_URL}/allfilemetadata?userId=${userId}`);
+
+    if (response.status === 200) {
+      const { files = [], passwords = [], folders = [] } = response.data;
+
+      dispatch(setAllFilesMetadata({ files, passwords, folders }));
+
+      return response.data;
+    } else {
       return response.data;
     }
-    else {
-      return response.data;
-    }
+  } catch (err) {
+    console.error("Error fetching all file metadata:", err.message);
   }
-  catch (err) {
-    console.error('Error fetching all file metadata:', err.message);
-  }
-}
+};

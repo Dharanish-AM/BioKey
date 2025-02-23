@@ -1,8 +1,7 @@
-import { act } from "react";
 import { FETCH_FOLDERS, SET_ACTIVITY_LOGS, SET_USER } from "../types";
 
 const initialState = {
-  userId: "676aee09b3f0d752bbbe58f7",
+  userId: "",
   userName: "",
   userEmail: "",
   userPhone: "",

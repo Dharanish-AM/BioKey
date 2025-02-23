@@ -6,7 +6,7 @@ import {
   SET_TAB_BAR_VISIBLE,
   UPDATE_FILE_LIKE_STATUS,
   SET_ALL_FILES_METADATA,
-  SET_RECYCLE_BIN_FILES
+  SET_RECYCLE_BIN_FILES,
 } from "../types";
 
 const initialState = {
@@ -23,42 +23,21 @@ const initialState = {
   searchQuery: "",
   filteredFiles: [],
   likedFiles: [],
-  allFilesMetadata: [],
-  recycleBinFiles: []
+  allFilesMetadata: {
+    files: [],
+    passwords: [],
+    folders: [],
+  },
+  recycleBinFiles: [],
 };
 
 const fileReducer = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_FILES_REQUEST:
-      switch (action.payload.type) {
-        case "images":
-          return {
-            ...state,
-            images: [...action.payload.files],
-          };
-        case "videos":
-          return {
-            ...state,
-            videos: [...action.payload.files],
-          };
-        case "audios":
-          return {
-            ...state,
-            audios: [...action.payload.files],
-          };
-        case "others":
-          return {
-            ...state,
-            others: [...action.payload.files],
-          };
-        case "recents":
-          return {
-            ...state,
-            recents: [...action.payload.files],
-          };
-        default:
-          return state;
-      }
+      return {
+        ...state,
+        [action.payload.type]: [...action.payload.files], 
+      };
 
     case FETCH_USED_SPACE:
       return {
@@ -69,7 +48,7 @@ const fileReducer = (state = initialState, action) => {
         },
       };
 
-    case SET_SEARCH_QUERY:
+    case SET_SEARCH_QUERY: {
       const query = action.payload.toLowerCase();
 
       const allFiles = [
@@ -90,6 +69,7 @@ const fileReducer = (state = initialState, action) => {
         searchQuery: action.payload,
         filteredFiles,
       };
+    }
 
     case SET_TAB_BAR_VISIBLE:
       return {
@@ -97,45 +77,45 @@ const fileReducer = (state = initialState, action) => {
         tabBarVisible: action.payload,
       };
 
-    case UPDATE_FILE_LIKE_STATUS:
+    case UPDATE_FILE_LIKE_STATUS: {
       const { fileId, isLiked, type } = action.payload;
 
-      const updateFiles = (files) => {
-        return files.map(file =>
+      if (!state[type]) return state; 
+
+      const updateFiles = (files) =>
+        files.map((file) =>
           file._id === fileId ? { ...file, isLiked } : file
         );
-      };
-
-
-      const updatedTypeFiles = updateFiles(state[type]);
-
-
-      const updatedRecents = state.recents.map(file =>
-        file._id === fileId ? { ...file, isLiked } : file
-      );
 
       return {
         ...state,
-        [type]: updatedTypeFiles,
-        recents: updatedRecents,
+        [type]: updateFiles(state[type]),
+        recents: updateFiles(state.recents),
       };
+    }
 
     case FETCH_LIKED_FILES:
       return {
         ...state,
-        likedFiles: action.payload
+        likedFiles: action.payload,
       };
 
     case SET_ALL_FILES_METADATA:
       return {
         ...state,
-        allFilesMetadata: action.payload
-      }
+        allFilesMetadata: {
+          files: action.payload.files || [],
+          passwords: action.payload.passwords || [],
+          folders: action.payload.folders || [],
+        },
+      };
+
     case SET_RECYCLE_BIN_FILES:
       return {
         ...state,
-        recycleBinFiles: action.payload
-      }
+        recycleBinFiles: action.payload,
+      };
+
     default:
       return state;
   }

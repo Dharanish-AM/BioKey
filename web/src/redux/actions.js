@@ -100,12 +100,11 @@ export const setFolders = (folders) => {
 }
 
 
-export const setAllFilesMetadata = (allFiles) => {
-  return {
-    type: SET_ALL_FILES_METADATA,
-    payload: allFiles
-  }
-}
+export const setAllFilesMetadata = (allFiles) => ({
+  type: SET_ALL_FILES_METADATA,
+  payload: allFiles,
+});
+
 
 export const setRecycleBinFile = (file) => {
   return {

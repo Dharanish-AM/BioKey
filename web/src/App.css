@@ -25,3 +25,18 @@
   flex: 1;
   display: flex;
 }
+
+.loading-container{
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--secondary-color1);
+
+}
+
+.loading-animation{
+  width: 20rem;
+  height: 20rem;
+
+}

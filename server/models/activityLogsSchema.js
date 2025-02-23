@@ -23,8 +23,8 @@ const activityLogSchema = new mongoose.Schema({
         country: String,
         district: String,
     },
-    latitude: { type: Number, required: true },
-    longitude: { type: Number, required: true },
+    latitude: { type: Number },
+    longitude: { type: Number },
     mode: {
         type: String,
         enum: ["credentials", "biometric"],

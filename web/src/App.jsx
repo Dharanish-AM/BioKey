@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import AuthPage from './pages/AuthPage/AuthPage'
 import Home from './pages/Home/Home'
@@ -24,13 +24,17 @@ function App() {
                       path="/"
                       element={<Home />}
                     />
-                    <Route path="/auth" element={<AuthPage />} />
+                    <Route
+                      path="*"
+                      element={<Navigate to="/" />}
+                    />
                   </Routes>
                 </div>
               </div>
             </div> :
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="*" element={<Navigate to={"/auth"} />} />
             </Routes>
         }
       </div>

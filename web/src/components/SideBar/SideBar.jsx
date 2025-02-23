@@ -37,7 +37,9 @@ export default function SideBar() {
             <div className="sidebar-footer">
                 <div className="sidebar-seperator"></div>
                 <div className="sidebar-logout-container" onClick={() => {
-                    alert("Logout");
+                    alert("Logged out successfully");
+                    localStorage.removeItem("authToken");
+                    window.location.reload();
                 }}>
                     <FiLogOut size={"1.5rem"} className="sidebar-icon" />
                     <span>Logout</span>

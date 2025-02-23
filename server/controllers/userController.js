@@ -186,6 +186,7 @@ const register = async (req, res) => {
 const loginWithCredentials = async (req, res) => {
   try {
     const { email, password, activityLog } = req.body;
+    console.log(email, password, activityLog);
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Please fill in all fields." });

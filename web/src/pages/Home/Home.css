@@ -1,13 +1,13 @@
 .home-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
   padding: 1.5rem;
   background-color: var(--light-color2);
   border-top-left-radius: 15px;
-  height: calc(100vh - 5.5rem);
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
+
 }
 
 .home-header {
@@ -15,6 +15,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .home-header-text {
@@ -136,6 +137,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: fit-content;
 }
 
 .quick-access-items {
@@ -199,8 +201,8 @@
 .home-recent-files {
   display: flex;
   flex-direction: column;
+  max-height: 40vh;
   width: 100%;
-  flex: 1;
 }
 
 .home-recent-files-header {
@@ -209,6 +211,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
+  height: fit-content;
 }
 
 .recent-files-list {
@@ -216,8 +219,10 @@
   flex-direction: column;
   gap: 1.5rem;
   overflow-y: scroll;
-  height: 15vh;
   padding-right: 1em;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
 }
 
 .recent-files-list::-webkit-scrollbar {
@@ -236,7 +241,6 @@
   flex-direction: row;
   gap: 1.5rem;
   align-items: center;
-
   cursor: pointer;
 }
 
@@ -244,14 +248,17 @@
   display: flex;
   width: 4rem;
   height: 4rem;
+  object-fit: contain;
 }
 
 .recent-file-icon {
   width: 100%;
   aspect-ratio: 1;
+  object-fit: contain;
+
 }
 
-.recent-file-item-right{
+.recent-file-item-right {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -259,7 +266,7 @@
   flex: 1;
 }
 
-.recent-file-item-metadata{
+.recent-file-item-metadata {
   display: flex;
   flex-direction: column;
   gap: 0.5em;

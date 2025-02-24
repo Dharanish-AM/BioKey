@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { SET_AUTH_STATE, SET_USER } from "../redux/types";
 import { loadUser } from "../services/userOperations";
 import { setAuthState, setUser } from "../redux/actions";
+import toast from "react-hot-toast";
 
 export default function Login({ toggleForm }) {
     const [formData, setFormData] = useState({ email: "", password: "" });
@@ -66,16 +67,16 @@ export default function Login({ toggleForm }) {
                         dispatch(setUser(user));
                         dispatch(setAuthState(true, token));
                     }
-                    window.alert("Login success!");
+                    toast.success("Logged in successfully");
                 } else {
-                    window.alert(`Login failed! ${tokenValidationResponse.message || "Unknown error occurred"}`);
+                    toast.error("Login failed! Token validation failed");
                 }
             } else {
-                window.alert(`Login failed! ${loginResponse.message || "Unknown error occurred"}`);
+                toast.error(`Login failed! ${loginResponse.message || "Unknown error occurred"}`);
             }
         } catch (error) {
             console.error("Login Error:", error);
-            window.alert("An error occurred during login. Please try again.");
+            toast.error("An error occurred during login. Please try again.");
         }
     };
 

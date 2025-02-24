@@ -124,7 +124,7 @@ export const fetchUsedSpace = async (userId, token, dispatch) => {
 };
 
 
-export const previewFile = async (userId, fileId) => {
+export const previewFile = async (userId, fileId,token) => {
   try {
     const response = await axios.get(`${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`);
     if (response.status === 200) {
@@ -239,7 +239,7 @@ export const restoreFile = async (userId, RecycleBinId, type, dispatch) => {
   }
 }
 
-export const fetchRecycleBinFiles = async (userId, dispatch) => {
+export const fetchRecycleBinFiles = async (userId, token, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/recyclebinfiles?userId=${userId}`)
     if (response.status == 200) {

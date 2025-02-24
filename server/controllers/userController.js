@@ -636,6 +636,7 @@ const ListFolder = async (req, res) => {
         return {
           folderId: folder._id,
           folderName: folder.name,
+          createdAt: folder.createdAt,
           files: files,
         };
       })

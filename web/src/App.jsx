@@ -12,6 +12,10 @@ import Lottie from "lottie-react";
 import LoadingAnimation from './assets/animations/loading.json';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuthState, setUser } from './redux/actions';
+import Folder from './pages/Folders/Folders';
+import Folders from './pages/Folders/Folders';
+import Favourites from './pages/Favourites/Favourites';
+import Trash from './pages/Trash/Trash';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -66,6 +70,10 @@ function App() {
               <div className='main-content'>
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/folders" element={<Folders />} />
+                  <Route path="/favourites" element={<Favourites />} />
+                  <Route path="/folders/:folderId" element={<Folder />} />
+                  <Route path="/trash" element={<Trash />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>

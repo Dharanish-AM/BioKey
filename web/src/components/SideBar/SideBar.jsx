@@ -1,6 +1,7 @@
 import "./SideBar.css";
 import { Link, useLocation } from "react-router-dom";
 import { FiHome, FiFolder, FiHeart, FiCloud, FiTrash, FiLogOut } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 export default function SideBar() {
     const location = useLocation();
@@ -13,9 +14,9 @@ export default function SideBar() {
                     <span>Home</span>
                 </Link>
 
-                <Link to="/folder" className={`sidebar-nav-item ${location.pathname === "/folder" ? "active" : ""}`}>
+                <Link to="/folders" className={`sidebar-nav-item ${location.pathname === "/folder" ? "active" : ""}`}>
                     <FiFolder size={"1.5rem"} className="sidebar-icon" />
-                    <span>Folder</span>
+                    <span>Folders</span>
                 </Link>
 
                 <Link to="/favourites" className={`sidebar-nav-item ${location.pathname === "/favourites" ? "active" : ""}`}>
@@ -37,7 +38,7 @@ export default function SideBar() {
             <div className="sidebar-footer">
                 <div className="sidebar-seperator"></div>
                 <div className="sidebar-logout-container" onClick={() => {
-                    alert("Logged out successfully");
+                   toast.success("Logged out successfully");
                     localStorage.removeItem("authToken");
                     window.location.reload();
                 }}>

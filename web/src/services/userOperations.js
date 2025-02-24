@@ -49,7 +49,7 @@ export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
   }
 };
 
-export const fetchLikedFiles = async (userId, dispatch) => {
+export const fetchLikedFiles = async (userId, token,dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
 
@@ -69,7 +69,7 @@ export const fetchLikedFiles = async (userId, dispatch) => {
 };
 
 
-export const fetchFolderList = async (userId, dispatch) => {
+export const fetchFolderList = async (userId,token, dispatch) => {
   if (!userId) {
     console.error("User ID is required to fetch folders.");
     return;

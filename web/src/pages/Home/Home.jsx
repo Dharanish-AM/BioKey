@@ -3,7 +3,6 @@
 import { EllipsisVertical, Plus } from "lucide-react";
 import "./Home.css";
 import { useEffect, useRef, useState } from "react";
-
 import ImageIcon from "../../assets/icons/image_icon.png";
 import VideoIcon from "../../assets/icons/videos_icon.png";
 import AudioIcon from "../../assets/icons/audio_icon.png";
@@ -14,6 +13,7 @@ import { fetchRecentFiles, fetchUsedSpace, getAllfileMetadata, uploadMedia } fro
 import { formatFileSize } from "../../utils/formatFileSize";
 import { formatDate } from "../../utils/formatDate";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
     const dispatch = useDispatch();
@@ -25,6 +25,7 @@ export default function Home() {
     const recentFiles = useSelector((state) => state.files.recents);
     const usedSpace = useSelector((state) => state.files.usedSpace);
     const allFilesMetaData = useSelector((state) => state.files.allFilesMetadata);
+    const navigation = useNavigate()
 
     const [fileCounts, setFileCounts] = useState({
         images: 0,
@@ -118,8 +119,10 @@ export default function Home() {
     const storageUsed = ((usedSpaceBytes / totalSpaceBytes) * 100).toFixed(1);
 
 
-    const QuickAccessItem = ({ icon, label, count }) => (
-        <div className="quick-access-item">
+    const QuickAccessItem = ({ route, icon, label, count }) => (
+        <div onClick={() => {
+            navigation(`/${route}`)
+        }} className="quick-access-item">
             <div className="quick-access-item-content">
                 <div className="quick-access-item-icon-container">
                     <img src={icon} alt={label} className="quick-access-item-icon" />
@@ -170,11 +173,11 @@ export default function Home() {
                         Quick Access
                     </div>
                     <div className="quick-access-items">
-                        <QuickAccessItem icon={ImageIcon} label="Images" count={fileCounts.images} />
-                        <QuickAccessItem icon={VideoIcon} label="Videos" count={fileCounts.videos} />
-                        <QuickAccessItem icon={AudioIcon} label="Audios" count={fileCounts.audios} />
-                        <QuickAccessItem icon={OtherIcon} label="Others" count={fileCounts.others} />
-                        <QuickAccessItem icon={PassIcon} label="Passwords" count={fileCounts.passwords} />
+                        <QuickAccessItem route="images" icon={ImageIcon} label="Images" count={fileCounts.images} />
+                        <QuickAccessItem route="videos" icon={VideoIcon} label="Videos" count={fileCounts.videos} />
+                        <QuickAccessItem route="audios" icon={AudioIcon} label="Audios" count={fileCounts.audios} />
+                        <QuickAccessItem route="others" icon={OtherIcon} label="Others" count={fileCounts.others} />
+                        <QuickAccessItem route="passwords" icon={PassIcon} label="Passwords" count={fileCounts.passwords} />
                     </div>
                 </div>
                 <div className="home-recent-files">
@@ -182,6 +185,7 @@ export default function Home() {
                         <div className="home-card-title">Recent Files</div>
                         <div className="home-card-see-all">View All</div>
                     </div>
+
                     <div className="recent-files-list">
                         {recentFiles && recentFiles.length > 0 ? (
                             recentFiles.map((file, index) => (
@@ -204,6 +208,7 @@ export default function Home() {
                             <div className="no-recent-files">No recent files found</div>
                         )}
                     </div>
+
                 </div>
             </div>
         </div>

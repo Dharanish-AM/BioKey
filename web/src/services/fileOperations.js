@@ -69,7 +69,7 @@ const handleUploadError = (error) => {
 };
 
 
-export const fetchFilesByCategory = async (userId, category, dispatch) => {
+export const fetchFilesByCategory = async (userId, category, token, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/list`, {
       params: {
@@ -124,11 +124,11 @@ export const fetchUsedSpace = async (userId, token, dispatch) => {
 };
 
 
-export const previewFile = async (userId, fileId,token) => {
+export const previewFile = async (userId, fileId, token) => {
   try {
     const response = await axios.get(`${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`);
     if (response.status === 200) {
-      return response.data.url;
+      return response.data;
     } else {
       console.error("Error fetching file preview:", response.data.message || response);
       return null;
@@ -140,7 +140,7 @@ export const previewFile = async (userId, fileId,token) => {
 };
 
 
-export const deleteFile = async (userId, fileId, type, dispatch) => {
+export const deleteFile = async (userId, fileId, type, token, dispatch) => {
   try {
     const response = await axios.delete(`${API_URL}/delete`, {
       data: {
@@ -151,7 +151,7 @@ export const deleteFile = async (userId, fileId, type, dispatch) => {
 
     console.log("File deleted successfully:", response.data);
 
-    await fetchFilesByCategory(userId, type, dispatch);
+    await fetchFilesByCategory(userId, type, token, dispatch);
     await fetchRecentFiles(userId, dispatch);
     await fetchUsedSpace(userId, dispatch);
     await fetchRecycleBinFiles(userId, dispatch)
@@ -217,14 +217,14 @@ export const permanentDelete = async (userId, fileId = null, all = false, dispat
   }
 }
 
-export const restoreFile = async (userId, RecycleBinId, type, dispatch) => {
+export const restoreFile = async (userId, RecycleBinId, type, token, dispatch) => {
   try {
     const response = await axios.post(`${API_URL}/restorefile`, {
       userId,
       RecycleBinId
     })
     if (response.status == 200) {
-      await fetchFilesByCategory(userId, type, dispatch);
+      await fetchFilesByCategory(userId, type, token, dispatch);
       await fetchRecentFiles(userId, dispatch);
       await fetchUsedSpace(userId, dispatch);
       await fetchRecycleBinFiles(userId, dispatch)

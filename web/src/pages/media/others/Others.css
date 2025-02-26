@@ -1,4 +1,4 @@
-.favourites-container {
+.others-container {
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
@@ -9,30 +9,17 @@
   box-sizing: border-box;
 }
 
-.favourites-header {
+.others-container-header {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  width: 100%;
-}
-
-.favourites-title {
-  font-size: 1.7rem;
-  color: var(--text-color3);
-  font-weight: 500;
-}
-
-.favourites-options-container {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
   align-items: center;
   justify-content: space-between;
+
+  height: 12%;
+  margin-bottom: 2rem;
 }
 
-.favourites-search-input {
+.others-search-input {
   width: 15rem;
   padding: 0.7rem 1rem;
   border-radius: 10px;
@@ -45,27 +32,63 @@
   outline: transparent;
 }
 
-.favourite-search-input::placeholder {
-  color: var(--text-color2);
+.add-others-btn {
+  background-color: var(--primary-color);
+  color: var(--text-color3);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-left: 1rem;
 }
 
-.favourites-content {
+.others-container-header-options {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
+
+.others-container-title {
+  font-size: 1.7rem;
+  color: var(--text-color3);
+  font-weight: 500;
+}
+
+.others-container-body {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  width: 100%;
+  height: 85%;
 }
 
-.favourites-list {
+.others-container-list {
   display: flex;
   flex-direction: row;
   width: 100%;
   overflow-y: auto;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: center;
+  padding-right: 1rem;
   gap: 2rem;
+  align-items: center;
+}
+.others-container-list::-webkit-scrollbar {
+  width: 0.5em;
+  background-color: #171b1f4f;
+  border-radius: 10px;
 }
 
-.favourites-item {
+.others-container-list::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 10px;
+}
+
+.other-list-item {
   display: flex;
   flex-direction: column;
   transition: transform 0.4s;
@@ -81,15 +104,34 @@
   border: 1px solid #a6a6aa1f;
 }
 
-.favourites-item-image-container {
+.other-list-item-other-container {
   display: flex;
   justify-content: center;
   align-items: center;
   aspect-ratio: 1;
   height: 80%;
+  position: relative;
 }
 
-.favourites-image {
+.other-list-item-other-container svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.other-overlay-black {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+}
+
+.other-thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -97,7 +139,7 @@
   border-radius: 10px;
 }
 
-.favourites-item-details {
+.other-list-item-details {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -106,7 +148,7 @@
   margin-top: 1rem;
 }
 
-.favourites-item-name {
+.other-list-item-name {
   font-size: 1.1rem;
   color: var(--text-color3);
   white-space: nowrap;
@@ -117,42 +159,36 @@
   flex-grow: 1;
 }
 
-.favourites-item-size {
+.other-list-item-size {
   font-size: 1rem;
   color: var(--text-color2);
   flex-shrink: 0;
 }
 
-.favourites-filter-modal {
+.others-sort-dropdown {
   position: absolute;
   top: 11rem;
-  right: 2rem;
+  right: 5rem;
   background-color: var(--light-color1);
-  padding: 1rem 2rem;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-}
+  padding: 0.7rem 1rem;
 
-.favourites-filter-modal-title {
-  font-size: 1.1rem;
   color: var(--text-color3);
-}
 
-.favourites-modal-select {
   font-size: 1rem;
-  color: var(--text-color3);
-  padding: 0.3rem 1rem;
+  gap: 1rem;
+  display: flex;
+  align-items: center;
   border-radius: 10px;
-  background-color: var(--light-color2);
-  font-family: Afacad;
-
-  border: none;
-  outline: transparent;
+  border: 1px solid #a6a6aa1f;
 }
 
-.favourites-modal-select option {
+.others-sort-dropdown select {
+  padding: 0.3rem;
+  background-color: var(--secondary-color1);
+  border: none;
+  outline: none;
+  font-family: Afacad;
   color: var(--text-color3);
-  background-color: var(--light-color1);
+  border-radius: 10px;
   font-size: 1rem;
 }

@@ -68,6 +68,7 @@ export const checkTokenIsValid = async (token) => {
         return response.data
 
     } catch (err) {
+        console.error(err)
         return false;
     }
 };

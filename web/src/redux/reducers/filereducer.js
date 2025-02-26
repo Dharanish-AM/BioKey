@@ -13,7 +13,7 @@ const initialState = {
   images: [],
   videos: [],
   audios: [],
-  documents: [],
+  others: [],
   recents: [],
   loading: false,
   usedSpace: {
@@ -55,7 +55,7 @@ const fileReducer = (state = initialState, action) => {
         ...state.images,
         ...state.videos,
         ...state.audios,
-        ...state.documents,
+        ...state.others,
         ...state.recents,
       ];
 

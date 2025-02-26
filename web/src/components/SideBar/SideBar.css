@@ -1,6 +1,6 @@
 .sidebar-container {
   display: flex;
-  width: 14%;
+  width: 14rem;
   height: 100%;
   background-color: var(--secondary-color1);
   padding: 1.5em 1em;
@@ -70,6 +70,5 @@
 }
 
 .sidebar-logout-container:hover {
-    background-color: var(--light-color1);
-    
-  }
+  background-color: var(--light-color1);
+}

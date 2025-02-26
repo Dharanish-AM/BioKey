@@ -16,6 +16,11 @@ import Folder from './pages/Folders/Folders';
 import Folders from './pages/Folders/Folders';
 import Favourites from './pages/Favourites/Favourites';
 import Trash from './pages/Trash/Trash';
+import Images from './pages/media/Images/Images';
+import Videos from './pages/media/videos/Videos';
+import Audios from './pages/media/audios/Audios';
+import Others from './pages/media/others/Others';
+import Passwords from './pages/media/passwords/Passwords';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -74,6 +79,11 @@ function App() {
                   <Route path="/favourites" element={<Favourites />} />
                   <Route path="/folders/:folderId" element={<Folder />} />
                   <Route path="/trash" element={<Trash />} />
+                  <Route path="/images" element={<Images />} />
+                  <Route path="/videos" element={<Videos />} />
+                  <Route path="/audios" element={<Audios />} />
+                  <Route path="/others" element={<Others />} />
+                  <Route path="/passwords" element={<Passwords />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>

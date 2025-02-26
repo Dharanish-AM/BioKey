@@ -2,10 +2,11 @@
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  background-color: var(--light-color2);
   border-top-left-radius: 15px;
-  flex: 1;
   box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background-color: var(--light-color2);
 }
 
 .home-header {
@@ -14,6 +15,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  height: 10%;
 }
 
 .home-header-text {
@@ -40,7 +42,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  flex: 1;
+  height: 90%;
 }
 
 .home-storage-overview {
@@ -48,11 +50,11 @@
   flex-direction: column;
   justify-content: space-between;
   width: 100%;
-  height: 9em;
   background-color: var(--light-color1);
   border-radius: 15px;
   box-sizing: border-box;
   padding: 1em;
+  gap: 1rem;
 }
 
 .home-storage-header {
@@ -135,7 +137,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: fit-content;
 }
 
 .quick-access-items {
@@ -199,9 +200,10 @@
 .home-recent-files {
   display: flex;
   flex-direction: column;
-  flex: 1;
   width: 100%;
-
+  height: 30%;
+  background-color: red;
+  display: none;
 }
 
 .home-recent-files-header {
@@ -210,18 +212,17 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
-  height: fit-content;
+  background-color: blue;
+  height: 10%;
 }
 
 .recent-files-list {
+  overflow-y: scroll;
+  background-color: pink;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  overflow-y: scroll;
-  padding-right: 1em;
-  box-sizing: border-box;
-  max-height: 33vh;
-  flex: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .recent-files-list::-webkit-scrollbar {

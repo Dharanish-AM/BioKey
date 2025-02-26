@@ -623,7 +623,10 @@ const loadFile = async (req, res) => {
     const filePath = fileRecord.path;
     const contentType = mime.lookup(fileRecord.name) || "application/octet-stream";
 
-    const presignedUrl = await minioClient.presignedUrl('GET', BUCKET_NAME, filePath, 60 * 60);
+
+    const presignedUrl = await minioClient.presignedGetObject(BUCKET_NAME, filePath, 60 * 60, {
+      'Response-Content-Type': contentType
+    });
 
     res.json({
       url: presignedUrl,
@@ -719,19 +722,19 @@ const allFileMetaData = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    
+
     const files = await File.find({ owner: userId }, "name type size createdAt _id");
 
-    
+
     const passwords = await Password.find({ userId }, "name userName email website note createdAt _id");
 
-    
+
     const processedFiles = files.map(({ _id, name, type, size, createdAt }) => ({
       _id,
       name,
@@ -740,7 +743,7 @@ const allFileMetaData = async (req, res) => {
       createdAt,
     }));
 
-    
+
     const processedPasswords = passwords.map(({ _id, name, userName, email, website, note, createdAt }) => ({
       _id,
       name,

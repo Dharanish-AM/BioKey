@@ -1,16 +1,18 @@
 import "./Header.css";
 import { Search, Bell, X } from "lucide-react";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import ProfileIcon from "../../assets/images/profile_icon_1.png";
 import Logo from "../../assets/icons/BioKey_Logo.png";
 import { formatFileSize } from "../../utils/formatFileSize";
+import FilePreview from "../../pages/FilePreview/FilePreview";
 
 export default function Header({ onSearch }) {
     const allFilesMetaData = useSelector((state) => state.files.allFilesMetadata);
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredFiles, setFilteredFiles] = useState([]);
+    const [previewFile, setPreviewFile] = useState(null);
 
     const handleSearch = (e) => {
         const query = e.target.value.toLowerCase();
@@ -24,6 +26,24 @@ export default function Header({ onSearch }) {
             onSearch(filtered);
         }
     };
+
+    const handleCloseSearch = () => {
+        setSearchQuery("");
+        setFilteredFiles([]);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                handleCloseSearch();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
 
     return (
         <div className="header-container">
@@ -42,11 +62,8 @@ export default function Header({ onSearch }) {
                     onChange={handleSearch}
                 />
                 {
-                    searchQuery &&  (
-                        <div onClick={()=>{
-                            setSearchQuery("");
-                            setFilteredFiles([]);
-                        }} className="cancel-icon-search">
+                    searchQuery && (
+                        <div onClick={handleCloseSearch} className="cancel-icon-search">
                             <X color="var(--text-color2)" size={"1.5rem"} />
                         </div>
                     )
@@ -61,30 +78,27 @@ export default function Header({ onSearch }) {
                 <div className="header-profile-container">
                     <img src={ProfileIcon} alt="Profile" className="header-profile-img" />
                 </div>
-
-
             </div>
+
             {searchQuery && (
                 <div className="search-results-dropdown">
                     {filteredFiles.length > 0 ? (
                         filteredFiles.map((file) => (
-                            <div key={file.name} className="search-result-item">
+                            <div onClick={() => setPreviewFile(file)} key={file.name} className="search-result-item">
                                 <div className="search-result-item-name">{file.name}</div>
-                                <div className="search-result-item-date">{
-                                    new Date(file.createdAt).toLocaleDateString()
-                                }</div>
+                                <div className="search-result-item-date">
+                                    {new Date(file.createdAt).toLocaleDateString()}
+                                </div>
                                 <div className="search-result-item-size">{formatFileSize(file.size)}</div>
                             </div>
                         ))
                     ) : (
-                        <div style={{
-                            alignSelf: "center",
-                            color: "var(--text-color2)",
-                            fontSize: "1.1rem",
-                        }}>No matching files found</div>
+                        <div className="no-results-text">No matching files found</div>
                     )}
                 </div>
             )}
+
+            {previewFile && <FilePreview file={previewFile} onClose={() => setPreviewFile(null)} />}
         </div>
     );
 }

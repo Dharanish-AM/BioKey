@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 export default function SideBar() {
     const location = useLocation();
+    
 
     return (
         <div className="sidebar-container">

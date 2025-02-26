@@ -25,6 +25,8 @@ export default function RecycleBin({ navigation }) {
     const [isModalVisible, setModalVisible] = useState(false);
     const [scaleValue] = useState(new Animated.Value(0));
 
+   
+
     const toggleModal = (file) => {
         setSelectedFile(file);
         setModalVisible(true);
@@ -243,7 +245,7 @@ export default function RecycleBin({ navigation }) {
 
                 <View style={styles.content}>
                     <FlatList
-                        data={sortedBinFiles}
+                        data={binFiles}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={renderItem}
                         ListEmptyComponent={() => (

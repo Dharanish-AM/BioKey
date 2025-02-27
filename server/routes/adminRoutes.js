@@ -4,4 +4,4 @@ const adminController = require("../controllers/adminController");
 
 router.post("/send-push-notification", adminController.sendPushNotifications)
 
-module.exports = router
+module.exports = router 

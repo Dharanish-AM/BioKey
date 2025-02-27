@@ -1,15 +1,15 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import { checkTokenIsValid, loginCreds } from "../services/authOperations";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { SET_AUTH_STATE, SET_USER } from "../redux/types";
-import { loadUser } from "../services/userOperations";
 import { setAuthState, setUser } from "../redux/actions";
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react"; 
+import { loadUser } from "../services/userOperations";
 
 export default function Login({ toggleForm }) {
     const [formData, setFormData] = useState({ email: "", password: "" });
+    const [showPassword, setShowPassword] = useState(false);
     const [ip, setIp] = useState("");
     const [location, setLocation] = useState({ district: "Unknown", region: "Unknown", country: "Unknown" });
     const dispatch = useDispatch();
@@ -44,7 +44,6 @@ export default function Login({ toggleForm }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Submitted:", formData);
 
         const activityLog = {
             deviceName: navigator.userAgent,
@@ -96,14 +95,29 @@ export default function Login({ toggleForm }) {
                 </div>
                 <div className="auth-form-group">
                     <label className="auth-form-label">Password:</label>
-                    <input
-                        type="password"
-                        className="auth-form-input"
-                        id="password"
-                        placeholder="Enter your password . . ."
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            className="auth-form-input"
+                            id="password"
+                            placeholder="Enter your password . . ."
+                            value={formData.password}
+                            onChange={handleChange}
+                            style={{ flex: 1, paddingRight: "40px" }}
+                        />
+                        <span
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: "absolute",
+                                top:"25%",
+                                right:"3%",
+                                cursor: "pointer",
+                                color: "#555",
+                            }}
+                        >
+                            {showPassword ? <EyeOff size={"1.5rem"} /> : <Eye size={"1.5rem"} />}
+                        </span>
+                    </div>
                 </div>
                 <div style={{ width: "100%", textAlign: "end" }}>
                     <span className="forgot-password">Forgot Password?</span>

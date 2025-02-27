@@ -152,11 +152,11 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
     console.log("File deleted successfully:", response.data);
 
     await fetchFilesByCategory(userId, type, token, dispatch);
-    await fetchRecentFiles(userId, dispatch);
-    await fetchUsedSpace(userId, dispatch);
-    await fetchRecycleBinFiles(userId, dispatch)
-    await fetchFolderList(userId, dispatch)
-    await getAllfileMetadata(userId, dispatch)
+    await fetchRecentFiles(userId, token,dispatch);
+    await fetchUsedSpace(userId,token, dispatch);
+    await fetchRecycleBinFiles(userId,token, dispatch)
+    await fetchFolderList(userId, token,dispatch)
+    await getAllfileMetadata(userId,token, dispatch)
 
     return {
       success: true,

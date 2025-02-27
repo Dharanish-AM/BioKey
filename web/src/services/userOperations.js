@@ -20,7 +20,7 @@ export const loadUser = async (userId) => {
   }
 };
 
-export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
+export const likeOrUnlikeFile = async (userId, fileId, token, type, dispatch) => {
   try {
     const response = await axios.post(`${API_URL}/likeorunlikefile`, {
       userId,
@@ -49,7 +49,7 @@ export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
   }
 };
 
-export const fetchLikedFiles = async (userId, token,dispatch) => {
+export const fetchLikedFiles = async (userId, token, dispatch) => {
   try {
     const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
 
@@ -69,7 +69,7 @@ export const fetchLikedFiles = async (userId, token,dispatch) => {
 };
 
 
-export const fetchFolderList = async (userId,token, dispatch) => {
+export const fetchFolderList = async (userId, token, dispatch) => {
   if (!userId) {
     console.error("User ID is required to fetch folders.");
     return;
@@ -130,15 +130,15 @@ export const handleFolderRename = async (userId, folderId, newFolderName, dispat
   }
 }
 
-export const handleFolderMove = async (userId, folderId, fileId, dispatch) => {
+export const handleFolderMove = async (userId, folderId, fileId, token, dispatch) => {
   try {
     const response = await axios.post(`${API_URL}/addfilestofolder`, {
       userId,
       folderId, fileId
     })
-    console.log(response.data)
+
     if (response.status) {
-      await fetchFolderList(userId, dispatch)
+      await fetchFolderList(userId, token, dispatch)
       return response.data
     }
     else {

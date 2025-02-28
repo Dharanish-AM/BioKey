@@ -1,9 +1,11 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable react-hooks/exhaustive-deps */
 import "./Header.css";
 import { Search, Bell, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 
-import ProfileIcon from "../../assets/images/profile_icon_1.png";
+import ProfileIconFallBack from "../../assets/images/profile_icon.png";
 import Logo from "../../assets/icons/BioKey_Logo.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 import FilePreview from "../../pages/FilePreview/FilePreview";
@@ -13,6 +15,17 @@ export default function Header({ onSearch }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredFiles, setFilteredFiles] = useState([]);
     const [previewFile, setPreviewFile] = useState(null);
+    const [profileIcon, setProfileIcon] = useState(ProfileIconFallBack);
+
+    const user = useSelector((state) => state.user)
+
+    useEffect(() => {
+        if (user) {
+            if (user.profileImage) {
+                setProfileIcon(user.profileImage)
+            }
+        }
+    }, [])
 
     const handleSearch = (e) => {
         const query = e.target.value.toLowerCase();
@@ -53,7 +66,9 @@ export default function Header({ onSearch }) {
             </div>
 
             <div className="header-search-container">
-                <Search color="var(--text-color2)" className="header-search-icon" size={"1.4rem"} />
+               
+                    <Search color="var(--text-color2)" className="header-search-icon" size={"1.4rem"} />
+              
                 <input
                     type="text"
                     placeholder="Search any files..."
@@ -76,7 +91,7 @@ export default function Header({ onSearch }) {
                 </div>
 
                 <div className="header-profile-container">
-                    <img src={ProfileIcon} alt="Profile" className="header-profile-img" />
+                    <img src={profileIcon} alt="Profile" className="header-profile-img" />
                 </div>
             </div>
 

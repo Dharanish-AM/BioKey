@@ -72,12 +72,24 @@
   flex-direction: row;
   height: 100%;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2rem;
   justify-content: center;
 }
 
 .header-notifications-container {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  aspect-ratio: 1;
+  border-radius: 100px;
+  transition:background-color 0.2s ease-in-out;
+}
+
+.header-notifications-container:hover {
+  background-color: #3f434b;
 }
 
 .header-profile-container {
@@ -86,6 +98,7 @@
   justify-content: center;
   height: 85%;
   cursor: pointer;
+  border-radius: 100px;
 }
 
 .cancel-icon-search {
@@ -100,6 +113,7 @@
   height: 100%;
   aspect-ratio: 1;
   object-fit: contain;
+  border-radius: 100px;
 }
 
 .search-results-dropdown {

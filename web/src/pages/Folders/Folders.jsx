@@ -6,6 +6,7 @@ import { fetchFolderList } from "../../services/userOperations";
 import FolderIcon from "../../assets/images/folder.png";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatFileSize } from "../../utils/formatFileSize";
+import FilePreview from "../FilePreview/FilePreview";
 
 export default function Folders() {
   const { folderId } = useParams();
@@ -22,6 +23,7 @@ export default function Folders() {
   const [sortOption, setSortOption] = useState("date-newest");
   const [folderFiles, setFolderFiles] = useState([]);
   const [fileSortOption, setFileSortOption] = useState("name-asc");
+  const [previewFile, setPreviewFile] = useState()
 
   useEffect(() => {
     if (folderId) {
@@ -100,23 +102,35 @@ export default function Folders() {
 
       <div className="folders-content">
         {folderId ? (
-          <div className="folder-files-list">
-            {filteredFiles.map((file) => (
-              <div key={file._id} className="folder-file-item">
-                <div className="folder-file-image-container">
-                  <img src={file.thumbnail} alt={file.name} className="folder-file-image" />
+          folderFiles && folderFiles.length > 0 ? (
+            <div className="folder-files-list">
+              {filteredFiles.map((file) => (
+                <div
+                  onClick={() => setPreviewFile(file)}
+                  key={file._id}
+                  className="folder-file-item"
+                >
+                  <div className="folder-file-image-container">
+                    <img src={file.thumbnail} alt={file.name} className="folder-file-image" />
+                  </div>
+                  <div className="folder-file-info">
+                    <div className="folder-file-name">{file.name}</div>
+                    <div className="folder-file-size">{formatFileSize(file.size)}</div>
+                  </div>
                 </div>
-                <div className="folder-file-info">
-                  <div className="folder-file-name">{file.name}</div>
-                  <div className="folder-file-size">{formatFileSize(file.size)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: "1.1rem", fontStyle: "italic",marginTop:"13rem" }}>✖️ Oops! Looks like this folder is empty.</div>
+          )
         ) : (
           <div className="folders-list">
             {filteredFolders.map((folder) => (
-              <div onClick={() => navigation(`/folders/${folder.folderId}`)} className="folder-item" key={folder.folderId}>
+              <div
+                onClick={() => navigation(`/folders/${folder.folderId}`)}
+                className="folder-item"
+                key={folder.folderId}
+              >
                 <div className="folder-icon-container">
                   <img src={FolderIcon} alt="folder-icon" className="folder-icon" />
                 </div>
@@ -126,7 +140,6 @@ export default function Folders() {
           </div>
         )}
       </div>
-
       {isFilterModalOpen && !folderId && (
         <div className="folder-filter-modal">
           <div className="folder-modal-content">
@@ -164,10 +177,15 @@ export default function Folders() {
                 <option value="date-newest">Date Created (Newest First)</option>
                 <option value="date-oldest">Date Created (Oldest First)</option>
               </select>
-            </div>  
+            </div>
           </div>
         </div>
       )}
+      {
+        previewFile && <FilePreview file={previewFile} onClose={() => {
+          setPreviewFile(null)
+        }} />
+      }
     </div>
   );
 }

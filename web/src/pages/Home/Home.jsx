@@ -1,6 +1,5 @@
-
-
-import { EllipsisVertical, Plus } from "lucide-react";
+/* eslint-disable react/prop-types */
+import { EllipsisVertical, Play, Plus } from "lucide-react";
 import "./Home.css";
 import { useEffect, useRef, useState } from "react";
 import ImageIcon from "../../assets/icons/image_icon.png";
@@ -14,6 +13,9 @@ import { formatFileSize } from "../../utils/formatFileSize";
 import { formatDate } from "../../utils/formatDate";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { FaPlay } from "react-icons/fa6";
+import { FileIcon, defaultStyles } from "react-file-icon";
+import FilePreview from "../FilePreview/FilePreview";
 
 export default function Home() {
     const dispatch = useDispatch();
@@ -22,10 +24,13 @@ export default function Home() {
     const token = useSelector((state) => state.auth.token);
     const user = useSelector((state) => state.user);
     const [isAddingFiles, setIsAddingFiles] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
     const recentFiles = useSelector((state) => state.files.recents);
     const usedSpace = useSelector((state) => state.files.usedSpace);
     const allFilesMetaData = useSelector((state) => state.files.allFilesMetadata);
     const navigation = useNavigate()
+    const [isShowFileOptions, setIsShowFileOptions] = useState(false);
+    const [moreOptionsFile, setIsMoreOptionsFile] = useState()
 
     const [fileCounts, setFileCounts] = useState({
         images: 0,
@@ -63,6 +68,8 @@ export default function Home() {
         setIsAddingFiles(true);
         fileInputRef.current.click();
     }
+
+    const getFileExtension = (fileName) => fileName.split(".").pop();
 
     const handleFileChange = async (event) => {
         const selectedFiles = Array.from(event.target.files);
@@ -133,6 +140,40 @@ export default function Home() {
         </div>
     );
 
+    const renderThumbnail = (file) => {
+        const { type, thumbnail, name } = file;
+
+        switch (type) {
+            case "images":
+                return <img src={thumbnail} alt={name} className="recent-file-icon" />;
+
+            case "videos":
+                return (
+                    <>
+                        <div className="video-list-item-video-container">
+                            <FaPlay
+                                color="var(--text-color3)"
+                                size={"2.3rem"}
+                                style={{
+                                    position: "absolute",
+                                    zIndex: 1,
+                                    opacity: "0.8",
+                                }}
+                            />
+                        </div>
+                        <img src={thumbnail} alt={name} className="recent-file-icon" />
+                    </>
+                );
+
+            case "audios":
+                return <img src={thumbnail} alt={name} className="recent-file-icon" />;
+
+            case "others":
+            default:
+                return <FileIcon fold={true} radius={3} extension={getFileExtension(file.name)} {...defaultStyles[getFileExtension(file.name)]
+                } />
+        }
+    };
 
     return (
         <div className="home-container">
@@ -185,13 +226,20 @@ export default function Home() {
                         <div className="home-card-title">Recent Files</div>
                         <div className="home-card-see-all">View All</div>
                     </div>
-
                     <div className="recent-files-list">
                         {recentFiles && recentFiles.length > 0 ? (
                             recentFiles.map((file, index) => (
-                                <div key={index} className="recent-file-item">
+                                <div
+                                    key={index}
+                                    className="recent-file-item"
+                                    onClick={() => setPreviewFile(file)}
+                                    onMouseLeave={() => {
+                                        setIsShowFileOptions(false);
+                                        setIsMoreOptionsFile(null);
+                                    }}
+                                >
                                     <div className="recent-file-icon-container">
-                                        <img src={file.thumbnail} alt={file.type} className="recent-file-icon" />
+                                        {renderThumbnail(file)}
                                     </div>
                                     <div className="recent-file-item-right">
                                         <div className="recent-file-item-metadata">
@@ -200,17 +248,46 @@ export default function Home() {
                                                 {formatFileSize(file.size)}&nbsp; • &nbsp;{formatDate(file.createdAt)}
                                             </div>
                                         </div>
-                                        <EllipsisVertical size={"1.5rem"} color="var(--text-color2)" />
+
+                                        <div
+                                            className="recent-more-icon-container"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsMoreOptionsFile(file);
+                                                setIsShowFileOptions((state) => !state);
+                                            }}
+                                        >
+                                            <EllipsisVertical size={"1.5rem"} color="var(--text-color2)" />
+                                        </div>
                                     </div>
+
+                                    {isShowFileOptions && moreOptionsFile?.name === file.name && (
+                                        <div onClick={(e)=>e.stopPropagation()} className="recent-file-more-options">
+                                            <div className="recent-file-more-option">
+                                                View Info
+                                            </div>
+                                            <div style={{
+                                                color:"var(--red)"
+                                            }} className="recent-file-more-option" onClick={() => {
+                                              
+                                            }}>
+                                                Delete
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         ) : (
                             <div className="no-recent-files">No recent files found</div>
                         )}
                     </div>
-
                 </div>
             </div>
+            {
+                previewFile && <FilePreview file={previewFile} onClose={() => {
+                    setPreviewFile(null)
+                }} />
+            }
         </div>
     );
 }

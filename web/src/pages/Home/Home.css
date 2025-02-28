@@ -7,6 +7,11 @@
   width: 100%;
   height: 100%;
   background-color: var(--light-color2);
+  overflow-y: scroll;
+}
+
+.home-container::-webkit-scrollbar {
+  width: 0px;
 }
 
 .home-header {
@@ -15,7 +20,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  height: 10%;
 }
 
 .home-header-text {
@@ -41,8 +45,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  flex: 1;
   width: 100%;
-  height: 90%;
 }
 
 .home-storage-overview {
@@ -137,6 +141,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: fit-content;
 }
 
 .quick-access-items {
@@ -201,9 +206,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 30%;
-  background-color: red;
-  display: none;
+  flex: 1;
 }
 
 .home-recent-files-header {
@@ -212,17 +215,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1em;
-  background-color: blue;
-  height: 10%;
 }
 
 .recent-files-list {
-  overflow-y: scroll;
-  background-color: pink;
   display: flex;
-  flex-direction: column;
   width: 100%;
-  height: 100%;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .recent-files-list::-webkit-scrollbar {
@@ -242,6 +241,50 @@
   gap: 1.5rem;
   align-items: center;
   cursor: pointer;
+  padding: 0.5rem 0rem;
+  border-radius: 5px;
+  transition: all 0.1s ease-in-out;
+  position: relative;
+}
+
+.recent-file-item:hover {
+  background-color: #a6a6aa0e;
+  padding: 0.5rem 0.5rem;
+}
+
+.recent-more-icon-container {
+  padding: 0rem;
+  transition: all 0.1s ease-in-out;
+  border-radius: 1000px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.recent-file-more-options {
+  position: absolute;
+  background-color: var(--secondary-color1);
+  padding: 1rem;
+  right: 0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 7rem;
+  z-index: 1;
+  top: 4rem;
+  right: 2rem;
+}
+
+.recent-file-more-option:hover{
+    transform: scale(1.03);
+}
+
+.recent-more-icon-container:hover {
+  background-color: #a6a6aa29;
 }
 
 .recent-file-icon-container {
@@ -249,12 +292,14 @@
   width: 4rem;
   height: 4rem;
   object-fit: contain;
+  border-radius: 5px;
 }
 
 .recent-file-icon {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
+  border-radius: 5px;
 }
 
 .recent-file-item-right {

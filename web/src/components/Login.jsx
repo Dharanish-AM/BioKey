@@ -80,7 +80,7 @@ export default function Login({ toggleForm }) {
     };
 
     return (
-        <form className="authpage-form" onSubmit={handleSubmit}>
+        <form className="authpage-form" action={handleSubmit} onSubmit={handleSubmit}>
             <div className="authpage-form-groups">
                 <div className="auth-form-group">
                     <label className="auth-form-label">Email:</label>
@@ -91,6 +91,7 @@ export default function Login({ toggleForm }) {
                         placeholder="Enter your email . . ."
                         value={formData.email}
                         onChange={handleChange}
+                        required
                     />
                 </div>
                 <div className="auth-form-group">
@@ -104,6 +105,7 @@ export default function Login({ toggleForm }) {
                             value={formData.password}
                             onChange={handleChange}
                             style={{ flex: 1, paddingRight: "40px" }}
+                            required
                         />
                         <span
                             onClick={() => setShowPassword(!showPassword)}

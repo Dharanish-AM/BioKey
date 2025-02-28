@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
+    "crypto-js": "^4.2.0",
     "file-icons-js": "github:websemantics/file-icons-js",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.475.0",

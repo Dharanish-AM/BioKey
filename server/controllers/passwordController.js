@@ -122,10 +122,24 @@ const getAllPasswords = async (req, res) => {
     }
 
     const passwords = await Password.find({ userId }).select(
-      "name userName email website note updatedAt"
+      "name userName email password iv website note updatedAt"
     );
 
-    const sortedPasswords = passwords.sort((a, b) =>
+    
+    const decryptedPasswords = passwords.map((pwd) => {
+      try {
+        return {
+          ...pwd._doc, 
+          password: decrypt({ iv: pwd.iv, content: pwd.password }), 
+        };
+      } catch (error) {
+        console.error(`Failed to decrypt password for ${pwd.name}:`, error);
+        return { ...pwd._doc, password: "Decryption failed" }; 
+      }
+    });
+
+    
+    const sortedPasswords = decryptedPasswords.sort((a, b) =>
       a.name ? a.name.localeCompare(b.name) : -1
     );
 
@@ -138,7 +152,6 @@ const getAllPasswords = async (req, res) => {
     res.status(500).json({ error: "An error occurred while fetching passwords." });
   }
 };
-
 
 const deletePassword = async (req, res) => {
   try {

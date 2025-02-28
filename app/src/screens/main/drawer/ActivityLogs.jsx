@@ -77,11 +77,19 @@ export default function ActivityLogs({ navigation }) {
           <Text style={[styles.typeText, { color: typeColor }]}>{typeText}</Text>
         </View>
         <Text style={styles.deviceText}>{item.deviceName}</Text>
-        <Text style={styles.locationText}>{`${item.location.district}, ${item.location.region}`}</Text>
+        <Text style={styles.locationText}>
+          {`${item?.location?.district ? item?.location?.district : "Unknown"}, ${item.location?.region ? item.location?.region : "Unknown"}`}
+        </Text>
+
         <View style={styles.row}>
           <Text style={styles.ipText}>{item.ipAddress}</Text>
-          <TouchableOpacity onPress={() => setSelectedLocation(item)}>
-            <Text style={styles.viewLocationText}>View Location</Text>
+          <TouchableOpacity
+            disabled={!item.latitude || !item.longitude}
+            onPress={() => setSelectedLocation(item)}
+          >
+            <Text style={[styles.viewLocationText, !item.latitude || !item.longitude ? { color: "gray" } : {}]}>
+              View Location
+            </Text>
           </TouchableOpacity>
         </View>
       </View >
@@ -122,13 +130,16 @@ export default function ActivityLogs({ navigation }) {
             <Callout>
               <View style={styles.markerInfo}>
                 <Text style={styles.markerHeader}>Activity Location</Text>
-                <Text style={styles.makerText}>{`${selectedLocation?.location.district}, ${selectedLocation?.location.region}`}</Text>
-                <Text>{selectedLocation?.deviceName}</Text>
-                <Text>{selectedLocation?.ipAddress}</Text>
-                <Text>{new Date(selectedLocation?.date).toLocaleString()}</Text>
+                <Text style={styles.makerText}>
+                  {`${selectedLocation?.location?.district || "N/A"}, ${selectedLocation?.location?.region || "N/A"}`}
+                </Text>
+                <Text>{selectedLocation?.deviceName || "N/A"}</Text>
+                <Text>{selectedLocation?.ipAddress || "N/A"}</Text>
+                <Text>{selectedLocation?.date ? new Date(selectedLocation.date).toLocaleString() : "N/A"}</Text>
               </View>
             </Callout>
           </Marker>
+
         </MapView>
       </View>
     );

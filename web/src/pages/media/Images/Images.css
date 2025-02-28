@@ -76,6 +76,7 @@
   padding-right: 1rem;
   gap: 2rem;
   align-items: center;
+ 
 }
 .images-container-list::-webkit-scrollbar {
   width: 0.5em;

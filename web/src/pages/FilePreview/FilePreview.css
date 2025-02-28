@@ -2,7 +2,7 @@
   flex: 1;
   display: flex;
   position: absolute;
-  z-index: 2;
+  z-index: 9999;
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.6);
@@ -70,16 +70,16 @@
 
 .file-options-modal {
   position: absolute;
-  top: 4rem;
+  top: 5rem;
   right: 2.5rem;
   background-color: var(--secondary-color1);
-  width: 17rem;
   display: flex;
   align-items: flex-start;
   justify-content: space-evenly;
   flex-direction: column;
   border-radius: 15px;
   border: 1px solid rgba(166, 166, 170, 0.3);
+  overflow: hidden;
 
 }
 
@@ -88,25 +88,16 @@
   flex-direction: column;
   flex: 1;
   align-items: flex-start;
-  width: 100%;
+  min-width: fit-content;
+  overflow: hidden;
 }
 
 .folder-item-options {
   padding: 1rem;
   font-size: 1.1rem;
-  width: 88.5%;
+  width: 100%;
   cursor: pointer;
   align-items: flex-start;
-}
-
-.first-folder-options {
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-}
-
-.last-folder-options {
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
 }
 
 .folder-item-options:hover {
@@ -117,7 +108,7 @@
   font-size: 1.2rem;
   cursor: pointer;
   padding: 1rem;
-  width: 86.5%;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5em;
@@ -127,16 +118,10 @@
   background-color: rgba(166, 166, 170, 0.2);
 }
 
-.file-option.first {
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-}
-
 .file-option.delete {
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
   color: var(--red);
 }
+
 .other-file-preview {
   display: flex;
   width: 70%;
@@ -154,6 +139,40 @@
 
 .error-text {
   font-style: italic;
-  align-self: center;
   font-size: 1rem;
+  color: var(--red);
+}
+
+.file-more-info-options {
+  padding: 1rem;
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  display: flex;
+  max-width: fit-content;
+}
+
+.file-more-info-options-row {
+  display: flex;
+  border-bottom: 1px solid #a6a6a631;
+  padding-bottom: 0.5rem;
+}
+
+.file-more-info-options-label {
+  color: var(--text-color3);
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.file-more-info-options-value {
+  color: var(--text-color2);
+  font-size: 1.2rem;
+}
+
+.file-more-info-options-value {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  max-width: 70%;
 }

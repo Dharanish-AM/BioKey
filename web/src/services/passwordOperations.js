@@ -57,7 +57,7 @@ export const addPassword = async (
   }
 };
 
-export const getAllPasswords = async (userId, dispatch) => {
+export const getAllPasswords = async (userId,token, dispatch) => {
   try {
     const response = await axios.get(
       `${API_URL}/getallpasswords?userId=${userId}`

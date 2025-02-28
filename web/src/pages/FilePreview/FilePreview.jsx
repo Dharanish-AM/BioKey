@@ -1,16 +1,17 @@
 /* eslint-disable react/prop-types */
 
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteFile, previewFile } from "../../services/fileOperations";
 import "./FilePreview.css";
-import { ArrowLeft, Download, EllipsisVertical, X } from "lucide-react";
+import { ArrowLeft, Download, EllipsisVertical, Heart, X } from "lucide-react";
 import { FiDownload, FiMoreVertical } from "react-icons/fi";
 import { FiHeart, FiFolderPlus, FiExternalLink, FiInfo, FiTrash2 } from "react-icons/fi";
 import { fetchFolderList, handleFolderMove, likeOrUnlikeFile } from "../../services/userOperations";
 import toast from "react-hot-toast";
-
+import { formatFileSize } from "../../utils/formatFileSize";
+import heartLiked from "../../assets/icons/like-heart.png"
 
 export default function FilePreview({ file, onClose }) {
     const userId = useSelector((state) => state.user.userId);
@@ -21,9 +22,10 @@ export default function FilePreview({ file, onClose }) {
     const [isAddToFolder, setIsAddToFolder] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const dispatch = useDispatch()
+    const modalRef = useRef(null);
+    const [isShowMoreInfo, setIsShowMoreInfo] = useState(false);
 
     const folders = useSelector((state) => state.user.folders);
-
 
     useEffect(() => {
         const fetchFilePreview = async () => {
@@ -137,7 +139,7 @@ export default function FilePreview({ file, onClose }) {
 
     const handleMoreDetails = () => {
         console.log("Showing details for:", file.name);
-
+        setIsShowMoreInfo(true)
     };
 
     const handleDelete = async () => {
@@ -154,6 +156,25 @@ export default function FilePreview({ file, onClose }) {
 
     };
 
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                setIsShowOptions(false);
+                setIsAddToFolder(false)
+                setIsShowMoreInfo(false)
+
+            }
+        }
+
+        if (isShowOptions) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isShowOptions]);
+
     const renderPreview = () => {
         if (error || !fileData) {
             return <p className="error-text">No preview available for this file.</p>;
@@ -165,7 +186,7 @@ export default function FilePreview({ file, onClose }) {
             case "videos":
                 return <VideoPreview fileData={fileData} />;
             case "audios":
-                return <AudioPreview fileData={fileData} />;
+                return <AudioPreview thumbnail={file.thumbnail} fileData={fileData} />;
             default:
                 return <OtherFilePreview fileData={fileData} fileName={file.name} />;
         }
@@ -177,6 +198,14 @@ export default function FilePreview({ file, onClose }) {
                 <div className="file-preview-header-left">
                     <X style={{ cursor: "pointer" }} onClick={onClose} size={"1.7rem"} color="var(--text-color3)" />
                     <div className="file-preview-name">{file.name}</div>
+                    {
+                        file.isLiked && <img style={{
+                            width:"2rem",
+                            height:"2rem",
+                            aspectRatio:1,
+                            
+                        }} src={heartLiked} />
+                    }
                 </div>
                 <div className="file-preview-header-right">
                     <FiDownload onClick={handleDownload} className="options-icons" size={"1.5em"} />
@@ -192,13 +221,13 @@ export default function FilePreview({ file, onClose }) {
 
             <div className="file-preview-footer"></div>
             {isShowOptions &&
-                <div className="file-options-modal">
-                <ArrowLeft />
+                <div ref={modalRef} className="file-options-modal">
+
                     {isAddToFolder ? (
                         <div className="folder-list-options">
                             {folders.length > 0 ? (
                                 folders.map((folder, index) => {
-                                    const fileExists = folder.files.some(f => f._id === file._id); 
+                                    const fileExists = folder.files.some(f => f._id === file._id);
 
                                     return (
                                         <div
@@ -211,7 +240,7 @@ export default function FilePreview({ file, onClose }) {
                                             onClick={!fileExists ? () => handleMoveFileToFolder(folder.folderId) : undefined}
                                         >
                                             📁 {folder.folderName}
-                                            {fileExists && <span className="file-exists"> (Already Exists 🔒)</span>}
+                                            {fileExists && <span className="file-exists"> (Already Exists)</span>}
                                         </div>
                                     );
                                 })
@@ -220,6 +249,31 @@ export default function FilePreview({ file, onClose }) {
                             )}
                         </div>
 
+                    ) : isShowMoreInfo ? (
+                        <div className="file-more-info-options">
+                            <div className="file-more-info-options-row">
+                                <div className="file-more-info-options-label">Name:</div>
+                                <div className="file-more-info-options-value name">{file.name}</div>
+                            </div>
+                            <div className="file-more-info-options-row">
+                                <div className="file-more-info-options-label">Created At:</div>
+                                <div className="file-more-info-options-value">{new Date(file.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            <div className="file-more-info-options-row">
+                                <div className="file-more-info-options-label">Size:</div>
+                                <div className="file-more-info-options-value">{formatFileSize(file.size)} KB</div>
+                            </div>
+                            <div className="file-more-info-options-row">
+                                <div className="file-more-info-options-label">Type:</div>
+                                <div className="file-more-info-options-value">{file.type}</div>
+                            </div>
+                            <div className="file-more-info-options-row">
+                                <div className="file-more-info-options-label">Folders:</div>
+                                <div className={`file-more-info-options-value ${file.folders.length === 0 ? "no-folders" : file.folders.length >= 3 ? "folders-wrap" : ""}`}>
+                                    {file.folders.length > 0 ? file.folders.join(", ") : "No folders available"}
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <>
                             <div className="file-option first" onClick={handleAddToFavorites}>
@@ -267,15 +321,27 @@ function VideoPreview({ fileData }) {
     );
 }
 
-function AudioPreview({ fileData }) {
+function AudioPreview({ thumbnail, fileData }) {
     if (!fileData?.url) {
         return <p className="error-text">Audio preview not available.</p>;
     }
     return (
-        <audio controls onError={(e) => e.target.style.display = "none"}>
-            <source src={fileData.url} type={fileData.contentType || "audio/mpeg"} />
-            Your browser does not support the audio element.
-        </audio>
+        <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "2rem"
+        }}>
+            <img style={{
+                width: "70%",
+                height: "70%",
+                aspectRatio: 1
+            }} src={thumbnail} />
+            <audio controls onError={(e) => e.target.style.display = "none"}>
+                <source src={fileData.url} type={fileData.contentType || "audio/mpeg"} />
+                Your browser does not support the audio element.
+            </audio>
+        </div>
     );
 }
 

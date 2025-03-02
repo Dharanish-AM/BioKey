@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchFilesByCategory, uploadMedia } from "../../../services/fileOperations";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import { EllipsisVertical, Plus, Search, SlidersHorizontal, X } from "lucide-react";
-import "./videos.css";
+import "./Videos.css";
 import toast from "react-hot-toast";
 import { FaPlay } from "react-icons/fa6";
 import FilePreview from "../../FilePreview/FilePreview";

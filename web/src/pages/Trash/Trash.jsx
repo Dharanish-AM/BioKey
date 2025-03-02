@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchRecycleBinFiles } from "../../services/fileOperations";
 import { formatFileSize } from "../../utils/formatFileSize";
 import { IoTrashOutline } from "react-icons/io5";
+import { FileIcon, defaultStyles } from "react-file-icon";
 
 export default function Trash() {
     const dispatch = useDispatch();
@@ -19,6 +20,7 @@ export default function Trash() {
     }, [userId, token, dispatch]);
 
 
+    const getFileExtension = (fileName) => fileName.split(".").pop();
     const sortedFiles = [...TrashFiles].sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
 
 
@@ -59,7 +61,10 @@ export default function Trash() {
                         filteredFiles.map((file) => (
                             <div key={file.id} className="trash-file-item">
                                 <div className="trash-file-icon-container">
-                                    <img src={file.thumbnailUrl} alt={file.name} className="trash-file-icon" />
+                                    {
+                                        file.type === "others" ? <FileIcon fold={true} radius={3} extension={getFileExtension(file.name)} {...defaultStyles[getFileExtension(file.name)]
+                                        } /> : <img src={file.thumbnailUrl} alt={file.name} className="trash-file-icon" />
+                                    }
                                 </div>
                                 <div className="trash-file-info">
                                     <div className="trash-file-name">{file.name}</div>

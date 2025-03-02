@@ -21,6 +21,7 @@ import Videos from './pages/media/videos/Videos';
 import Audios from './pages/media/audios/Audios';
 import Others from './pages/media/others/Others';
 import Passwords from './pages/media/passwords/Passwords';
+import Storage from './pages/Storage/Storage';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -84,6 +85,7 @@ function App() {
                   <Route path="/audios" element={<Audios />} />
                   <Route path="/others" element={<Others />} />
                   <Route path="/passwords" element={<Passwords />} />
+                  <Route path="/storage" element={<Storage />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
               </div>

@@ -2,7 +2,7 @@ import axios from "axios";
 import { fetchFilesAction, fetchUsedSpaceAction, setAllFilesMetadata, setLikedFiles, setRecycleBinFile } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
-import { fetchFolderList, loadUser } from "./userOperations";
+import { fetchFolderList, getStorageInfo, loadUser } from "./userOperations";
 
 
 const getIP = () => {
@@ -152,11 +152,12 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
     console.log("File deleted successfully:", response.data);
 
     await fetchFilesByCategory(userId, type, token, dispatch);
-    await fetchRecentFiles(userId, token,dispatch);
-    await fetchUsedSpace(userId,token, dispatch);
-    await fetchRecycleBinFiles(userId,token, dispatch)
-    await fetchFolderList(userId, token,dispatch)
-    await getAllfileMetadata(userId,token, dispatch)
+    await fetchRecentFiles(userId, token, dispatch);
+    await fetchUsedSpace(userId, token, dispatch);
+    await fetchRecycleBinFiles(userId, token, dispatch)
+    await fetchFolderList(userId, token, dispatch)
+    await getAllfileMetadata(userId, token, dispatch)
+    await getStorageInfo(userId, token, dispatch);
 
     return {
       success: true,

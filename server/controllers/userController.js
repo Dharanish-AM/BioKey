@@ -14,14 +14,8 @@ const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
 const UserNotification = require("../models/notificationSchema");
 const ActivityLog = require("../models/activityLogsSchema");
+const RecycleBin = require("../models/recycleBinSchema");
 
-const TARGET_DIR = path.join(
-  "D:",
-  "Github_Repository",
-  "BioKey",
-  "server",
-  "uploads"
-);
 
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME
 
@@ -410,7 +404,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    const directory = path.join(TARGET_DIR, user._id.toString());
     if (fs.existsSync(directory)) {
       fs.rmdirSync(directory, { recursive: true });
     }
@@ -951,6 +944,61 @@ const changePassword = async (req, res) => {
   }
 };
 
+const storageInfo = async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const files = await File.find({ owner: userId });
+
+
+    const deletedFiles = await RecycleBin.find({ owner: userId });
+
+
+    const storage = {
+      images: 0,
+      videos: 0,
+      audios: 0,
+      others: 0,
+      recycleBin: 0,
+    };
+
+
+    files.forEach((file) => {
+      storage[file.type] = (storage[file.type] || 0) + file.size;
+    });
+
+
+    deletedFiles.forEach((file) => {
+      storage.recycleBin += file.size;
+    });
+
+
+    const totalSpaceBytes = user.totalSpace
+    const usedSpaceBytes = Object.values(storage).reduce((acc, size) => acc + size, 0);
+
+    return res.json({
+      success: true,
+      data: {
+        storage,
+        usedSpaceBytes,
+        totalSpaceBytes
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching storage info:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 
 module.exports = {
@@ -972,5 +1020,6 @@ module.exports = {
   getUserNotifications,
   clearNotifications,
   getActivityLogs,
-  changePassword
+  changePassword,
+  storageInfo
 };

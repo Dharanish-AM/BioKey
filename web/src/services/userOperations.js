@@ -1,5 +1,5 @@
 import axios from "axios";
-import { setActivityLogs, setFolders, setLikedFiles, setUser, updateFileLikes } from "../redux/actions";
+import { setActivityLogs, setFolders, setLikedFiles, setStorageInfo, setUser, updateFileLikes } from "../redux/actions";
 import store from "../redux/store";
 
 
@@ -261,3 +261,15 @@ export const changePassword = async (userId, oldPassword, newPassword, token) =>
     return { success: false, message: "An error occurred while changing password" };
   }
 };
+
+export const getStorageInfo = async (userId, token, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/storageinfo?userId=${userId}`)
+    if (response.data.success) {
+      dispatch(setStorageInfo(response.data.data))
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}

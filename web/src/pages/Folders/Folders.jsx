@@ -121,11 +121,11 @@ export default function Folders() {
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: "1.1rem", fontStyle: "italic",marginTop:"13rem" }}>✖️ Oops! Looks like this folder is empty.</div>
+            <div style={{ fontSize: "1.1rem", fontStyle: "italic", marginTop: "13rem" }}>✖️ Oops! Looks like this folder is empty.</div>
           )
         ) : (
           <div className="folders-list">
-            {filteredFolders.map((folder) => (
+            {folders && folders.length > 0 ? filteredFolders.map((folder) => (
               <div
                 onClick={() => navigation(`/folders/${folder.folderId}`)}
                 className="folder-item"
@@ -136,7 +136,9 @@ export default function Folders() {
                 </div>
                 <span className="folder-name">{folder.folderName}</span>
               </div>
-            ))}
+            )) : <div>
+              <div style={{ fontSize: "1.1rem", fontStyle: "italic", marginTop: "20rem",marginLeft:"38rem"}}>✖️ Oops! Looks like you don&apos;t have any folders.</div>
+            </div>}
           </div>
         )}
       </div>

@@ -12,7 +12,8 @@ import {
   SET_ALL_FILES_METADATA,
   SET_RECYCLE_BIN_FILES,
   SET_AUTH_STATE,
-  SET_ACTIVITY_LOGS
+  SET_ACTIVITY_LOGS,
+  SET_STORAGE_INFO
 } from "./types";
 
 
@@ -117,5 +118,12 @@ export const setActivityLogs = (logs) => {
   return {
     type: SET_ACTIVITY_LOGS,
     payload: logs
+  }
+}
+
+export const setStorageInfo = (storageInfo) => {
+  return {
+    type: SET_STORAGE_INFO,
+    payload: storageInfo
   }
 }

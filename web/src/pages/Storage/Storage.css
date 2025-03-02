@@ -1,0 +1,231 @@
+.storage-container {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-top-left-radius: 15px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background-color: var(--light-color2);
+  overflow-y: scroll;
+  gap: 2rem;
+}
+
+.storage-container::-webkit-scrollbar {
+  width: 0px;
+}
+
+.storage-container-top {
+  display: flex;
+  height: fit-content;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.storage-container-top-left {
+  display: flex;
+  width: 40%;
+  height: 14rem;
+  background-color: var(--light-color1);
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  gap: 2.5rem;
+  justify-content: space-evenly;
+}
+
+.storage-container-top-left-chart-container {
+  display: flex;
+  height: 100%;
+  aspect-ratio: 1;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.storage-container-top-left-legends-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  width: 40%;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.legend-color {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-label {
+  font-weight: 450;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.legend-value {
+  color: var(--text-color2);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.storage-container-top-right {
+  display: flex;
+  flex: 1;
+  height: 14rem;
+  background-color: var(--light-color1);
+  border-radius: 15px;
+}
+
+.storage-container-bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.storage-container-bottom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  height: fit-content;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.storage-container-bottom-media-btn {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.media-btn-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4b3cb09a;
+  padding: 0.35rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 450;
+  cursor: pointer;
+}
+
+.storage-container-bottom-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.storage-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.storage-table th,
+.storage-table td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  font-size: 1.1rem;
+}
+
+.storage-table th {
+  background-color: var(--light-color1);
+  color: var(--text-color3);
+  font-weight: 500;
+  font-family: 1.1rem;
+}
+
+.storage-table tbody tr {
+  border-bottom: 1px solid #a6a6a61c;
+  transition: background 0.2s ease-in-out;
+}
+
+.storage-table tbody tr:hover {
+  background-color: #a6a6a61a;
+}
+
+.view-btn,
+.delete-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease-in-out;
+}
+
+.action-btn-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 100px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.action-btn-container:hover {
+  background-color: #a6aaa62a;
+}
+
+.view-btn:hover {
+  background-color: #217dbb;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  margin-left: 8px;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.chart-center-text p {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.chart-center-text h3 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}

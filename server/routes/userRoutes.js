@@ -23,6 +23,7 @@ router.get("/getallnotifications", userController.getUserNotifications)
 router.post("/clearnotification", userController.clearNotifications)
 router.get("/getactivitylogs", userController.getActivityLogs)
 router.post("/changepassword", userController.changePassword)
+router.get("/storageinfo", userController.storageInfo)
 
 
 module.exports = router;

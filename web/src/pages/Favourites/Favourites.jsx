@@ -103,7 +103,7 @@ export default function Favourites() {
 
             <div className="favourites-content">
                 <div className="favourites-list">
-                    {sortedFiles.map((file) => (
+                    {sortedFiles && sortedFiles.length > 0 ? sortedFiles.map((file) => (
                         <div onClick={() => {
                             setPreviewFile(file);
                         }} key={file._id} className="favourites-item">
@@ -115,11 +115,11 @@ export default function Favourites() {
                                 <span className="favourites-item-size">{formatFileSize(file.size)}</span>
                             </div>
                         </div>
-                    ))}
+                    )) : <div style={{ fontSize: "1.1rem", fontStyle: "italic", marginTop: "20rem", marginLeft: "38rem" }} >✖️ No favourite files found </div>}
                 </div>
             </div>
             {
-                previewFile && <FilePreview onClose={()=>{
+                previewFile && <FilePreview onClose={() => {
                     setPreviewFile(null);
                 }} file={previewFile} />
             }

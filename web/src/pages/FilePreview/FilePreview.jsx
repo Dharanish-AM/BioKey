@@ -200,10 +200,10 @@ export default function FilePreview({ file, onClose }) {
                     <div className="file-preview-name">{file.name}</div>
                     {
                         file.isLiked && <img style={{
-                            width:"2rem",
-                            height:"2rem",
-                            aspectRatio:1,
-                            
+                            width: "2rem",
+                            height: "2rem",
+                            aspectRatio: 1,
+
                         }} src={heartLiked} />
                     }
                 </div>
@@ -314,7 +314,7 @@ function ImagePreview({ fileData }) {
 
 function VideoPreview({ fileData }) {
     return (
-        <video controls className="file-preview-file" onError={(e) => e.target.style.display = "none"}>
+        <video autoPlay loop controls className="file-preview-file" onError={(e) => e.target.style.display = "none"}>
             <source src={fileData.url} type={fileData.contentType || "video/mp4"} />
             Your browser does not support the video tag.
         </video>
@@ -337,7 +337,7 @@ function AudioPreview({ thumbnail, fileData }) {
                 height: "70%",
                 aspectRatio: 1
             }} src={thumbnail} />
-            <audio controls onError={(e) => e.target.style.display = "none"}>
+            <audio autoPlay loop controls onError={(e) => e.target.style.display = "none"}>
                 <source src={fileData.url} type={fileData.contentType || "audio/mpeg"} />
                 Your browser does not support the audio element.
             </audio>

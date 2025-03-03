@@ -1,14 +1,15 @@
 
 
 import "./Header.css";
-import { Search, Bell, X } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Search, Bell, X, User, Settings, LifeBuoy } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 
 import ProfileIconFallBack from "../../assets/images/profile_icon.png";
 import Logo from "../../assets/icons/BioKey_Logo.png";
 import { formatFileSize } from "../../utils/formatFileSize";
 import FilePreview from "../../pages/FilePreview/FilePreview";
+import { clearNotification, getNotifications } from "../../services/userOperations";
 
 export default function Header({ onSearch }) {
     const allFilesMetaData = useSelector((state) => state.files.allFilesMetadata);
@@ -16,8 +17,27 @@ export default function Header({ onSearch }) {
     const [filteredFiles, setFilteredFiles] = useState([]);
     const [previewFile, setPreviewFile] = useState(null);
     const [profileIcon, setProfileIcon] = useState(null);
-
+    const [isNotificationModal, setIsNotificationModal] = useState(false);
+    const [notifications, setNotifications] = useState();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const dispatch = useDispatch();
+    const userId = useSelector((state) => state.user.userId);
+    const token = useSelector((state) => state.auth.token);
     const user = useSelector((state) => state.user)
+
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const response = await getNotifications(userId, token);
+            if (response) {
+                setNotifications(response)
+            }
+            else {
+                setNotifications([])
+            }
+        }
+        fetchNotifications()
+    }, [userId, token, isNotificationModal])
 
     useEffect(() => {
         if (user) {
@@ -60,6 +80,20 @@ export default function Header({ onSearch }) {
         };
     }, []);
 
+    const handleClearAllNotifications = async () => {
+        const response = await clearNotification(userId, null, true, token);
+        if (response) {
+            setNotifications([]);
+        }
+    };
+
+    const handleClearNotification = async (notificationId) => {
+        const response = await clearNotification(userId, notificationId, false, token);
+        if (response) {
+            setNotifications((prev) => prev.filter((item) => item._id !== notificationId));
+        }
+    };
+
     return (
         <div className="header-container">
             <div className="header-logo">
@@ -88,11 +122,15 @@ export default function Header({ onSearch }) {
             </div>
 
             <div className="header-right">
-                <div className="header-notifications-container">
+                <div onClick={() => {
+                    setIsNotificationModal(true)
+                }} className="header-notifications-container">
                     <Bell color="var(--text-color2)" size={"1.7rem"} />
                 </div>
 
-                <div className="header-profile-container">
+                <div onClick={() => {
+                    setIsProfileOpen(true)
+                }} className="header-profile-container">
                     {profileIcon ? (
                         <img src={profileIcon} alt="Profile" className="header-profile-img" />
                     ) : (
@@ -120,7 +158,64 @@ export default function Header({ onSearch }) {
                     )}
                 </div>
             )}
-
+            {
+                isNotificationModal && (
+                    <div onMouseLeave={() => setIsNotificationModal(false)} className="notification-modal-container">
+                        <div className="notification-modal-header">
+                            <div className="notification-modal-title">Notifications</div>
+                            <div className="notification-modal-clear-all" onClick={handleClearAllNotifications}>Clear All</div>
+                        </div>
+                        <div className="notification-modal-content">
+                            {notifications.map((item) => (
+                                <div key={item._id} className="notification-item">
+                                    <div className="notification-item-date">
+                                        {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })} &nbsp;
+                                        {new Date(item.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                                        <div style={{ display: "flex", alignItems: "flex-start", flexDirection: "column" }}>
+                                            <div className="notification-item-title">{item.title}</div>
+                                            <div className="notification-item-message">{item.message}</div>
+                                        </div>
+                                        <X
+                                            color="var(--text-color2)"
+                                            size={"1.2rem"}
+                                            className="notification-item-clear"
+                                            onClick={() => handleClearNotification(item._id)}
+                                            style={{
+                                                cursor: "pointer",
+                                                opacity: 0.8
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            {notifications.length === 0 && <div style={{
+                                display: "flex",
+                                alignSelf: "center"
+                            }} className="no-results-text">No new Notifications</div>}
+                        </div>
+                    </div>
+                )
+            }
+            {isProfileOpen && (
+                    <div onMouseLeave={()=>{
+                        setIsProfileOpen(false);
+                    }} className="profile-options-modal">
+                        <div className="profile-option">
+                            <User size={18} className="profile-option-icon" />
+                            Account
+                        </div>
+                        <div className="profile-option">
+                            <Settings size={18} className="profile-option-icon" />
+                            Settings
+                        </div>
+                        <div className="profile-option">
+                            <LifeBuoy size={18} className="profile-option-icon" />
+                            Support
+                        </div>
+                    </div>
+                )}
             {previewFile && <FilePreview file={previewFile} onClose={() => setPreviewFile(null)} />}
         </div>
     );

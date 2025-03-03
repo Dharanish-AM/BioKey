@@ -15,7 +15,7 @@ const initialState = {
     folderPreviewScreen: true,
     recycleBinScreen: true
   },
-  API_IP: "biokey.ddns.net:8000",
+  API_IP: "localhost:8000",
   version: "1.0"
 };
 

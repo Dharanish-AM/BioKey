@@ -25,14 +25,15 @@
 .trash-options-container {
   display: flex;
   flex-direction: row;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
   justify-content: space-between;
+
 }
 .clear-trash-button {
   background-color: #da4d4da4;
   color: var(--text-color3);
-  padding: 0.7rem 1rem;
+  padding: 0.65rem 1rem;
   border-radius: 10px;
   font-size: 1.1rem;
   font-weight: 500;
@@ -40,7 +41,12 @@
   display: flex;
   align-items: center;
   gap: 0.5em;
+  transition: all 0.3s ease;
 }
+.clear-trash-button:hover{
+  background-color: #da4d4dd8;
+}
+
 .trash-search-input {
   width: 15rem;
   padding: 0.7rem 1rem;
@@ -61,7 +67,7 @@
 .trash-content {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  height: 88%;
   align-items: center;
 }
 .trash-files-list {
@@ -74,6 +80,9 @@
   padding-right: 1rem;
   gap: 2rem;
   align-items: center;
+}
+.trash-files-list::-webkit-scrollbar{
+  width: 0px;
 }
 .trash-file-item {
   display: flex;
@@ -88,6 +97,7 @@
   flex: 1;
   min-width: 13rem;
   border: 1px solid #a6a6aa1f;
+  position: relative;
 }
 .trash-file-icon-container {
   display: flex;
@@ -133,4 +143,71 @@
   width: auto;
   height: auto;
   object-fit: contain;
+}
+
+.recycle-bin-checkbox{
+  width: 3rem;
+  height: 3rem;
+  aspect-ratio: 1;
+  border-radius: 100px;
+  transition: 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.recycle-bin-checkbox:hover{
+  background-color: #a6a6aa1f;
+}
+
+.recycle-bin-file-checkbox {
+  appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--text-color2);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  background-color: transparent;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.recycle-bin-file-checkbox::before {
+  content: "✔";
+  font-size: 1.2rem;
+  color: white;
+  display: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.recycle-bin-file-checkbox:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.recycle-bin-file-checkbox:checked::before {
+  display: block;
+}
+.restore-trash-button{
+  background-color: #6419e682;
+  color: var(--text-color3);
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  transition: all 0.3s ease;
+}
+
+.restore-trash-button:hover{
+  background-color: #6419e6cd;
 }

@@ -231,20 +231,23 @@ const restoreFile = async (req, res) => {
   try {
     const { userId, RecycleBinId } = req.body;
 
-    if (!userId || !RecycleBinId) {
-      return res.status(400).json({ error: "Provide userId and RecycleBinId." });
+    if (!userId || (!RecycleBinId || (Array.isArray(RecycleBinId) && RecycleBinId.length === 0))) {
+      return res.status(400).json({ error: "Provide a valid userId and at least one RecycleBinId." });
     }
 
+
     const RecycleBinIdsArray = Array.isArray(RecycleBinId) ? RecycleBinId : [RecycleBinId];
+
 
     const filesToRestore = await RecycleBin.find({
       _id: { $in: RecycleBinIdsArray },
       owner: userId,
     });
 
-    if (!filesToRestore.length) {
+    if (filesToRestore.length === 0) {
       return res.status(404).json({ error: "No matching files found in Recycle Bin." });
     }
+
 
     const restoredFiles = filesToRestore.map((file) => ({
       name: file.name,
@@ -257,7 +260,9 @@ const restoreFile = async (req, res) => {
       isLiked: file.isLiked,
     }));
 
+
     await File.insertMany(restoredFiles);
+
 
     await RecycleBin.deleteMany({ _id: { $in: RecycleBinIdsArray } });
 
@@ -267,9 +272,9 @@ const restoreFile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error restoring file(s):", error.message);
+    console.error("Error restoring file(s):", error);
     return res.status(500).json({
-      error: "Error restoring file(s) from Recycle Bin.",
+      error: "Internal server error while restoring files.",
       details: error.message,
     });
   }

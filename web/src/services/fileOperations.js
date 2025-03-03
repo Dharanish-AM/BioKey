@@ -194,7 +194,7 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
   }
 };
 
-export const permanentDelete = async (userId, fileId = null, all = false, dispatch) => {
+export const permanentDelete = async (userId, fileId = null, all = false, token, dispatch) => {
   console.log(userId, fileId)
   try {
     const response = await axios.delete(`${API_URL}/permanentdelete`, {
@@ -205,8 +205,8 @@ export const permanentDelete = async (userId, fileId = null, all = false, dispat
       }
     })
     if (response.status == 200) {
-      await fetchRecycleBinFiles(userId, dispatch)
-      await getAllfileMetadata(userId, dispatch)
+      await fetchRecycleBinFiles(userId, token, dispatch)
+      await getAllfileMetadata(userId, token, dispatch)
       return response.data
     }
     else {
@@ -219,26 +219,32 @@ export const permanentDelete = async (userId, fileId = null, all = false, dispat
 }
 
 export const restoreFile = async (userId, RecycleBinId, type, token, dispatch) => {
+  console.log(RecycleBinId, type)
   try {
     const response = await axios.post(`${API_URL}/restorefile`, {
       userId,
-      RecycleBinId
-    })
-    if (response.status == 200) {
-      await fetchFilesByCategory(userId, type, token, dispatch);
-      await fetchRecentFiles(userId, dispatch);
-      await fetchUsedSpace(userId, dispatch);
-      await fetchRecycleBinFiles(userId, dispatch)
-      await getAllfileMetadata(userId, dispatch)
-      return response.data
-    }
-    else {
-      return response.data
+      RecycleBinId,
+      type
+    });
+
+    if (response.status === 200) {
+      await Promise.all([
+        fetchFilesByCategory(userId, type, token, dispatch),
+        fetchRecentFiles(userId, token, dispatch),
+        fetchUsedSpace(userId, token, dispatch),
+        fetchRecycleBinFiles(userId, token, dispatch),
+        getAllfileMetadata(userId, token, dispatch)
+      ]);
+      return response.data;
+    } else {
+      return { success: false, message: "Failed to restore files." };
     }
   } catch (err) {
-    console.error("Error Restoring File", err)
+    console.error("Error Restoring File", err);
+    return { success: false, message: "Server error while restoring files." };
   }
-}
+};
+
 
 export const fetchRecycleBinFiles = async (userId, token, dispatch) => {
   try {

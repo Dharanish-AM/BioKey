@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { FaPlay } from "react-icons/fa6";
 import { FileIcon, defaultStyles } from "react-file-icon";
 import FilePreview from "../FilePreview/FilePreview";
+import Premium from "../../components/Premium/Premium";
 
 export default function Home() {
     const dispatch = useDispatch();
@@ -31,6 +32,7 @@ export default function Home() {
     const navigation = useNavigate()
     const [isShowFileOptions, setIsShowFileOptions] = useState(false);
     const [moreOptionsFile, setIsMoreOptionsFile] = useState()
+    const [isShowPremium, setIsShowPremium] = useState(false)
 
     const [fileCounts, setFileCounts] = useState({
         images: 0,
@@ -195,7 +197,9 @@ export default function Home() {
                 <div className="home-storage-overview">
                     <div className="home-storage-header">
                         <div className="home-card-title">Storage Overview</div>
-                        <div className="premium-btn">Get Premium !</div>
+                        <div onClick={()=>{
+                            setIsShowPremium(true)
+                        }} className="premium-btn">Get Premium !</div>
                     </div>
                     <div className="home-storage-content">
                         <div className="home-storage-text-container">
@@ -262,14 +266,14 @@ export default function Home() {
                                     </div>
 
                                     {isShowFileOptions && moreOptionsFile?.name === file.name && (
-                                        <div onClick={(e)=>e.stopPropagation()} className="recent-file-more-options">
+                                        <div onClick={(e) => e.stopPropagation()} className="recent-file-more-options">
                                             <div className="recent-file-more-option">
                                                 View Info
                                             </div>
                                             <div style={{
-                                                color:"var(--red)"
+                                                color: "var(--red)"
                                             }} className="recent-file-more-option" onClick={() => {
-                                              
+
                                             }}>
                                                 Delete
                                             </div>
@@ -286,6 +290,11 @@ export default function Home() {
             {
                 previewFile && <FilePreview file={previewFile} onClose={() => {
                     setPreviewFile(null)
+                }} />
+            }
+            {
+                isShowPremium && <Premium onClose={() => {
+                    setIsShowPremium(false)
                 }} />
             }
         </div>

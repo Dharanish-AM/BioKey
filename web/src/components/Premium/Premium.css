@@ -1,0 +1,100 @@
+.overlay {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.premium-modal-container {
+  padding: 1.5rem;
+  background: var(--light-color1);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  flex-direction: column;
+}
+
+.premium-modal-title {
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.premium-modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.plans-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+}
+
+.premium-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.close-button {
+}
+
+.premium-modal-content {
+}
+
+.plan-card {
+  padding: 1.5em;
+  background-color: #1f242d88;
+  border-radius: 10px;
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 15rem;
+}
+
+.plan-card ul{
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.plan-card ul li{
+    font-size: 1.1rem;
+}
+
+.plan-title{
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.plan-price {
+    font-size: 1.1rem;
+    color: var(--text-color2);
+}
+
+.subscribe-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  outline: none;
+  border: none;
+  border-radius: 7px;
+  margin-top: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.basic-plan{
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+
+}

@@ -8,9 +8,15 @@ const minioClient = new Minio.Client({
     secretKey: process.env.MINIO_SECRET_KEY,
 });
 
-if (minioClient) {
-    console.log("Minio Client is connected");
+async function checkMinioConnection() {
+    try {
+        const bucketExists = await minioClient.bucketExists(process.env.MINIO_BUCKET_NAME);
+        console.log(`✅ MinIO is connected. Bucket '${process.env.MINIO_BUCKET_NAME}' exists: ${bucketExists}`);
+    } catch (error) {
+        console.error("❌ MinIO Connection Error:", error.message);
+    }
 }
 
-
+checkMinioConnection(); 
+ 
 module.exports = minioClient   

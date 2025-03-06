@@ -32,7 +32,7 @@ const uploadFile = async (req, res) => {
       console.error("Error parsing form data:", err.message);
       return res.status(500).json({ message: "Error processing file upload" });
     }
-    console.log("Received Files:", req.files);
+    console.log("Received Files:", files);
 
     const { userId } = fields;
     if (!userId) {

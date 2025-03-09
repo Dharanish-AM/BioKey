@@ -12,6 +12,7 @@ const API_URL = `http://${getIP()}/api/passwords`;
 
 export const addPassword = async (
   userId,
+  token,
   name,
   userName,
   email,
@@ -21,6 +22,14 @@ export const addPassword = async (
   dispatch
 ) => {
   try {
+    console.log(  userId,
+      token,
+      name,
+      userName,
+      email,
+      password,
+      website,
+      note)
     const response = await axios.post(`${API_URL}/addpassword`, {
       userId,
       name,
@@ -32,7 +41,7 @@ export const addPassword = async (
     });
 
     if (response.status === 201) {
-      getAllPasswords(userId, dispatch);
+      getAllPasswords(userId,token, dispatch);
       return {
         status: true,
         message: response.data.message || "Password added successfully!",

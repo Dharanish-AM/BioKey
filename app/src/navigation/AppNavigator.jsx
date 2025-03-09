@@ -132,7 +132,7 @@ export default function App() {
     };
 
     fetchAuthStatus();
-  }, [dispatch]);
+  }, [dispatch,isAuthenticated]);
 
   if (loading) {
     return (

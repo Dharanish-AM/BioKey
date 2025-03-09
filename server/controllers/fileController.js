@@ -36,6 +36,7 @@ const uploadFile = async (req, res) => {
 
     const { userId } = fields;
     if (!userId) {
+      
       return res.status(400).json({ message: "Missing userId" });
     }
 
@@ -65,12 +66,12 @@ const uploadFile = async (req, res) => {
 
           if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
             throw new Error("Insufficient space");
-          }
+          }  
 
           const folderPath = `${userId}/${fileCategory}`;
           uniqueFilePath = await getUniqueFilePath(BUCKET_NAME, folderPath, originalFileName, minioClient);
 
-          const fileStream = fs.createReadStream(filePath);
+          const fileStream = fs.createReadStream(filePath); 
           await minioClient.putObject(BUCKET_NAME, uniqueFilePath, fileStream);
           fileStream.close();
 
@@ -177,7 +178,7 @@ const moveToRecycleBin = async (req, res) => {
       return res.status(400).json({ error: "Provide userId and fileId." });
     }
 
-    const fileIdsArray = Array.isArray(fileId) ? fileId : [fileId];
+    const fileIdsArray = Array.isArray(fileId) ? fileId : [fileId]; 
 
 
     const files = await File.find({ _id: { $in: fileIdsArray }, owner: userId });

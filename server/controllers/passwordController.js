@@ -5,7 +5,6 @@ const { encrypt, decrypt } = require("../utils/crypto");
 const addPassword = async (req, res) => {
   try {
     let { userId, name, userName, email, password, website, note } = req.body;
-
     if (!userId || !name || !password) {
       return res.status(400).json({
         error: "userId, name, and password are required fields.",

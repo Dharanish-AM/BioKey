@@ -13,7 +13,7 @@ app.use(
     origin: "*",
   })
 );
-app.use(express.json());
+app.use(express.json()); 
 
 const connectToDB = require("./config/db");
 const fileRoutes = require("./routes/fileRoutes");

@@ -298,6 +298,7 @@ export default function Passwords() {
                   top: "1rem",
                   right: "1rem",
                   cursor: "pointer",
+                
                 }}
               />
               {breachStatuses[password._id]?.breached ? (

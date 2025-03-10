@@ -66,7 +66,22 @@
   flex: 1;
   align-items: center;
   width: 100%;
+  position: relative;
 }
+
+.folder-each-option{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  color: var(--text-color3);
+  cursor: pointer;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
 
 .folders-list {
   display: flex;
@@ -74,7 +89,7 @@
   width: 100%;
   overflow-y: auto;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
   flex: 1;
 }
@@ -177,6 +192,7 @@
   width: 100%;
   overflow-y: auto;
   flex-wrap: wrap;
+  
 }
 
 .folder-file-item {

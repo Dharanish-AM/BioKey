@@ -128,7 +128,7 @@ export const handleFolderCreate = async (
   }
 };
 
-export const deleteFolders = async (userId, folderIds, dispatch) => {
+export const deleteFolders = async (userId, folderIds, token,dispatch) => {
   const response = await axios.delete(`${API_URL}/deletefolder`, {
     data: {
       userId,
@@ -136,7 +136,7 @@ export const deleteFolders = async (userId, folderIds, dispatch) => {
     },
   });
   if (response.status == 200) {
-    await fetchFolderList(userId, dispatch);
+    await fetchFolderList(userId,token, dispatch);
     return response.data;
   } else {
     return response.data;
@@ -147,15 +147,18 @@ export const handleFolderRename = async (
   userId,
   folderId,
   newFolderName,
+  token,
   dispatch
 ) => {
+  console.log( userId, folderId, newFolderName);
   const response = await axios.put(`${API_URL}/renamefolder`, {
     userId,
     folderId,
     newFolderName,
   });
-  if (response.status == 200) {
-    await fetchFolderList(userId, dispatch);
+  console.log(response)
+  if (response.status == 200 || response.status == 201) {
+    await fetchFolderList(userId,token, dispatch);
     return response.data;
   } else {
     return response.data;

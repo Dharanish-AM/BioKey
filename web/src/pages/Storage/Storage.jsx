@@ -54,10 +54,9 @@ export default function Storage() {
             }
         });
 
-        if (!recycleBin) {
             fetchRecycleBinFiles(userId, token, dispatch);
-        }
-    }, [userId, token, dispatch, images, videos, audios, others, recycleBin]);
+    
+    }, [dispatch]);
 
 
     const COLORS = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#8884d8"];
@@ -174,6 +173,9 @@ export default function Storage() {
                                 <span className="legend-label">{label}:</span>
                                 <span className="legend-value">
                                     {formatFileSize(doughnutData.datasets[0].data[index])}
+                                    {
+                                        console.log(label, fileCounts[label])
+                                    }
                                     {" (" + fileCounts[label] + " files)"}
                                 </span>
                             </div>

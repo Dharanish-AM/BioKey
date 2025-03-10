@@ -78,7 +78,6 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/folders" element={<Folders />} />
                   <Route path="/favourites" element={<Favourites />} />
-                  <Route path="/folders/:folderId" element={<Folder />} />
                   <Route path="/trash" element={<Trash />} />
                   <Route path="/images" element={<Images />} />
                   <Route path="/videos" element={<Videos />} />

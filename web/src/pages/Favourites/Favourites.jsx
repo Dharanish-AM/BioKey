@@ -115,7 +115,7 @@ export default function Favourites() {
                                 <span className="favourites-item-size">{formatFileSize(file.size)}</span>
                             </div>
                         </div>
-                    )) : <div style={{ fontSize: "1.1rem", fontStyle: "italic", marginTop: "20rem", marginLeft: "38rem" }} >✖️ No favourite files found </div>}
+                    )) : <div style={{ fontSize: "1.1rem", fontStyle: "italic",alignSelf:"center"}} >✖️ No favourite files found </div>}
                 </div>
             </div>
             {

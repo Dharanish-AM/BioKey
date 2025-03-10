@@ -1,7 +1,13 @@
 import axios from "axios";
-import { setActivityLogs, setFolders, setLikedFiles, setStorageInfo, setUser, updateFileLikes } from "../redux/actions";
+import {
+  setActivityLogs,
+  setFolders,
+  setLikedFiles,
+  setStorageInfo,
+  setUser,
+  updateFileLikes,
+} from "../redux/actions";
 import store from "../redux/store";
-
 
 const getIP = () => {
   const state = store.getState();
@@ -10,17 +16,24 @@ const getIP = () => {
 
 const API_URL = `http://${getIP()}/api/users`;
 
-
 export const loadUser = async (userId) => {
   try {
-    const response = await axios.get(`${API_URL}/user-details?userId=${userId}`);
-    return response.data.user
+    const response = await axios.get(
+      `${API_URL}/user-details?userId=${userId}`
+    );
+    return response.data.user;
   } catch (error) {
     console.error("Error fetching profile:", error);
   }
 };
 
-export const likeOrUnlikeFile = async (userId, fileId, token, type, dispatch) => {
+export const likeOrUnlikeFile = async (
+  userId,
+  fileId,
+  token,
+  type,
+  dispatch
+) => {
   try {
     const response = await axios.post(`${API_URL}/likeorunlikefile`, {
       userId,
@@ -29,7 +42,7 @@ export const likeOrUnlikeFile = async (userId, fileId, token, type, dispatch) =>
 
     if (response.status === 200 && response.data.success) {
       dispatch(updateFileLikes(fileId, response.data.isLiked, type));
-      fetchLikedFiles(userId, dispatch)
+      fetchLikedFiles(userId, dispatch);
       return {
         success: true,
         isLiked: response.data.isLiked,
@@ -51,7 +64,9 @@ export const likeOrUnlikeFile = async (userId, fileId, token, type, dispatch) =>
 
 export const fetchLikedFiles = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/listfavourite`, { params: { userId } });
+    const response = await axios.get(`${API_URL}/listfavourite`, {
+      params: { userId },
+    });
 
     const files = response.data?.files || [];
 
@@ -59,8 +74,7 @@ export const fetchLikedFiles = async (userId, token, dispatch) => {
 
     return files;
   } catch (error) {
-    console.error('Error fetching liked files:', error.message);
-
+    console.error("Error fetching liked files:", error.message);
 
     dispatch(setLikedFiles([]));
 
@@ -68,14 +82,15 @@ export const fetchLikedFiles = async (userId, token, dispatch) => {
   }
 };
 
-
 export const fetchFolderList = async (userId, token, dispatch) => {
   if (!userId) {
     console.error("User ID is required to fetch folders.");
     return;
   }
   try {
-    const response = await axios.get(`${API_URL}/listfolder`, { params: { userId } });
+    const response = await axios.get(`${API_URL}/listfolder`, {
+      params: { userId },
+    });
     if (response.status == 200) {
       dispatch(setFolders(response.data.folders));
     } else {
@@ -87,74 +102,96 @@ export const fetchFolderList = async (userId, token, dispatch) => {
   }
 };
 
-export const handleFolderCreate = async (userId, folderName, dispatch) => {
-  const response = await axios.post(`${API_URL}/createfolder`, {
-    userId,
-    folderName
-  })
-  if (response.status == 200) {
-
-    return response.data
+export const handleFolderCreate = async (
+  userId,
+  folderName,
+  token,
+  dispatch
+) => {
+  const response = await axios.post(
+    `${API_URL}/createfolder`,
+    {
+      userId,
+      folderName,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  if (response.status == 200 || response.status == 201) {
+    fetchFolderList(userId, token,dispatch);
+    return response.data;
+  } else {
+    return response.data;
   }
-  else {
-    return response.data
-  }
-}
+};
 
 export const deleteFolders = async (userId, folderIds, dispatch) => {
   const response = await axios.delete(`${API_URL}/deletefolder`, {
     data: {
       userId,
-      folderIds
-    }
-  })
+      folderIds,
+    },
+  });
   if (response.status == 200) {
-    await fetchFolderList(userId, dispatch)
-    return response.data
+    await fetchFolderList(userId, dispatch);
+    return response.data;
   } else {
-    return response.data
+    return response.data;
   }
-}
+};
 
-export const handleFolderRename = async (userId, folderId, newFolderName, dispatch) => {
+export const handleFolderRename = async (
+  userId,
+  folderId,
+  newFolderName,
+  dispatch
+) => {
   const response = await axios.put(`${API_URL}/renamefolder`, {
     userId,
     folderId,
-    newFolderName
-  })
+    newFolderName,
+  });
   if (response.status == 200) {
-    await fetchFolderList(userId, dispatch)
-    return response.data
+    await fetchFolderList(userId, dispatch);
+    return response.data;
   } else {
-    return response.data
+    return response.data;
   }
-}
+};
 
-export const handleFolderMove = async (userId, folderId, fileId, token, dispatch) => {
+export const handleFolderMove = async (
+  userId,
+  folderId,
+  fileId,
+  token,
+  dispatch
+) => {
   try {
     const response = await axios.post(`${API_URL}/addfilestofolder`, {
       userId,
-      folderId, fileId
-    })
+      folderId,
+      fileId,
+    });
 
     if (response.status) {
-      await fetchFolderList(userId, token, dispatch)
-      return response.data
+      await fetchFolderList(userId, token, dispatch);
+      return response.data;
+    } else {
+      return response.data;
     }
-    else {
-      return response.data
-    }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
 export const updateUserProfile = async (userId, profileData, dispatch) => {
   try {
     const response = await axios.put(`${API_URL}/updateuserprofile`, {
       userId,
-      profileData
+      profileData,
     });
 
     if (response.status === 200 && response.data.success) {
@@ -163,91 +200,100 @@ export const updateUserProfile = async (userId, profileData, dispatch) => {
       return response.data;
     }
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return { success: false, message: 'An error occurred' };
+    console.error("Error updating profile:", error);
+    return { success: false, message: "An error occurred" };
   }
 };
 
-
 export const handleProfileImageSet = async (userId, formData, dispatch) => {
-
   try {
-    const response = await axios.post(`${API_URL}/updateuserprofileimage`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
+    const response = await axios.post(
+      `${API_URL}/updateuserprofileimage`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
-    });
+    );
 
     if (response.status == 200) {
-      return response.data
+      return response.data;
+    } else {
+      return response.data;
     }
-    else {
-      return response.data
-    }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
 export const registerNotificationToken = async (token) => {
   try {
     const response = await axios.post(`${API_URL}/registernotificationtoken`, {
       token,
-      userId
-    })
+      userId,
+    });
     if (response.status === 200 && response.data.success) {
       console.log(" Notification token registered successfully");
-    }
-    else {
+    } else {
       console.log("Failed to register notification token");
     }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
 export const getNotifications = async (userId, token) => {
   try {
-    const response = await axios.get(`${API_URL}/getallnotifications?userId=${userId}`)
-    return response.data.notifications
+    const response = await axios.get(
+      `${API_URL}/getallnotifications?userId=${userId}`
+    );
+    return response.data.notifications;
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
-export const clearNotification = async (userId, notificationId, isAll = false, token) => {
+export const clearNotification = async (
+  userId,
+  notificationId,
+  isAll = false,
+  token
+) => {
   try {
     const response = await axios.post(`${API_URL}/clearnotification`, {
       userId,
       notificationId,
-      isAll
-    })
+      isAll,
+    });
     if (response.status === 200 && response.data.success) {
       console.log("Notification cleared successfully");
-      return response.data
-    }
-    else {
+      return response.data;
+    } else {
       console.log("Failed to clear notification");
     }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
 export const getActivityLogs = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/getactivitylogs?userId=${userId}`)
-    dispatch(setActivityLogs(response.data.logs))
-
+    const response = await axios.get(
+      `${API_URL}/getactivitylogs?userId=${userId}`
+    );
+    dispatch(setActivityLogs(response.data.logs));
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) { console.log(err) }
-}
+};
 
-export const changePassword = async (userId, oldPassword, newPassword, token) => {
+export const changePassword = async (
+  userId,
+  oldPassword,
+  newPassword,
+  token
+) => {
   try {
     const response = await axios.post(`${API_URL}/changepassword`, {
       userId,
@@ -258,18 +304,20 @@ export const changePassword = async (userId, oldPassword, newPassword, token) =>
     return response.data;
   } catch (err) {
     console.log(err);
-    return { success: false, message: "An error occurred while changing password" };
+    return {
+      success: false,
+      message: "An error occurred while changing password",
+    };
   }
 };
 
 export const getStorageInfo = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/storageinfo?userId=${userId}`)
+    const response = await axios.get(`${API_URL}/storageinfo?userId=${userId}`);
     if (response.data.success) {
-      dispatch(setStorageInfo(response.data.data))
+      dispatch(setStorageInfo(response.data.data));
     }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};

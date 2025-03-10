@@ -28,14 +28,23 @@ export default function Trash() {
     const filteredFiles = sortedFiles.filter((file) => file.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const toggleFileSelection = (fileId) => {
+        console.log("Toggling file:", fileId);
         setSelectedFiles((prev) => {
-            const newSelection = new Set(prev);
-            newSelection.has(fileId) ? newSelection.delete(fileId) : newSelection.add(fileId);
-            return newSelection;
+          const newSelection = new Set(prev);
+          if (newSelection.has(fileId)) {
+            console.log(`File ${fileId} is selected, removing from selection.`);
+            newSelection.delete(fileId);
+          } else {
+            console.log(`File ${fileId} is not selected, adding to selection.`);
+            newSelection.add(fileId);
+          }
+          console.log("New selection:", [...newSelection]); 
+          return newSelection;
         });
-    };
+      };
 
     const handleClearTrash = async (isAll = false) => {
+        
         const confirmation = confirm(`Are you sure you want to delete ${isAll ? "all files" : "the selected files"}?`);
 
         if (confirmation) {

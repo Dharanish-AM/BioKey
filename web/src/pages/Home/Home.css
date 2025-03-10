@@ -234,6 +234,7 @@
 .no-recent-files{
   font-size: 1.1rem;
   font-style: italic;
+  align-self: center;
 }
 
 .recent-files-list::-webkit-scrollbar-thumb {

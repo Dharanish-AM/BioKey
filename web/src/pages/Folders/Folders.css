@@ -31,6 +31,19 @@
   justify-content: space-between;
 }
 
+.create-folder-button{
+  background-color: var(--primary-color);
+  color: var(--text-color3);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
 .folder-search-input {
   width: 15rem;
   padding: 0.7rem 1rem;
@@ -218,4 +231,34 @@
   font-size: 1rem;
   color: var(--text-color2);
   flex-shrink: 0;
+}
+
+.create-folder-modal-content{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--light-color1);
+  border-radius : 10px;
+  width: 20rem;
+
+}
+
+.create-folder-modal-content input{
+  padding: 0.6rem;
+  border-radius: 10px;
+  background-color: var(--light-color2);
+  border: none;
+  font-family: Afacad;
+  padding-left: 1rem;
+  font-size: 1.1rem;
+  color: var(--text-color3);
+  outline: transparent;
+}
+.create-folder-modal-content input::placeholder{
+  color: var(--text-color2);
 }

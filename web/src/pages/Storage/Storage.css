@@ -49,12 +49,12 @@
 
 .storage-container-top-left-legends-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-wrap: wrap;
   height: 100%;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  width: 40%;
+ width: fit-content;
 }
 
 .legend-item {

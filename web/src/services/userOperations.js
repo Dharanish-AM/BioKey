@@ -98,6 +98,7 @@ export const fetchFolderList = async (userId, token, dispatch) => {
       dispatch(setFolders([]));
     }
   } catch (error) {
+    console.error("Error fetching folders:", error.message);
     dispatch(setFolders([]));
   }
 };
@@ -164,6 +165,25 @@ export const handleFolderRename = async (
     return response.data;
   }
 };
+
+export const removeFileFromFolder = async (userId,
+  folderId,
+  fileId,
+  token,
+  dispatch
+) => {
+  const response = await axios.post(`${API_URL}/removefilefromfolder`, {
+    userId,
+    folderId,
+    fileId,
+  });
+  if (response.status == 200) {
+    await fetchFolderList(userId,token, dispatch);
+    return response.data;
+  } else {
+    return response.data;
+  }
+}
 
 export const handleFolderMove = async (
   userId,

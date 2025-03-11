@@ -679,6 +679,37 @@ const deleteFolder = async (req, res) => {
   }
 };
 
+const removeFileFromFolder = async (req, res) => {
+  const { userId, folderId, fileId } = req.body;
+
+  if (!userId || !folderId || !fileId) {
+    return res.status(400).json({ success: false, message: "User ID, Folder ID, and File ID are required" });
+  }
+
+  try {
+    const folder = await Folder.findById(folderId);
+
+    if (!folder) {
+      return res.status(404).json({ success: false, message: "Folder not found" });
+    }
+
+    if (!folder.files.includes(fileId.toString())) {
+      return res.status(400).json({ success: false, message: "File not found in the folder" });
+    }
+
+    folder.files = folder.files.filter((id) => id.toString() !== fileId.toString());
+    await folder.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "File removed from folder successfully",
+    });
+  } catch (error) {
+    console.error("Error removing file:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 const renameFolder = async (req, res) => {
   try {
     const { userId, folderId, newFolderName } = req.body;
@@ -1021,5 +1052,6 @@ module.exports = {
   clearNotifications,
   getActivityLogs,
   changePassword,
-  storageInfo
+  storageInfo,
+  removeFileFromFolder
 };

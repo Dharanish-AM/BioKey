@@ -12,16 +12,16 @@ app.use(
   cors({
     origin: "*",
   })
-);
-app.use(express.json());  
+); 
+app.use(express.json());   
 
 const connectToDB = require("./config/db");
 const fileRoutes = require("./routes/fileRoutes");
 const userRoutes = require("./routes/userRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
-connectToDB(); 
+  
+connectToDB();  
 
 app.use("/api/files", fileRoutes);
 app.use("/api/users", userRoutes);

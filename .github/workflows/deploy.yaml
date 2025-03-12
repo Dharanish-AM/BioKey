@@ -7,20 +7,15 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ~/server
-            git pull origin main
-            npm install
-            pm2 restart all  # Restart the application using PM2
+        run: |
+          cd ~/server
+          git pull origin main
+          npm install
+          pm2 restart all  # Restart the application using PM2

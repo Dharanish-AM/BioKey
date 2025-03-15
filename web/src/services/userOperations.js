@@ -210,7 +210,7 @@ export const handleFolderMove = async (
   }
 };
 
-export const updateUserProfile = async (userId, profileData, dispatch) => {
+export const updateUserProfile = async (userId, profileData,token, dispatch) => {
   try {
     const response = await axios.put(`${API_URL}/updateuserprofile`, {
       userId,
@@ -218,6 +218,8 @@ export const updateUserProfile = async (userId, profileData, dispatch) => {
     });
 
     if (response.status === 200 && response.data.success) {
+      const user = await loadUser(userId);
+      dispatch(setUser(user));
       return response.data;
     } else {
       return response.data;
@@ -228,7 +230,7 @@ export const updateUserProfile = async (userId, profileData, dispatch) => {
   }
 };
 
-export const handleProfileImageSet = async (userId, formData, dispatch) => {
+export const handleProfileImageSet = async (userId, formData,token, dispatch) => {
   try {
     const response = await axios.post(
       `${API_URL}/updateuserprofileimage`,
@@ -241,6 +243,8 @@ export const handleProfileImageSet = async (userId, formData, dispatch) => {
     );
 
     if (response.status == 200) {
+      const user  = await loadUser(userId)
+      dispatch(setUser(user));
       return response.data;
     } else {
       return response.data;
@@ -250,7 +254,7 @@ export const handleProfileImageSet = async (userId, formData, dispatch) => {
   }
 };
 
-export const registerNotificationToken = async (token) => {
+export const registerNotificationToken = async (token,userId) => {
   try {
     const response = await axios.post(`${API_URL}/registernotificationtoken`, {
       token,

@@ -13,12 +13,13 @@
 }
 
 .premium-modal-container {
-  padding: 1.5rem;
+  padding: 2rem;
   background: var(--light-color1);
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
   flex-direction: column;
+  
 }
 
 .premium-modal-title {
@@ -29,6 +30,7 @@
 .premium-modal-content {
   display: flex;
   flex-direction: column;
+  
 }
 
 .plans-container {
@@ -59,6 +61,13 @@
   flex: 1;
   flex-direction: column;
   min-width: 15rem;
+  justify-content: space-between;
+  border: 1px solid #a6a6a638;
+}
+
+.plan-card.special-plan{
+  border: 1px solid #A49250;
+  
 }
 
 .plan-card ul{
@@ -91,6 +100,16 @@
   margin-top: 1rem;
   font-size: 1rem;
   cursor: pointer;
+}
+
+.current-plan-button{
+  padding: 0.5rem 1rem;
+  border:1px solid var(--primary-color);
+  border-radius: 7px;
+  margin-top: 1rem;
+  background-color: transparent;
+  font-size: 1rem;
+  cursor: not-allowed;
 }
 
 .basic-plan{

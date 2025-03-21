@@ -1,8 +1,24 @@
-import { ArrowLeft, CheckCircle, Edit, Pen, Pencil, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle,
+  Edit,
+  Pen,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
 import "./AccountCard.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useRef, useState } from "react";
-import { handleProfileImageSet, updateUserProfile } from "../../services/userOperations";
+import {
+  changePassword,
+  deleteAccount,
+  handleProfileImageSet,
+  updateUserProfile,
+} from "../../services/userOperations";
+import toast from "react-hot-toast";
+import DefualtProfileImg from  "../../assets/images/profile_icon.png"
+
 
 export default function AccountCard({ onClose }) {
   const user = useSelector((state) => state.user);
@@ -20,17 +36,26 @@ export default function AccountCard({ onClose }) {
   const userId = useSelector((state) => state.user.userId);
   const dispatch = useDispatch();
   const token = useSelector((state) => state.auth.token);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsEditing(false);
     if (JSON.stringify(prevUserData) !== JSON.stringify(userData)) {
-      const response = await updateUserProfile(userId, userData, token, dispatch);
+      const response = await updateUserProfile(
+        userId,
+        userData,
+        token,
+        dispatch
+      );
       if (response.success) {
         console.log("Profile updated successfully");
         setPrevUserData(userData);
@@ -42,10 +67,35 @@ export default function AccountCard({ onClose }) {
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async() => {
     var isOk = window.confirm("Are you sure you want to delete your account?");
     if (isOk) {
-      onClose();
+      const response = await deleteAccount(userId, token);
+      if (response.success) {
+        toast.success("Account deleted successfully");
+        localStorage.removeItem("authToken");
+        window.location.reload();
+        onClose();
+      } else {
+        toast.error("Failed to delete account");
+      }
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      alert("New password and confirm password do not match");
+      return;
+    }
+    const response = await changePassword(userId, oldPassword, newPassword, token);
+    if (response.success) {
+      toast.success("Password changed successfully");
+      setIsChangingPassword(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.error("Failed to change password");
     }
   };
 
@@ -55,12 +105,10 @@ export default function AccountCard({ onClose }) {
       const reader = new FileReader();
       reader.readAsDataURL(file);
 
-      
       const formData = new FormData();
       formData.append("userId", userId);
       formData.append("profileImage", file);
 
-      
       try {
         const response = await handleProfileImageSet(
           userId,
@@ -119,7 +167,7 @@ export default function AccountCard({ onClose }) {
               className="account-card-profile-img-container"
             >
               <img
-                src={user.profileImage || "/default-profile.png"}
+                src={user.profileImage || DefualtProfileImg}
                 alt="Profile"
                 className="account-card-profile-img"
               />
@@ -211,24 +259,18 @@ export default function AccountCard({ onClose }) {
               <button
                 className="account-card-edit-btn"
                 onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditing(!isEditing);
-                    if(isEditing){
-                        handleSubmit(e);
-                    }
-                }
-                }
+                  e.stopPropagation();
+                  setIsEditing(!isEditing);
+                  if (isEditing) {
+                    handleSubmit(e);
+                  }
+                }}
               >
-                {
-                    isEditing ? (
-                      <CheckCircle
-                        color="var(--text-color3)"
-                        size="1.2rem"
-                      />
-                    ) : (
-                      <Pencil color="var(--text-color3)" size="1.2rem" />
-                    )
-                }
+                {isEditing ? (
+                  <CheckCircle color="var(--text-color3)" size="1.2rem" />
+                ) : (
+                  <Pencil color="var(--text-color3)" size="1.2rem" />
+                )}
                 {isEditing ? "Save" : "Edit Profile"}
               </button>
               <button
@@ -241,10 +283,64 @@ export default function AccountCard({ onClose }) {
                 Delete Account
               </button>
             </div>
-            <button className="account-card-change-password-btn">
+            <button
+              onClick={() => {
+                setIsChangingPassword(true);
+              }}
+              className="account-card-change-password-btn"
+            >
               Change Password ?
             </button>
           </div>
+        </div>
+      )}
+      {isChangingPassword && (
+        <div className="change-password-modal">
+          <X style={{
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            cursor: "pointer",
+
+          }} color="var(--text-color3)" onClick={() => setIsChangingPassword(false)} />
+          <div className="change-password-modal-input-group">
+            <label className="change-password-modal-label">Old Password:</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              className="change-password-modal-input"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              placeholder="Enter your old password"
+            />
+          </div>
+          <div className="change-password-modal-input-group">
+            <label className="change-password-modal-label">New Password:</label>
+            <input
+              type={showPassword ? "text" : "password"}
+              className="change-password-modal-input"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter your new password"
+            />
+          </div>
+          <div className="change-password-modal-input-group">
+            <label className="change-password-modal-label">
+              Confirm New Password:
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              className="change-password-modal-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your new password"
+            />
+          </div>
+            <button
+              onClick={handleChangePassword}
+              className="change-password-modal-button"
+            >
+              Change Password
+            </button>
         </div>
       )}
     </div>

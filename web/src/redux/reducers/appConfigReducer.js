@@ -1,5 +1,5 @@
 
-import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER } from "../types";
+import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER,SET_PLANS } from "../types";
 
 const initialState = {
   tabBarVisible: true,
@@ -15,7 +15,8 @@ const initialState = {
     folderPreviewScreen: true,
     recycleBinScreen: true
   },
-  API_IP: "192.168.1.2:8000",
+  plans:null,
+  API_IP: "172.17.27.217:8000",
   version: "1.0"
 };
 
@@ -34,6 +35,11 @@ export const appConfigReducer = (state = initialState, action) => {
           [action.screen]: false,
         },
       };
+    case SET_PLANS:
+      return {
+        ...state,
+        plans: action.payload,
+      }
     default:
       return state;
   }

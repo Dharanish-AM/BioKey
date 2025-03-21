@@ -144,3 +144,62 @@
     max-height: 40rem;
     object-fit: contain;
 }
+
+.change-password-modal{
+    width: fit-content;
+    height: fit-content;
+    background-color: var(--light-color1);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 500;
+    border : 1px solid #a6a6a638;
+
+}
+
+.change-password-modal-label{
+    font-size: 1.15rem;
+    color: var(--text-color3);
+    font-weight: 500;
+}
+
+.change-password-modal-input-group{
+    display: flex;
+    align-items: center;
+    margin-top: 0.7rem;
+    margin-bottom: 0.7rem;
+}
+
+.change-password-modal-input{
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    border: 1px solid #a6a6a638;
+    font-family: Afacad;
+    border-radius: 7px;
+    color: var(--text-color3);
+    margin-left: 0.5rem;
+    width: 13rem;
+}
+
+.change-password-modal-button{
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    border: none;
+    transition: background 0.3s ease-in-out;
+    color: var(--text-color3);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--primary-color);
+    font-weight: 500;
+    height: fit-content;
+    width: fit-content;
+}

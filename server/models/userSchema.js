@@ -41,9 +41,14 @@ const userSchema = new mongoose.Schema(
       ref: "Device",
       default: null,
     },
+    plan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Plan",
+      default: null,
+    },
     totalSpace: {
       type: Number,
-      default: 5368709120
+      default: 16106127360
     },
     usedSpace: {
       type: Number,

@@ -9,4 +9,4 @@ const validatePassword = (password) => {
 };
 
 module.exports = { validateEmail, validatePassword };
-     
+      

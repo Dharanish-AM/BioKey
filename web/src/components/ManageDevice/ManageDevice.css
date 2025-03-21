@@ -1,0 +1,57 @@
+.manage-device-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.manage-device-container-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.manage-device-container-info {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex: 1;
+    justify-content: space-between;
+}
+.manage-device-container-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--light-color1);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.manage-device-fingy{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.manage-device-container-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.manage-device-container-id {
+    font-size: 0.9rem;
+    color: gray;
+}
+
+.manage-device-container-status {
+    font-weight: bold;
+}
+
+.manage-device-container-status.active {
+    color: green;
+}
+
+.manage-device-container-status.inactive {
+    color: red;
+}

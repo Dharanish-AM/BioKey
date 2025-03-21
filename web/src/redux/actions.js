@@ -13,7 +13,8 @@ import {
   SET_RECYCLE_BIN_FILES,
   SET_AUTH_STATE,
   SET_ACTIVITY_LOGS,
-  SET_STORAGE_INFO
+  SET_STORAGE_INFO,
+  SET_PLANS
 } from "./types";
 
 
@@ -125,5 +126,12 @@ export const setStorageInfo = (storageInfo) => {
   return {
     type: SET_STORAGE_INFO,
     payload: storageInfo
+  }
+}
+
+export const setPlans = (plans) => {
+  return {
+    type: SET_PLANS,
+    payload: plans
   }
 }

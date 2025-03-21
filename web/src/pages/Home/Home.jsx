@@ -22,6 +22,7 @@ import { FaPlay } from "react-icons/fa6";
 import { FileIcon, defaultStyles } from "react-file-icon";
 import FilePreview from "../FilePreview/FilePreview";
 import Premium from "../../components/Premium/Premium";
+import { getAllPlans } from "../../services/userOperations";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ export default function Home() {
     getRecentFiles();
     getUsedSpace();
     fetchAllfilesMetaData();
+    getAllUserPlans()
   }, []);
 
   useEffect(() => {
@@ -62,6 +64,10 @@ export default function Home() {
   const getRecentFiles = async () => {
     await fetchRecentFiles(userId, token, dispatch);
   };
+
+  const getAllUserPlans = async () => {
+    await getAllPlans(userId, token, dispatch);
+  }
 
   const getUsedSpace = async () => {
     await fetchUsedSpace(userId, token, dispatch);

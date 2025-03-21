@@ -25,6 +25,7 @@ router.post("/clearnotification", userController.clearNotifications)
 router.get("/getactivitylogs", userController.getActivityLogs)
 router.post("/changepassword", userController.changePassword)
 router.get("/storageinfo", userController.storageInfo)
+router.get("/getallplans", userController.getAllPlans)
 
 
 module.exports = router;

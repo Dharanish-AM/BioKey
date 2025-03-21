@@ -3,6 +3,7 @@ import {
   setActivityLogs,
   setFolders,
   setLikedFiles,
+  setPlans,
   setStorageInfo,
   setUser,
   updateFileLikes,
@@ -122,14 +123,14 @@ export const handleFolderCreate = async (
     }
   );
   if (response.status == 200 || response.status == 201) {
-    fetchFolderList(userId, token,dispatch);
+    fetchFolderList(userId, token, dispatch);
     return response.data;
   } else {
     return response.data;
   }
 };
 
-export const deleteFolders = async (userId, folderIds, token,dispatch) => {
+export const deleteFolders = async (userId, folderIds, token, dispatch) => {
   const response = await axios.delete(`${API_URL}/deletefolder`, {
     data: {
       userId,
@@ -137,7 +138,7 @@ export const deleteFolders = async (userId, folderIds, token,dispatch) => {
     },
   });
   if (response.status == 200) {
-    await fetchFolderList(userId,token, dispatch);
+    await fetchFolderList(userId, token, dispatch);
     return response.data;
   } else {
     return response.data;
@@ -151,22 +152,23 @@ export const handleFolderRename = async (
   token,
   dispatch
 ) => {
-  console.log( userId, folderId, newFolderName);
+  console.log(userId, folderId, newFolderName);
   const response = await axios.put(`${API_URL}/renamefolder`, {
     userId,
     folderId,
     newFolderName,
   });
-  console.log(response)
+  console.log(response);
   if (response.status == 200 || response.status == 201) {
-    await fetchFolderList(userId,token, dispatch);
+    await fetchFolderList(userId, token, dispatch);
     return response.data;
   } else {
     return response.data;
   }
 };
 
-export const removeFileFromFolder = async (userId,
+export const removeFileFromFolder = async (
+  userId,
   folderId,
   fileId,
   token,
@@ -178,12 +180,12 @@ export const removeFileFromFolder = async (userId,
     fileId,
   });
   if (response.status == 200) {
-    await fetchFolderList(userId,token, dispatch);
+    await fetchFolderList(userId, token, dispatch);
     return response.data;
   } else {
     return response.data;
   }
-}
+};
 
 export const handleFolderMove = async (
   userId,
@@ -210,7 +212,12 @@ export const handleFolderMove = async (
   }
 };
 
-export const updateUserProfile = async (userId, profileData,token, dispatch) => {
+export const updateUserProfile = async (
+  userId,
+  profileData,
+  token,
+  dispatch
+) => {
   try {
     const response = await axios.put(`${API_URL}/updateuserprofile`, {
       userId,
@@ -218,7 +225,7 @@ export const updateUserProfile = async (userId, profileData,token, dispatch) => 
     });
 
     if (response.status === 200 && response.data.success) {
-      const user = await loadUser(userId); 
+      const user = await loadUser(userId);
       dispatch(setUser(user));
       return response.data;
     } else {
@@ -226,11 +233,16 @@ export const updateUserProfile = async (userId, profileData,token, dispatch) => 
     }
   } catch (error) {
     console.error("Error updating profile:", error);
-    return { success: false, message: "An error occurred" }; 
-  } 
+    return { success: false, message: "An error occurred" };
+  }
 };
 
-export const handleProfileImageSet = async (userId, formData,token, dispatch) => {
+export const handleProfileImageSet = async (
+  userId,
+  formData,
+  token,
+  dispatch
+) => {
   try {
     const response = await axios.post(
       `${API_URL}/updateuserprofileimage`,
@@ -243,7 +255,7 @@ export const handleProfileImageSet = async (userId, formData,token, dispatch) =>
     );
 
     if (response.status == 200) {
-      const user  = await loadUser(userId)
+      const user = await loadUser(userId);
       dispatch(setUser(user));
       return response.data;
     } else {
@@ -254,7 +266,7 @@ export const handleProfileImageSet = async (userId, formData,token, dispatch) =>
   }
 };
 
-export const registerNotificationToken = async (token,userId) => {
+export const registerNotificationToken = async (token, userId) => {
   try {
     const response = await axios.post(`${API_URL}/registernotificationtoken`, {
       token,
@@ -315,6 +327,28 @@ export const getActivityLogs = async (userId, token, dispatch) => {
   }
 };
 
+export const deleteAccount = async (userId, token) => {
+  try {
+    const response = await axios.delete(`${API_URL}/delete`, {
+      data: {
+        userId,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.status === 200 && response.data.success) {
+      console.log("Account deleted successfully");
+      return response.data;
+    } else {
+      console.log("Failed to delete account");
+      return response.data;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export const changePassword = async (
   userId,
   oldPassword,
@@ -343,6 +377,21 @@ export const getStorageInfo = async (userId, token, dispatch) => {
     const response = await axios.get(`${API_URL}/storageinfo?userId=${userId}`);
     if (response.data.success) {
       dispatch(setStorageInfo(response.data.data));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getAllPlans = async (userId, token, dispatch) => {
+  try {
+    const response = await axios.get(`${API_URL}/getallplans?userId=${userId}`,{},{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.data.success) {
+      dispatch(setPlans(response.data.plans));
     }
   } catch (err) {
     console.log(err);

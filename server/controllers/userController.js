@@ -1,28 +1,28 @@
 const User = require("../models/userSchema");
 const File = require("../models/fileSchema");
 const Folder = require("../models/folderSchema");
-const Device = require("../models/deviceSchema")
-const Stock = require("../models/stockSchema")
+const Device = require("../models/deviceSchema");
+const Stock = require("../models/stockSchema");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
 const formidable = require("formidable");
 const mongoose = require("mongoose");
 const sharp = require("sharp");
-const minioClient = require("../config/minio")
+const minioClient = require("../config/minio");
 const { validateEmail, validatePassword } = require("../utils/validator");
 const generateToken = require("../utils/generateToken");
 const UserNotification = require("../models/notificationSchema");
 const ActivityLog = require("../models/activityLogsSchema");
 const RecycleBin = require("../models/recycleBinSchema");
+const Password = require("../models/passwordSchema");
+const Plan = require("../models/planSchema");
 
-
-const BUCKET_NAME = process.env.MINIO_BUCKET_NAME
+const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 
 const NodeRSA = require("node-rsa");
 
-const { generateUniqueKey, decodeUniqueKey } = require('../utils/uniqueKey');
-
+const { generateUniqueKey, decodeUniqueKey } = require("../utils/uniqueKey");
 
 const register = async (req, res) => {
   try {
@@ -30,31 +30,62 @@ const register = async (req, res) => {
 
     const { form, notificationToken } = req.body;
     if (!form) {
-      return res.status(400).json({ success: false, message: "Invalid request data." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid request data." });
     }
 
     const {
-      name, email, phone, password, confirmPassword, location, gender,
-      serialNumber = null, fingerPrint = null
+      name,
+      email,
+      phone,
+      password,
+      confirmPassword,
+      location,
+      gender,
+      serialNumber = null,
+      fingerPrint = null,
     } = form;
 
-    console.log("Extracted Data:", { name, email, phone, location, gender, serialNumber, fingerPrint, notificationToken });
+    console.log("Extracted Data:", {
+      name,
+      email,
+      phone,
+      location,
+      gender,
+      serialNumber,
+      fingerPrint,
+      notificationToken,
+    });
 
-
-    if (!name || !email || !phone || !password || !confirmPassword || !location || !gender) {
+    if (
+      !name ||
+      !email ||
+      !phone ||
+      !password ||
+      !confirmPassword ||
+      !location ||
+      !gender
+    ) {
       console.log("Validation failed: Missing fields");
-      return res.status(400).json({ success: false, message: "Please fill in all fields." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Please fill in all fields." });
     }
 
     if (password !== confirmPassword) {
       console.log("Validation failed: Passwords don't match");
-      return res.status(400).json({ success: false, message: "Passwords don't match." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Passwords don't match." });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("Validation failed: Email already in use");
-      return res.status(400).json({ success: false, message: "Email already in use." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already in use." });
     }
 
     console.log("Hashing password...");
@@ -70,14 +101,19 @@ const register = async (req, res) => {
 
       if (!existingStockDevice) {
         console.log("Validation failed: Device not found in stock");
-        return res.status(400).json({ success: false, message: "Device not found in stock." });
+        return res
+          .status(400)
+          .json({ success: false, message: "Device not found in stock." });
       }
 
       device = await Device.findOne({ serialNumber });
 
       if (device && device.owner) {
         console.log("Validation failed: Device already registered");
-        return res.status(400).json({ success: false, message: "Device is already registered to another user." });
+        return res.status(400).json({
+          success: false,
+          message: "Device is already registered to another user.",
+        });
       }
 
       if (!device) {
@@ -91,13 +127,24 @@ const register = async (req, res) => {
       }
     }
 
-    const formattedNotificationToken = typeof notificationToken === "string" ? notificationToken : JSON.stringify(notificationToken);
+    const formattedNotificationToken =
+      typeof notificationToken === "string"
+        ? notificationToken
+        : JSON.stringify(notificationToken);
+
+        const plan = await Plan.findOne({ name: "Basic" });
 
     console.log("Creating new user...");
     const user = new User({
-      name, email, phone, password: hashedPassword, location, gender,
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      location,
+      gender,
+      plan,
       device: device ? device._id : null,
-      notificationToken: formattedNotificationToken
+      notificationToken: formattedNotificationToken,
     });
 
     await user.save();
@@ -111,9 +158,12 @@ const register = async (req, res) => {
         console.log("Processing fingerprint data...");
         const { id, name } = fingerPrint;
 
-        if (device.fingerprints.some(fp => fp.id === id)) {
+        if (device.fingerprints.some((fp) => fp.id === id)) {
           console.log("Validation failed: Fingerprint ID already exists");
-          return res.status(400).json({ success: false, message: "Fingerprint ID already exists for this device." });
+          return res.status(400).json({
+            success: false,
+            message: "Fingerprint ID already exists for this device.",
+          });
         }
 
         device.fingerprints.push({ id, name, date: new Date() });
@@ -154,7 +204,9 @@ const register = async (req, res) => {
         });
       } catch (error) {
         console.error("Error generating RSA keys:", error);
-        return res.status(500).json({ success: false, message: "Error registering device." });
+        return res
+          .status(500)
+          .json({ success: false, message: "Error registering device." });
       }
     }
 
@@ -173,7 +225,9 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Error occurred:", error);
-    return res.status(500).json({ success: false, message: "Error creating user." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error creating user." });
   }
 };
 
@@ -183,59 +237,76 @@ const loginWithCredentials = async (req, res) => {
     console.log(email, password, activityLog);
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Please fill in all fields." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Please fill in all fields." });
     }
 
     const deviceName = activityLog?.deviceName || "Unknown";
     const ipAddress = activityLog?.ip || "N/A";
-    const location = activityLog?.location || { district: "N/A", region: "N/A", country: "N/A" };
+    const location = activityLog?.location || {
+      district: "N/A",
+      region: "N/A",
+      country: "N/A",
+    };
     const latitude = location.latitude ?? null;
     const longitude = location.longitude ?? null;
 
-
     const user = await User.findOne({ email });
 
-
     if (!user) {
-      return res.status(400).json({ success: false, message: "User not found." });
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found." });
     }
-
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       try {
-
         await ActivityLog.create({
           userId: user._id,
           deviceName,
           ipAddress,
-          location: { district: location.district, region: location.region, country: location.country },
+          location: {
+            district: location.district,
+            region: location.region,
+            country: location.country,
+          },
           latitude,
           longitude,
           mode: "credentials",
           status: "Failed",
         });
       } catch (logError) {
-        console.warn("Activity Log Error (Invalid Credentials):", logError.message);
+        console.warn(
+          "Activity Log Error (Invalid Credentials):",
+          logError.message
+        );
       }
 
-      return res.status(400).json({ success: false, message: "Invalid credentials." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials." });
     }
-
 
     const token = generateToken(user._id, user.name, user.email);
     if (!token) {
-      return res.status(500).json({ success: false, message: "Failed to generate token." });
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to generate token." });
     }
-
 
     try {
       await ActivityLog.create({
         userId: user._id,
         deviceName,
         ipAddress,
-        location: { district: location.district, region: location.region, country: location.country },
+        location: {
+          district: location.district,
+          region: location.region,
+          country: location.country,
+        },
         latitude,
         longitude,
         mode: "credentials",
@@ -245,28 +316,32 @@ const loginWithCredentials = async (req, res) => {
       console.warn("Activity Log Error (Successful Login):", logError.message);
     }
 
-    res.status(200).json({ success: true, message: "User logged in successfully.", token });
-
+    res
+      .status(200)
+      .json({ success: true, message: "User logged in successfully.", token });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Error logging in." });
   }
 };
 
-
-
 const loginWithFingerPrint = async (req, res) => {
   try {
     const { uniqueKeyEncrypted, serialNumber } = req.body;
 
     if (!uniqueKeyEncrypted || !serialNumber) {
-      return res.status(400).json({ success: false, message: "Missing required fields." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields." });
     }
 
     const device = await Device.findOne({ serialNumber });
 
     if (!device || !device.privateKey) {
-      return res.status(400).json({ success: false, message: "Device not found or private key missing." });
+      return res.status(400).json({
+        success: false,
+        message: "Device not found or private key missing.",
+      });
     }
 
     try {
@@ -276,9 +351,10 @@ const loginWithFingerPrint = async (req, res) => {
       const decoded = decodeUniqueKey(decryptedToken);
 
       if (!decoded || !decoded.userId) {
-        return res.status(400).json({ success: false, message: "Invalid token." });
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid token." });
       }
-
 
       const token = generateToken(decoded.userId, decoded.name, decoded.email);
 
@@ -290,65 +366,69 @@ const loginWithFingerPrint = async (req, res) => {
       });
     } catch (err) {
       console.error("Decryption or token verification failed:", err);
-      return res.status(400).json({ success: false, message: "Failed to authenticate." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Failed to authenticate." });
     }
   } catch (error) {
     console.error("Error in loginWithFingerPrint:", error);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 };
-
-
 
 const getUser = async (req, res) => {
   try {
     const userId = req.query.userId;
 
-
     if (!userId) {
-      return res.status(400).json({ success: false, message: "UserId is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "UserId is required." });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ success: false, message: "Invalid userId format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid userId format." });
     }
-
 
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found." });
     }
 
-
     if (user.profile) {
-
       try {
-
-        const profileStream = await minioClient.getObject(BUCKET_NAME, user.profile);
-
+        const profileStream = await minioClient.getObject(
+          BUCKET_NAME,
+          user.profile
+        );
 
         const imageBuffer = await new Promise((resolve, reject) => {
           const chunks = [];
-          profileStream.on('data', (chunk) => chunks.push(chunk));
-          profileStream.on('end', () => resolve(Buffer.concat(chunks)));
-          profileStream.on('error', (err) => reject(err));
+          profileStream.on("data", (chunk) => chunks.push(chunk));
+          profileStream.on("end", () => resolve(Buffer.concat(chunks)));
+          profileStream.on("error", (err) => reject(err));
         });
-
 
         const compressedImageBuffer = await sharp(imageBuffer)
           .resize({ width: 500 })
           .webp({ quality: 100 })
           .toBuffer();
 
-
-        user.profile = `data:image/webp;base64,${compressedImageBuffer.toString("base64")}`;
+        user.profile = `data:image/webp;base64,${compressedImageBuffer.toString(
+          "base64"
+        )}`;
       } catch (err) {
         console.error("Error fetching profile image from MinIO:", err.message);
         user.profile = null;
       }
     }
-
 
     res.status(200).json({
       success: true,
@@ -361,59 +441,35 @@ const getUser = async (req, res) => {
   }
 };
 
-
 const updateProfile = async (req, res) => {
   try {
     const { userId, profileData } = req.body;
-    console.log(userId, profileData)
+    console.log(userId, profileData);
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-
 
     user.name = profileData.name || user.name;
     user.email = profileData.email || user.email;
     user.phone = profileData.phone || user.phone;
-    user.gender = profileData.gender || user.gender; 
+    user.gender = profileData.gender || user.gender;
     user.location = profileData.location || user.location;
- 
 
     await user.save();
- 
 
     return res.status(200).json({
       success: true,
-      message: 'Profile updated successfully',
-      data: user
+      message: "Profile updated successfully",
+      data: user,
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return res.status(500).json({ success: false, message: 'Server error' });
-  }
-}
-
-const deleteUser = async (req, res) => {
-  try {
-    const { userId } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    if (fs.existsSync(directory)) {
-      fs.rmdirSync(directory, { recursive: true });
-    }
-
-    await User.findByIdAndDelete(userId);
-
-    res.status(200).json({ message: "User deleted successfully." });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error deleting user." });
+    console.error("Error updating profile:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -423,7 +479,9 @@ const setProfile = async (req, res) => {
   form.parse(req, async (err, fields, files) => {
     if (err) {
       console.error("Error parsing form data:", err.message);
-      return res.status(500).json({ message: "Error processing profile upload" });
+      return res
+        .status(500)
+        .json({ message: "Error processing profile upload" });
     }
 
     const { userId } = fields;
@@ -441,7 +499,7 @@ const setProfile = async (req, res) => {
     }
 
     const file = files.profile;
-    const fileExtension = file.originalFilename.split('.').pop();
+    const fileExtension = file.originalFilename.split(".").pop();
     const minioPath = `${userId}/profile.${fileExtension}`;
 
     try {
@@ -461,27 +519,30 @@ const setProfile = async (req, res) => {
       fs.unlinkSync(file.filepath);
     } catch (uploadError) {
       console.error("Error uploading to MinIO:", uploadError);
-      res.status(500).json({ message: "Error uploading profile image to storage." });
+      res
+        .status(500)
+        .json({ message: "Error uploading profile image to storage." });
     }
   });
 };
 
-
 const createFolder = async (req, res) => {
   const { userId, folderName } = req.body;
 
-
   if (!userId || !folderName) {
-    return res.status(400).json({ success: false, message: "User ID and folder name are required" });
+    return res.status(400).json({
+      success: false,
+      message: "User ID and folder name are required",
+    });
   }
 
   try {
-
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-
 
     const existingFolder = await Folder.findOne({
       name: folderName.trim().toLowerCase(),
@@ -489,9 +550,10 @@ const createFolder = async (req, res) => {
     });
 
     if (existingFolder) {
-      return res.status(400).json({ success: false, message: "Folder already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Folder already exists" });
     }
-
 
     const newFolder = new Folder({
       name: folderName,
@@ -499,63 +561,67 @@ const createFolder = async (req, res) => {
       files: [],
     });
 
-
     await newFolder.save();
 
     return res.status(201).json({ success: true, folder: newFolder });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Error creating folder" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error creating folder" });
   }
 };
-
-
 
 const addFilesToFolder = async (req, res) => {
   const { userId, folderId, fileId } = req.body;
 
   try {
-
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-
 
     const folder = await Folder.findById(folderId);
     if (!folder) {
-      return res.status(404).json({ success: false, message: "Folder not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Folder not found" });
     }
-
 
     if (!folder.owner.equals(userId)) {
-      return res.status(403).json({ success: false, message: "Folder does not belong to the user" });
+      return res.status(403).json({
+        success: false,
+        message: "Folder does not belong to the user",
+      });
     }
-
 
     const file = await File.findById(fileId);
     if (!file) {
-      return res.status(404).json({ success: false, message: "File not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "File not found" });
     }
-
 
     if (folder.files.includes(fileId)) {
-      return res.status(400).json({ success: false, message: "File already in the folder" });
+      return res
+        .status(400)
+        .json({ success: false, message: "File already in the folder" });
     }
 
-
     folder.files.push(fileId);
-
 
     await folder.save();
 
     return res.status(200).json({ success: true, folder });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Error adding file to folder" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error adding file to folder" });
   }
 };
-
 
 const likeOrUnlikeFile = async (req, res) => {
   const { userId, fileId } = req.body;
@@ -564,22 +630,23 @@ const likeOrUnlikeFile = async (req, res) => {
     const file = await File.findById(fileId);
 
     if (!user || !file) {
-      return res.status(404).json({ success: false, message: "User or File not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User or File not found" });
     }
 
-
     file.isLiked = !file.isLiked;
-
 
     await file.save();
 
     return res.status(200).json({ success: true, isLiked: file.isLiked });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Error liking/unliking file" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error liking/unliking file" });
   }
 };
-
 
 const ListFolder = async (req, res) => {
   const { userId } = req.query;
@@ -591,7 +658,9 @@ const ListFolder = async (req, res) => {
     });
 
     if (!folders || folders.length === 0) {
-      return res.status(404).json({ success: false, message: "No folders found for this user" });
+      return res
+        .status(404)
+        .json({ success: false, message: "No folders found for this user" });
     }
 
     const folderDetails = await Promise.all(
@@ -607,12 +676,16 @@ const ListFolder = async (req, res) => {
                   24 * 60 * 60
                 );
               } catch (error) {
-                console.error(`Error generating presigned URL for file ${file.name}: `, error);
+                console.error(
+                  `Error generating presigned URL for file ${file.name}: `,
+                  error
+                );
               }
             }
 
-
-            const fileFolders = await Folder.find({ files: file._id }).select("name");
+            const fileFolders = await Folder.find({ files: file._id }).select(
+              "name"
+            );
 
             return {
               _id: file._id,
@@ -638,27 +711,31 @@ const ListFolder = async (req, res) => {
     return res.status(200).json({ success: true, folders: folderDetails });
   } catch (error) {
     console.error("Error fetching folders: ", error);
-    return res.status(500).json({ success: false, message: "Error fetching folders" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching folders" });
   }
 };
-
 
 const deleteFolder = async (req, res) => {
   const { userId, folderIds } = req.body;
 
   if (!userId || !folderIds) {
-    return res.status(400).json({ success: false, message: "User ID and folder ID(s) are required" });
+    return res.status(400).json({
+      success: false,
+      message: "User ID and folder ID(s) are required",
+    });
   }
 
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-
     const folderIdsArray = Array.isArray(folderIds) ? folderIds : [folderIds];
-
 
     const foldersToDelete = await Folder.find({
       _id: { $in: folderIdsArray },
@@ -666,39 +743,55 @@ const deleteFolder = async (req, res) => {
     });
 
     if (foldersToDelete.length === 0) {
-      return res.status(404).json({ success: false, message: "No folders found or they do not belong to the user" });
+      return res.status(404).json({
+        success: false,
+        message: "No folders found or they do not belong to the user",
+      });
     }
-
 
     await Folder.deleteMany({ _id: { $in: folderIdsArray } });
 
-    return res.status(200).json({ success: true, message: `${foldersToDelete.length} folder(s) deleted successfully` });
+    return res.status(200).json({
+      success: true,
+      message: `${foldersToDelete.length} folder(s) deleted successfully`,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Error deleting folder(s)" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Error deleting folder(s)" });
   }
 };
 
 const removeFileFromFolder = async (req, res) => {
   const { userId, folderId, fileId } = req.body;
 
-  if (!userId || !folderId || !fileId) { 
-    return res.status(400).json({ success: false, message: "User ID, Folder ID, and File ID are required" });
+  if (!userId || !folderId || !fileId) {
+    return res.status(400).json({
+      success: false,
+      message: "User ID, Folder ID, and File ID are required",
+    });
   }
 
-  try { 
+  try {
     const folder = await Folder.findById(folderId);
 
     if (!folder) {
-      return res.status(404).json({ success: false, message: "Folder not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Folder not found" });
     }
 
     if (!folder.files.includes(fileId.toString())) {
-      return res.status(400).json({ success: false, message: "File not found in the folder" });
+      return res
+        .status(400)
+        .json({ success: false, message: "File not found in the folder" });
     }
 
-    folder.files = folder.files.filter((id) => id.toString() !== fileId.toString());
-    await folder.save(); 
+    folder.files = folder.files.filter(
+      (id) => id.toString() !== fileId.toString()
+    );
+    await folder.save();
 
     return res.status(200).json({
       success: true,
@@ -706,7 +799,9 @@ const removeFileFromFolder = async (req, res) => {
     });
   } catch (error) {
     console.error("Error removing file:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -715,9 +810,10 @@ const renameFolder = async (req, res) => {
     const { userId, folderId, newFolderName } = req.body;
 
     if (!userId || !folderId || !newFolderName) {
-      return res.status(400).json({ success: false, message: "Missing required fields." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields." });
     }
-
 
     const folder = await Folder.findOneAndUpdate(
       { _id: folderId, owner: userId },
@@ -726,10 +822,14 @@ const renameFolder = async (req, res) => {
     );
 
     if (!folder) {
-      return res.status(404).json({ success: false, message: "Folder not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Folder not found." });
     }
 
-    res.status(200).json({ success: true, message: "Folder renamed successfully", folder });
+    res
+      .status(200)
+      .json({ success: true, message: "Folder renamed successfully", folder });
   } catch (error) {
     console.error("Error renaming folder:", error);
     res.status(500).json({ success: false, message: "Internal server error." });
@@ -759,7 +859,9 @@ const listLiked = async (req, res) => {
     );
 
     if (!likedFiles || likedFiles.length === 0) {
-      return res.status(200).json({ message: "No liked files found", files: [] });
+      return res
+        .status(200)
+        .json({ message: "No liked files found", files: [] });
     }
 
     const processedFiles = await Promise.all(
@@ -767,12 +869,18 @@ const listLiked = async (req, res) => {
         let preSignedThumbnailUrl = null;
         if (file.thumbnail) {
           try {
-            preSignedThumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 60 * 60);
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(
+              BUCKET_NAME,
+              file.thumbnail,
+              60 * 60
+            );
           } catch (err) {
-            console.warn(`Thumbnail not found or error fetching for file ${file.name}:`, err.message);
+            console.warn(
+              `Thumbnail not found or error fetching for file ${file.name}:`,
+              err.message
+            );
           }
         }
-
 
         const folders = await Folder.find({ files: file._id }).select("name");
 
@@ -784,7 +892,7 @@ const listLiked = async (req, res) => {
           createdAt: file.createdAt,
           isLiked: file.isLiked,
           thumbnail: preSignedThumbnailUrl,
-          folders: folders.map(folder => folder.name),
+          folders: folders.map((folder) => folder.name),
         };
       })
     );
@@ -804,7 +912,9 @@ const updateProfileImage = async (req, res) => {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      return res.status(400).json({ success: false, message: "Error parsing form data" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Error parsing form data" });
     }
 
     const { userId } = fields;
@@ -812,16 +922,22 @@ const updateProfileImage = async (req, res) => {
     try {
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
 
       if (!files?.profileImage) {
-        return res.status(400).json({ success: false, message: 'No image uploaded' });
+        return res
+          .status(400)
+          .json({ success: false, message: "No image uploaded" });
       }
 
-      const profileImage = Array.isArray(files.profileImage) ? files.profileImage[0] : files.profileImage;
+      const profileImage = Array.isArray(files.profileImage)
+        ? files.profileImage[0]
+        : files.profileImage;
       const fileExtension = profileImage.originalFilename
-        ? profileImage.originalFilename.split('.').pop()
+        ? profileImage.originalFilename.split(".").pop()
         : "png";
 
       const fileName = `profile.${fileExtension}`;
@@ -829,11 +945,16 @@ const updateProfileImage = async (req, res) => {
 
       const filePath = profileImage.filepath;
       if (!filePath) {
-        return res.status(400).json({ success: false, message: "File path is missing" });
+        return res
+          .status(400)
+          .json({ success: false, message: "File path is missing" });
       }
 
       if (!fs.existsSync(filePath)) {
-        return res.status(400).json({ success: false, message: "File not found at the specified path" });
+        return res.status(400).json({
+          success: false,
+          message: "File not found at the specified path",
+        });
       }
 
       const fileStream = fs.createReadStream(filePath);
@@ -846,7 +967,7 @@ const updateProfileImage = async (req, res) => {
           if (err) {
             return res.status(500).json({
               success: false,
-              message: 'Error uploading image to MinIO',
+              message: "Error uploading image to MinIO",
             });
           }
 
@@ -881,41 +1002,49 @@ const getUserNotifications = async (req, res) => {
 
     res.json({ success: true, notifications: userNotifications.notifications });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error fetching notifications", error });
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching notifications", error });
   }
 };
-
 
 const clearNotifications = async (req, res) => {
   try {
     const { userId, notificationId, isAll = false } = req.body;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
     }
 
     let result;
 
     if (isAll) {
-
       result = await UserNotification.updateOne(
         { userId },
         { $set: { notifications: [] } }
       );
     } else if (notificationId) {
-
       result = await UserNotification.updateOne(
         { userId },
         { $pull: { notifications: { _id: notificationId } } }
       );
     } else {
-      return res.status(400).json({ success: false, message: "Specify notificationId or set isAll to true" });
+      return res.status(400).json({
+        success: false,
+        message: "Specify notificationId or set isAll to true",
+      });
     }
 
-    return res.status(200).json({ success: true, message: "Notification(s) deleted", result });
+    return res
+      .status(200)
+      .json({ success: true, message: "Notification(s) deleted", result });
   } catch (error) {
     console.error("Error clearing notifications:", error);
-    return res.status(500).json({ success: false, message: "Server error", error });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error });
   }
 };
 
@@ -924,13 +1053,16 @@ const getActivityLogs = async (req, res) => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
     }
 
     const logs = await ActivityLog.find({ userId }).sort({ date: -1 });
 
-    return res.status(200).json({ success: true, logs: logs.length > 0 ? logs : [] });
-
+    return res
+      .status(200)
+      .json({ success: true, logs: logs.length > 0 ? logs : [] });
   } catch (err) {
     console.error("Error fetching activity logs:", err);
     return res.status(500).json({
@@ -943,35 +1075,38 @@ const getActivityLogs = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-    console.log("first")
+    console.log("first");
     const { userId, oldPassword, newPassword } = req.body;
     console.log(userId, oldPassword, newPassword);
 
-
     const user = await User.findOne({ _id: userId });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: "Old password is incorrect" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Old password is incorrect" });
     }
-
 
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-
     user.password = hashedPassword;
     await user.save();
 
-    return res.status(200).json({ success: true, message: "Password changed successfully" });
-
+    return res
+      .status(200)
+      .json({ success: true, message: "Password changed successfully" });
   } catch (err) {
     console.error("Error changing password:", err);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -980,20 +1115,22 @@ const storageInfo = async (req, res) => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
     }
 
     const user = await User.findOne({ _id: userId });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const files = await File.find({ owner: userId });
 
-
     const deletedFiles = await RecycleBin.find({ owner: userId });
-
 
     const storage = {
       images: 0,
@@ -1003,27 +1140,27 @@ const storageInfo = async (req, res) => {
       recycleBin: 0,
     };
 
-
     files.forEach((file) => {
       storage[file.type] = (storage[file.type] || 0) + file.size;
     });
-
 
     deletedFiles.forEach((file) => {
       storage.recycleBin += file.size;
     });
 
-
-    const totalSpaceBytes = user.totalSpace
-    const usedSpaceBytes = Object.values(storage).reduce((acc, size) => acc + size, 0);
+    const totalSpaceBytes = user.totalSpace;
+    const usedSpaceBytes = Object.values(storage).reduce(
+      (acc, size) => acc + size,
+      0
+    );
 
     return res.json({
       success: true,
       data: {
         storage,
         usedSpaceBytes,
-        totalSpaceBytes
-      }
+        totalSpaceBytes,
+      },
     });
   } catch (error) {
     console.error("Error fetching storage info:", error);
@@ -1031,6 +1168,70 @@ const storageInfo = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    await User.deleteOne({ _id: userId });
+    await File.deleteMany({ owner: userId });
+    await Password.deleteMany({ owner: userId });
+    await Folder.deleteMany({ owner: userId });
+    await RecycleBin.deleteMany({ owner: userId });
+    await ActivityLog.deleteMany({ userId });
+    await UserNotification.deleteMany({ userId });
+
+    return res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const getAllPlans = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if(!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+    const user = await User.findById({ _id: userId });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+
+    const plans = await Plan.find({});
+
+    if (!plans.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No plans available.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Plans retrieved successfully",
+      plans,
+    });
+  } catch (error) {
+    console.error("Error fetching plans:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch plans",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   register,
@@ -1053,5 +1254,6 @@ module.exports = {
   getActivityLogs,
   changePassword,
   storageInfo,
-  removeFileFromFolder
+  removeFileFromFolder,
+  getAllPlans,
 };

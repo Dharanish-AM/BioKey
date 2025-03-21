@@ -3,5 +3,6 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 
 router.post("/send-push-notification", adminController.sendPushNotifications)
+router.post("/create-plan", adminController.createPlan)
 
-module.exports = router  
+module.exports = router      

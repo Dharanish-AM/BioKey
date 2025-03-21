@@ -7,13 +7,14 @@ const mime = require("mime-types");
 const os = require("os");
 const { exec } = require('child_process');
 const { v4: uuidv4 } = require("uuid"); 
+ffmpeg.setFfmpegPath("/opt/homebrew/bin/ffmpeg");
 
 
 const getFileCategory = (filename) => {
     const mimeType = mime.lookup(filename);
     if (!mimeType) return "others";
 
-    if (mimeType.startsWith("image/")) return "images";
+    if (mimeType.startsWith("image/")) return "images"; 
     if (mimeType.startsWith("video/")) return "videos";
     if (mimeType.startsWith("audio/")) return "audios";
 

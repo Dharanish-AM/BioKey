@@ -377,12 +377,12 @@ const updateProfile = async (req, res) => {
     user.name = profileData.name || user.name;
     user.email = profileData.email || user.email;
     user.phone = profileData.phone || user.phone;
-    user.gender = profileData.gender || user.gender;
+    user.gender = profileData.gender || user.gender; 
     user.location = profileData.location || user.location;
-
+ 
 
     await user.save();
-
+ 
 
     return res.status(200).json({
       success: true,
@@ -682,11 +682,11 @@ const deleteFolder = async (req, res) => {
 const removeFileFromFolder = async (req, res) => {
   const { userId, folderId, fileId } = req.body;
 
-  if (!userId || !folderId || !fileId) {
+  if (!userId || !folderId || !fileId) { 
     return res.status(400).json({ success: false, message: "User ID, Folder ID, and File ID are required" });
   }
 
-  try {
+  try { 
     const folder = await Folder.findById(folderId);
 
     if (!folder) {
@@ -698,7 +698,7 @@ const removeFileFromFolder = async (req, res) => {
     }
 
     folder.files = folder.files.filter((id) => id.toString() !== fileId.toString());
-    await folder.save();
+    await folder.save(); 
 
     return res.status(200).json({
       success: true,

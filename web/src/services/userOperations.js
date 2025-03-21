@@ -218,7 +218,7 @@ export const updateUserProfile = async (userId, profileData,token, dispatch) => 
     });
 
     if (response.status === 200 && response.data.success) {
-      const user = await loadUser(userId);
+      const user = await loadUser(userId); 
       dispatch(setUser(user));
       return response.data;
     } else {
@@ -226,8 +226,8 @@ export const updateUserProfile = async (userId, profileData,token, dispatch) => 
     }
   } catch (error) {
     console.error("Error updating profile:", error);
-    return { success: false, message: "An error occurred" };
-  }
+    return { success: false, message: "An error occurred" }; 
+  } 
 };
 
 export const handleProfileImageSet = async (userId, formData,token, dispatch) => {

@@ -231,7 +231,7 @@
   border-radius: 10px;
 }
 
-.no-recent-files{
+.no-recent-files {
   font-size: 1.1rem;
   font-style: italic;
   align-self: center;
@@ -272,6 +272,16 @@
   width: 2.5rem;
 }
 
+.video-list-item-video-container-recent{
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .recent-file-more-options {
   position: absolute;
   background-color: var(--secondary-color1);
@@ -306,7 +316,7 @@
 .recent-file-icon {
   width: 100%;
   aspect-ratio: 1;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 5px;
 }
 

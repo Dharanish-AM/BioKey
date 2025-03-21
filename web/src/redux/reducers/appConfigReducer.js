@@ -10,12 +10,12 @@ const initialState = {
     audiosScreen: true,
     othersScreen: true,
     passwordsScreen: true,
-    filePreviewScreen: true,
+    filePreviewScreen: true, 
     favouritesScreen: true,
     folderPreviewScreen: true,
     recycleBinScreen: true
   },
-  API_IP: "biokey.ddns.net:8000",
+  API_IP: "192.168.1.2:8000",
   version: "1.0"
 };
 

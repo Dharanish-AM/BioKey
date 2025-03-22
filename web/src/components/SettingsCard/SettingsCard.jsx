@@ -22,6 +22,10 @@ export default function SettingsCard({ onClose }) {
                 className="back-icon"
                 size={"1.8rem"}
                 onClick={onClose}
+                style={{
+                  cursor: "pointer",
+
+                }}
               />
               <div className="settings-title">Settings</div>
             </div>

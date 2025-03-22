@@ -4,50 +4,58 @@ import { useGLTF, Environment, SpotLight } from "@react-three/drei";
 import "./ManageDevice.css";
 
 export default function ManageDevice() {
-  const device = { id: "DVC-001", name: "Biokey-Alpha", status: "Active" };
+  const device = { id: "DVC-001", name: "FINGY", status: "Active" };
 
   return (
     <div className="manage-device-container">
-      <h2 className="manage-device-title">Manage Device</h2>
-    <div className="manage-device-container-info" >  
-    <div className="manage-device-fingy">
-        <Canvas
-          camera={{ position: [0, 3, 5], fov: 40 }}
-          shadows
-          gl={{ antialias: true }}
-          style={{
-            width: "20rem",
-            height: "20rem",
-            backgroundColor: "transparent",
-          }}
+      <div className="manage-device-title">Manage Device</div>
+      <div className="manage-device-container-info">
+        <div className="manage-device-fingy">
+          <Canvas
+            camera={{ position: [0, 3, 5], fov: 40 }}
+            shadows
+            gl={{ antialias: true }}
+            style={{
+              width: "20rem",
+              height: "20rem",
+              backgroundColor: "transparent",
+            }}
+          >
+            <Environment preset="city" />
+            <Fingy />
+          </Canvas>
+        </div>
 
-        >
-          <Environment preset="city" />
-          <Fingy />
-        </Canvas>
+        <div className="manage-device-info">
+          <div className="manage-device-info-row">
+            <div className="manage-device-info-label">Device ID:</div>
+            <div className="manage-device-info-value">{device.id}</div>
+          </div>
+          <div className="manage-device-info-row">
+            <div className="manage-device-info-label">Device Name:</div>
+            <div className="manage-device-info-value">{device.name}</div>
+          </div>
+          <div className="manage-device-info-row">
+            <div className="manage-device-info-label">Status:</div>
+            <div className="manage-device-info-value">{device.status}</div>
+          </div>
+        </div>
+        <div className="manage-device-actions">
+          <button className="manage-device-action-button">Edit Name</button>
+          <button className="manage-device-action-button unlink">Unlink Device</button>
+        </div>
       </div>
-
-      <div className="manage-device-info">
-        <p className="device-name">{device.name}</p>
-        <p className="device-id">ID: {device.id}</p>
-        <p className={`device-status ${device.status.toLowerCase()}`}>
-          Status: {device.status}
-        </p>
-      </div>
-    </div>
     </div>
   );
 }
 
-// 3D Model Component with Auto-Rotate (All Directions)
 function Fingy() {
   const { scene } = useGLTF("/fingy.glb");
   const modelRef = useRef();
 
   useFrame(() => {
     if (modelRef.current) {
-     
-      modelRef.current.rotation.y += 0.008; 
+      modelRef.current.rotation.y += 0.008;
     }
   });
 

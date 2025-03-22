@@ -16,7 +16,7 @@ const initialState = {
     recycleBinScreen: true
   },
   plans:null,
-  API_IP: "172.17.27.217:8000",
+  API_IP: "172.17.4.108:8000",
   version: "1.0"
 };
 

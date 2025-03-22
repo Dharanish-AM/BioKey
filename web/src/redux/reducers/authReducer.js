@@ -12,7 +12,7 @@ export function authReducer(state = initialState, action) {
         ...state,
         isAuthenticated: action.payload.isAuthenticated,
         token: action.payload.token
-      };
+      }; 
     default:
       return state;
   }

@@ -6,11 +6,11 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import AntDesign from '@expo/vector-icons/AntDesign';
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { useSelector } from "react-redux";
 
 export default function SettingsScreen({ navigation }) {
-  const version = useSelector((state) => state.appConfig.version)
+  const version = useSelector((state) => state.appConfig.version);
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
       <View style={styles.innerContainer}>
@@ -20,19 +20,25 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.content}>
           <View style={styles.settingsOptions}>
             {options.map((option, index) => (
-              <TouchableOpacity onPress={() => {
-                if (option == "Support") {
-                  navigation.navigate('Support')
-                }
-                else if (option == "App Preferences") {
-                  navigation.navigate('AppPreferences')
-                }
-                else if (option == "Security & Privacy") {
-                  navigation.navigate('SecurityPrivacy')
-                }
-              }} key={index} style={styles.option}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (option == "Support") {
+                    navigation.navigate("Support");
+                  } else if (option == "App Preferences") {
+                    navigation.navigate("AppPreferences");
+                  } else if (option == "Security & Privacy") {
+                    navigation.navigate("SecurityPrivacy");
+                  }
+                }}
+                key={index}
+                style={styles.option}
+              >
                 <Text style={styles.text}>{option}</Text>
-                <AntDesign name="right" size={hp("2.5%")} color={colors.textColor2} />
+                <AntDesign
+                  name="right"
+                  size={hp("2.5%")}
+                  color={colors.textColor2}
+                />
               </TouchableOpacity>
             ))}
           </View>
@@ -43,11 +49,7 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
-const options = [
-  "App Preferences",
-  "Security & Privacy",
-  "Support"
-];
+const options = ["App Preferences", "Security & Privacy", "Support"];
 
 const styles = StyleSheet.create({
   container: {
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     alignItems: "center",
     paddingHorizontal: wp("5%"),
-    marginBottom: hp("3%")
+    marginBottom: hp("3%"),
   },
   title: {
     fontSize: hp("4%"),
@@ -79,14 +81,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   settingsOptions: {
-    gap: hp("3%")
+    gap: hp("3%"),
   },
   option: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: hp("2%"),
-
   },
   text: {
     fontSize: hp("2.5%"),
@@ -98,6 +99,6 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Regular",
     fontSize: hp("2.2%"),
     alignSelf: "center",
-    marginBottom: hp("2%")
-  }
+    marginBottom: hp("2%"),
+  },
 });

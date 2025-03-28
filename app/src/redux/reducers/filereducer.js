@@ -6,7 +6,7 @@ import {
   SET_TAB_BAR_VISIBLE,
   UPDATE_FILE_LIKE_STATUS,
   SET_ALL_FILES_METADATA,
-  SET_RECYCLE_BIN_FILES
+  SET_RECYCLE_BIN_FILES,
 } from "../types";
 
 const initialState = {
@@ -24,7 +24,7 @@ const initialState = {
   filteredFiles: [],
   likedFiles: [],
   allFilesMetadata: [],
-  recycleBinFiles: []
+  recycleBinFiles: [],
 };
 
 const fileReducer = (state = initialState, action) => {
@@ -101,17 +101,15 @@ const fileReducer = (state = initialState, action) => {
       const { fileId, isLiked, type } = action.payload;
 
       const updateFiles = (files) => {
-        return files.map(file =>
-          file._id === fileId ? { ...file, isLiked } : file
+        return files.map((file) =>
+          file._id === fileId ? { ...file, isLiked } : file,
         );
       };
 
-
       const updatedTypeFiles = updateFiles(state[type]);
 
-
-      const updatedRecents = state.recents.map(file =>
-        file._id === fileId ? { ...file, isLiked } : file
+      const updatedRecents = state.recents.map((file) =>
+        file._id === fileId ? { ...file, isLiked } : file,
       );
 
       return {
@@ -123,19 +121,19 @@ const fileReducer = (state = initialState, action) => {
     case FETCH_LIKED_FILES:
       return {
         ...state,
-        likedFiles: action.payload
+        likedFiles: action.payload,
       };
 
     case SET_ALL_FILES_METADATA:
       return {
         ...state,
-        allFilesMetadata: action.payload
-      }
+        allFilesMetadata: action.payload,
+      };
     case SET_RECYCLE_BIN_FILES:
       return {
         ...state,
-        recycleBinFiles: action.payload
-      }
+        recycleBinFiles: action.payload,
+      };
     default:
       return state;
   }

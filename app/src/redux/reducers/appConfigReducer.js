@@ -1,4 +1,3 @@
-
 import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER } from "../types";
 
 const initialState = {
@@ -13,10 +12,10 @@ const initialState = {
     filePreviewScreen: true,
     favouritesScreen: true,
     folderPreviewScreen: true,
-    recycleBinScreen: true
+    recycleBinScreen: true,
   },
   API_IP: "biokey.ddns.net:8000",
-  version: "1.0"
+  version: "1.0",
 };
 
 export const appConfigReducer = (state = initialState, action) => {

@@ -52,7 +52,7 @@ export default function Home() {
     getRecentFiles();
     getUsedSpace();
     fetchAllfilesMetaData();
-    getAllUserPlans()
+    getAllUserPlans();
   }, []);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function Home() {
 
   const getAllUserPlans = async () => {
     await getAllPlans(userId, token, dispatch);
-  }
+  };
 
   const getUsedSpace = async () => {
     await fetchUsedSpace(userId, token, dispatch);
@@ -94,7 +94,7 @@ export default function Home() {
         userId,
         selectedFiles,
         token,
-        dispatch
+        dispatch,
       );
 
       if (response.success) {

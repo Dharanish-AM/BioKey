@@ -36,7 +36,7 @@ const fileReducer = (state = initialState, action) => {
     case FETCH_FILES_REQUEST:
       return {
         ...state,
-        [action.payload.type]: [...action.payload.files], 
+        [action.payload.type]: [...action.payload.files],
       };
 
     case FETCH_USED_SPACE:
@@ -80,11 +80,11 @@ const fileReducer = (state = initialState, action) => {
     case UPDATE_FILE_LIKE_STATUS: {
       const { fileId, isLiked, type } = action.payload;
 
-      if (!state[type]) return state; 
+      if (!state[type]) return state;
 
       const updateFiles = (files) =>
         files.map((file) =>
-          file._id === fileId ? { ...file, isLiked } : file
+          file._id === fileId ? { ...file, isLiked } : file,
         );
 
       return {

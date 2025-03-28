@@ -19,8 +19,6 @@ import ManageDevice from "../screens/main/drawer/ManageDevice";
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
-
-
   return (
     <Drawer.Navigator
       initialRouteName="TabNavigator"

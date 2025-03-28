@@ -60,10 +60,10 @@ export default function OthersScreen({ navigation }) {
     (state) => ({
       others: state.files.others,
     }),
-    shallowEqual
+    shallowEqual,
   );
   const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.othersScreen
+    (state) => state.appConfig.isFirstRender.othersScreen,
   );
 
   const fetchData = async () => {
@@ -89,7 +89,7 @@ export default function OthersScreen({ navigation }) {
   useEffect(() => {
     if (searchTerm) {
       const filteredData = others.filter((other) =>
-        other.name.toLowerCase().includes(searchTerm.toLowerCase())
+        other.name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
       setFilteredothers(filteredData);
     } else {
@@ -97,11 +97,9 @@ export default function OthersScreen({ navigation }) {
     }
   }, [others, searchTerm]);
 
-
-
   const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      file
+      file,
     });
   };
 
@@ -155,7 +153,7 @@ export default function OthersScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = others.filter((other) =>
-      other.name.toLowerCase().includes(text.toLowerCase())
+      other.name.toLowerCase().includes(text.toLowerCase()),
     );
     setFilteredothers(filteredData);
   };
@@ -178,7 +176,7 @@ export default function OthersScreen({ navigation }) {
         Alert.alert(
           "No Selection",
           "Please select valid media files to upload.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
         setIsUploading(false);
         return;
@@ -211,27 +209,32 @@ export default function OthersScreen({ navigation }) {
               onPress: async () => {
                 setIsUploading(true);
 
-
-                const uploadResponse = await uploadMedia(userId, files, dispatch);
+                const uploadResponse = await uploadMedia(
+                  userId,
+                  files,
+                  dispatch,
+                );
 
                 if (uploadResponse.success) {
                   console.log(
-                    `${category.charAt(0).toUpperCase() + category.slice(1)
-                    } uploaded successfully`
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    } uploaded successfully`,
                   );
                   Toast.show({
-                    type: 'success',
+                    type: "success",
                     text1: `File uploaded successfully!`,
                     text2: `Total files: ${files.length}.`,
                   });
                 } else {
                   console.error(
-                    `${category.charAt(0).toUpperCase() + category.slice(1)
+                    `${
+                      category.charAt(0).toUpperCase() + category.slice(1)
                     } upload failed:`,
-                    uploadResponse.message
+                    uploadResponse.message,
                   );
                   Toast.show({
-                    type: 'error',
+                    type: "error",
                     text1: "Upload Failed",
                     text2: uploadResponse.message || "Unknown error occurred.",
                   });
@@ -242,20 +245,20 @@ export default function OthersScreen({ navigation }) {
                 console.log("Upload finished...");
               },
             },
-          ]
+          ],
         );
       } else {
         console.log("No files selected or invalid data");
         Alert.alert(
           "No Selection",
           "Please select valid media files to upload.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     } catch (error) {
       console.error(
         "An error occurred during the media picking or upload process:",
-        error
+        error,
       );
     } finally {
       setIsUploading(false);
@@ -419,14 +422,18 @@ export default function OthersScreen({ navigation }) {
               }
               ListEmptyComponent={() => {
                 return (
-                  <Text style={{
-                    fontSize: hp("2.5%"),
-                    color: colors.textColor2,
-                    fontFamily: "Afacad-Italic",
-                    alignSelf: "center",
-                    marginTop:hp("35%")
-                  }}>No files found, try adding!</Text>
-                )
+                  <Text
+                    style={{
+                      fontSize: hp("2.5%"),
+                      color: colors.textColor2,
+                      fontFamily: "Afacad-Italic",
+                      alignSelf: "center",
+                      marginTop: hp("35%"),
+                    }}
+                  >
+                    No files found, try adding!
+                  </Text>
+                );
               }}
             />
           )}
@@ -469,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: wp("8%"),
     justifyContent: "center",
-    marginRight: wp("1%")
+    marginRight: wp("1%"),
   },
   backIcon: {
     width: wp("5%"),
@@ -493,7 +500,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
-    marginRight: wp("2%")
+    marginRight: wp("2%"),
   },
   searchIcon: {
     width: "100%",

@@ -1,56 +1,55 @@
 const mongoose = require("mongoose");
 
 const recycleBinSchema = new mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: true,
-        },
-        originalPath: {
-            type: String,
-            required: true,
-        },
-        type: {
-            type: String,
-            required: true,
-            enum: ["images", "videos", "audios", "others"],
-        },
-        thumbnail: {
-            type: String,
-            default: null,
-        },
-        size: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-        owner: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        deletedAt: {
-            type: Date,
-            default: Date.now,
-        },
-        expiresAt: {
-            type: Date,
-            required: true,
-        },
-        createdAt: {
-            type: Date,
-            default: true
-        },
-        isLiked: {
-            type: Boolean,
-            default: false
-        }
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    {
-        timestamps: true,
-    }
+    originalPath: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ["images", "videos", "audios", "others"],
+    },
+    thumbnail: {
+      type: String,
+      default: null,
+    },
+    size: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: true,
+    },
+    isLiked: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  },
 );
-
 
 recycleBinSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

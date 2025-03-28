@@ -7,11 +7,11 @@ import { authReducer } from "./reducers/authReducer";
 
 const store = configureStore({
   reducer: {
-    auth:authReducer,
+    auth: authReducer,
     files: fileReducer,
     appConfig: appConfigReducer,
     user: userReducer,
-    passwords: passwordReducer
+    passwords: passwordReducer,
   },
 });
 

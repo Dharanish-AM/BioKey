@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { X } from "lucide-react";
 import "./AddPassword.css";
@@ -39,7 +38,7 @@ export default function AddPassword({ onClose }) {
       formData.password,
       formData.website,
       formData.note,
-      dispatch
+      dispatch,
     );
 
     if (response.success) {
@@ -63,14 +62,17 @@ export default function AddPassword({ onClose }) {
       <div className="add-password-container">
         <div className="add-password-header">
           <div className="add-password-title">Add New Password</div>
-          <X style={{
-            cursor:"pointer"
-          }} onClick={onClose} className="close-icon" />
+          <X
+            style={{
+              cursor: "pointer",
+            }}
+            onClick={onClose}
+            className="close-icon"
+          />
         </div>
 
         <form className="add-password-form" onSubmit={handleSubmit}>
-        <div className="add-password-group">
-            
+          <div className="add-password-group">
             <label className="add-password-label">Name</label>
             <input
               className="add-password-input"
@@ -83,7 +85,6 @@ export default function AddPassword({ onClose }) {
             />
           </div>
           <div className="add-password-group">
-
             <label className="add-password-label">Website</label>
             <input
               className="add-password-input"
@@ -117,7 +118,6 @@ export default function AddPassword({ onClose }) {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter email"
-
             />
           </div>
 

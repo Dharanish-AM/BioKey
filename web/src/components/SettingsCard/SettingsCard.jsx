@@ -24,7 +24,6 @@ export default function SettingsCard({ onClose }) {
                 onClick={onClose}
                 style={{
                   cursor: "pointer",
-
                 }}
               />
               <div className="settings-title">Settings</div>

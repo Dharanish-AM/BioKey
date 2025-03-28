@@ -7,7 +7,7 @@ const generateToken = (userId, name, email) => {
   }
 
   const issuedAt = Math.floor(Date.now() / 1000);
-  const expiresIn = 24 * 60 * 60; 
+  const expiresIn = 24 * 60 * 60;
 
   const payload = {
     userId,
@@ -16,7 +16,6 @@ const generateToken = (userId, name, email) => {
     iat: issuedAt,
     exp: issuedAt + expiresIn,
   };
-
 
   const token = jwt.sign(payload, process.env.JWT_SECRET);
 

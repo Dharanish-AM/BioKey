@@ -18,7 +18,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import * as Clipboard from "expo-clipboard";
-import PullToRefresh from 'react-native-pull-to-refresh';
+import PullToRefresh from "react-native-pull-to-refresh";
 
 import BackIcon from "../../../assets/images/back_icon.png";
 import EyeIcon from "../../../assets/images/eye.png";
@@ -27,10 +27,15 @@ import EditIcon from "../../../assets/images/pencil.png";
 import LinkIcon from "../../../assets/images/link.png";
 import BinIcon from "../../../assets/images/trash_bottom_icon.png";
 import { useDispatch } from "react-redux";
-import { deletePassword, getPassword, getPasswordBreachStatus, handlePasswordUpdate } from "../../../services/passwordOperations";
+import {
+  deletePassword,
+  getPassword,
+  getPasswordBreachStatus,
+  handlePasswordUpdate,
+} from "../../../services/passwordOperations";
 import { useSelector } from "react-redux";
-import LottieView from "lottie-react-native"
-import Feather from '@expo/vector-icons/Feather';
+import LottieView from "lottie-react-native";
+import Feather from "@expo/vector-icons/Feather";
 import NotBreachedAnimation from "../../../assets/animations/safe-notbreached.json";
 import BreachedAnimation from "../../../assets/animations/breached.json";
 import Toast from "react-native-toast-message";
@@ -83,24 +88,42 @@ export default function PasswordPreview({ navigation, route }) {
       const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (email.trim() !== passwordData.email) {
         if (!emailPattern.test(email.trim())) {
-          Alert.alert("Invalid Email", "Please enter a valid email address.", [{ text: "OK" }]);
+          Alert.alert("Invalid Email", "Please enter a valid email address.", [
+            { text: "OK" },
+          ]);
           return;
         }
         changes.email = email.trim();
       }
 
-      if (username.trim() !== passwordData.userName) changes.userName = username.trim();
-      if (password.trim() !== passwordData.password) changes.password = password.trim();
-      if (website.trim() !== passwordData.website) changes.website = website.trim();
+      if (username.trim() !== passwordData.userName)
+        changes.userName = username.trim();
+      if (password.trim() !== passwordData.password)
+        changes.password = password.trim();
+      if (website.trim() !== passwordData.website)
+        changes.website = website.trim();
       if (note.trim() !== passwordData.note) changes.note = note.trim();
 
       if (Object.keys(changes).length > 0) {
-        const response = await handlePasswordUpdate(userId, passwordId, changes, dispatch);
+        const response = await handlePasswordUpdate(
+          userId,
+          passwordId,
+          changes,
+          dispatch,
+        );
         if (response.status) {
           await fetchPassword();
-          Alert.alert("Success", response.message || "Password updated successfully", [{ text: "OK" }]);
+          Alert.alert(
+            "Success",
+            response.message || "Password updated successfully",
+            [{ text: "OK" }],
+          );
         } else {
-          Alert.alert("Error", response.message || "Failed to update password. Please try again.", [{ text: "OK" }]);
+          Alert.alert(
+            "Error",
+            response.message || "Failed to update password. Please try again.",
+            [{ text: "OK" }],
+          );
         }
       } else {
         console.log("No changes detected.");
@@ -109,9 +132,6 @@ export default function PasswordPreview({ navigation, route }) {
 
     setIsEditing(false);
   };
-
-
-
 
   const handleOpenLink = () => {
     let url = website;
@@ -130,7 +150,7 @@ export default function PasswordPreview({ navigation, route }) {
       Alert.alert(
         "Error",
         "An error occurred while opening the link. Please try again.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     });
   };
@@ -148,28 +168,24 @@ export default function PasswordPreview({ navigation, route }) {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            const response = await deletePassword(
-              userId,
-              passwordId,
-              dispatch
-            );
+            const response = await deletePassword(userId, passwordId, dispatch);
 
             if (response.status) {
-              navigation.goBack()
+              navigation.goBack();
               Toast.show({
-                type: 'success',
+                type: "success",
                 text1: `Password deleted successfully!`,
-              })
+              });
             } else {
               Toast.show({
-                type: 'error',
+                type: "error",
                 text1: `Error deleting password.`,
-                text2: `Status code: ${response?.message}`
-              })
+                text2: `Status code: ${response?.message}`,
+              });
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -186,11 +202,11 @@ export default function PasswordPreview({ navigation, route }) {
     }
   };
 
-
   const getBreachAnimation = () => {
     if (breachStatus) {
       if (breachStatus.breached) {
-        return BreachedAnimation; 1
+        return BreachedAnimation;
+        1;
       } else {
         return NotBreachedAnimation;
       }
@@ -205,19 +221,15 @@ export default function PasswordPreview({ navigation, route }) {
   }, [passwordData]);
 
   useEffect(() => {
-
     if (breachStatus) {
       const animation = getBreachAnimation();
       setAnimationSource(animation);
     }
   }, [breachStatus]);
 
-
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={styles.innerContainer}>
-
         <View style={styles.top}>
           <TouchableOpacity
             onPress={() => {
@@ -264,8 +276,14 @@ export default function PasswordPreview({ navigation, route }) {
                   editable={isEditing}
                   onTouchStart={() => handleCopyText(password)}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIconContainer}>
-                  <Image source={showPassword ? EyeIcon : EyeOffIcon} style={styles.eyeIcon} />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIconContainer}
+                >
+                  <Image
+                    source={showPassword ? EyeIcon : EyeOffIcon}
+                    style={styles.eyeIcon}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -302,8 +320,10 @@ export default function PasswordPreview({ navigation, route }) {
                   autoPlay
                   loop={false}
                   style={{
-                    width: animationSource === NotBreachedAnimation ? '100%' : '75%',
-                    height: animationSource === NotBreachedAnimation ? '100%' : '75%',
+                    width:
+                      animationSource === NotBreachedAnimation ? "100%" : "75%",
+                    height:
+                      animationSource === NotBreachedAnimation ? "100%" : "75%",
                     aspectRatio: 1,
                   }}
                   source={animationSource || ""}
@@ -317,27 +337,38 @@ export default function PasswordPreview({ navigation, route }) {
                 {breachStatus ? (
                   breachStatus.breached ? (
                     <Text style={styles.breachedText}>
-                      Password found in <Text style={styles.breachValue}>{breachStatus.breachCount}</Text> breaches.
+                      Password found in{" "}
+                      <Text style={styles.breachValue}>
+                        {breachStatus.breachCount}
+                      </Text>{" "}
+                      breaches.
                     </Text>
                   ) : (
-                    <Text style={styles.safeText}>Password is safe, not found in any breach.</Text>
+                    <Text style={styles.safeText}>
+                      Password is safe, not found in any breach.
+                    </Text>
                   )
                 ) : (
-                  <Text style={styles.noBreachText}>No breach status available</Text>
+                  <Text style={styles.noBreachText}>
+                    No breach status available
+                  </Text>
                 )}
-
               </Text>
 
-              <Text style={styles.tipText}>Tip: Use a unique password for each service to minimize risk.</Text>
-
+              <Text style={styles.tipText}>
+                Tip: Use a unique password for each service to minimize risk.
+              </Text>
             </View>
           </View>
 
-
-          <View style={[styles.optionsContainer,
-          {
-            marginBottom: Platform.OS == "android" ? hp("2%") : 0
-          }]}>
+          <View
+            style={[
+              styles.optionsContainer,
+              {
+                marginBottom: Platform.OS == "android" ? hp("2%") : 0,
+              },
+            ]}
+          >
             <TouchableOpacity
               style={styles.editContainer}
               onPress={() => {
@@ -348,16 +379,16 @@ export default function PasswordPreview({ navigation, route }) {
                 }
               }}
             >
-              {
-                isEditing ? (
-                  <Feather name="check-circle" size={hp("2.7%")} color={colors.textColor3} />
-                ) : (
-                  <Image style={styles.editIcon} source={EditIcon} />
-                )
-              }
-              <Text style={styles.editText}>
-                {isEditing ? "Save" : "Edit"}
-              </Text>
+              {isEditing ? (
+                <Feather
+                  name="check-circle"
+                  size={hp("2.7%")}
+                  color={colors.textColor3}
+                />
+              ) : (
+                <Image style={styles.editIcon} source={EditIcon} />
+              )}
+              <Text style={styles.editText}>{isEditing ? "Save" : "Edit"}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -375,7 +406,6 @@ export default function PasswordPreview({ navigation, route }) {
           </View>
         </View>
       </View>
-
     </SafeAreaView>
   );
 }
@@ -392,14 +422,14 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "space-between",
-    width: wp("100%")
+    width: wp("100%"),
   },
   top: {
     width: wp("100%"),
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("1%"),
-    marginBottom: hp("2%")
+    marginBottom: hp("2%"),
   },
   backIconContainer: {
     height: hp("5%"),
@@ -432,7 +462,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: hp("51%")
+    height: hp("51%"),
   },
   detailRow: {
     flexDirection: "column",
@@ -483,7 +513,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     maxHeight: hp("20%"),
-
   },
   securityLeft: {
     flexDirection: "row",
@@ -498,7 +527,7 @@ const styles = StyleSheet.create({
     width: 0.7,
     height: "85%",
     backgroundColor: colors.textColor3,
-    opacity: 0.1
+    opacity: 0.1,
   },
   securityRight: {
     flexDirection: "column",
@@ -510,7 +539,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: hp("3%"),
     padding: wp("4.5%"),
     justifyContent: "center",
-    gap: hp("1%")
+    gap: hp("1%"),
   },
   securityTitle: {
     fontSize: hp("2.5%"),
@@ -522,20 +551,20 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Italic",
     color: "green",
-    textAlign: "center"
+    textAlign: "center",
   },
   breachedText: {
-    color: "red"
+    color: "red",
   },
   breachValue: {
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
     fontSize: hp("2.2%"),
   },
   tipText: {
     fontSize: hp("2%"),
     color: colors.textColor3,
     fontFamily: "Afacad-Italic",
-    display: "none"
+    display: "none",
   },
   optionsContainer: {
     height: "9%",
@@ -543,7 +572,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-
   },
   editContainer: {
     height: "100%",
@@ -565,7 +593,6 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     resizeMode: "contain",
     tintColor: colors.textColor3,
-
   },
   editText: {
     fontSize: hp("2.8%"),

@@ -1,5 +1,4 @@
-
-import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER,SET_PLANS } from "../types";
+import { SET_TAB_BAR_VISIBLE, SET_FIRST_RENDER, SET_PLANS } from "../types";
 
 const initialState = {
   tabBarVisible: true,
@@ -10,14 +9,14 @@ const initialState = {
     audiosScreen: true,
     othersScreen: true,
     passwordsScreen: true,
-    filePreviewScreen: true, 
+    filePreviewScreen: true,
     favouritesScreen: true,
     folderPreviewScreen: true,
-    recycleBinScreen: true
+    recycleBinScreen: true,
   },
-  plans:null,
-  API_IP: "172.17.4.108:8000",
-  version: "1.0"
+  plans: null,
+  API_IP: "biokey.ddns.net:8000",
+  version: "1.0",
 };
 
 export const appConfigReducer = (state = initialState, action) => {
@@ -39,7 +38,7 @@ export const appConfigReducer = (state = initialState, action) => {
       return {
         ...state,
         plans: action.payload,
-      }
+      };
     default:
       return state;
   }

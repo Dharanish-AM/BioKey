@@ -132,7 +132,7 @@ const register = async (req, res) => {
         ? notificationToken
         : JSON.stringify(notificationToken);
 
-        const plan = await Plan.findOne({ name: "Basic" });
+    const plan = await Plan.findOne({ name: "Basic" });
 
     console.log("Creating new user...");
     const user = new User({
@@ -281,7 +281,7 @@ const loginWithCredentials = async (req, res) => {
       } catch (logError) {
         console.warn(
           "Activity Log Error (Invalid Credentials):",
-          logError.message
+          logError.message,
         );
       }
 
@@ -406,7 +406,7 @@ const getUser = async (req, res) => {
       try {
         const profileStream = await minioClient.getObject(
           BUCKET_NAME,
-          user.profile
+          user.profile,
         );
 
         const imageBuffer = await new Promise((resolve, reject) => {
@@ -422,7 +422,7 @@ const getUser = async (req, res) => {
           .toBuffer();
 
         user.profile = `data:image/webp;base64,${compressedImageBuffer.toString(
-          "base64"
+          "base64",
         )}`;
       } catch (err) {
         console.error("Error fetching profile image from MinIO:", err.message);
@@ -673,18 +673,18 @@ const ListFolder = async (req, res) => {
                 preSignedThumbnailUrl = await minioClient.presignedGetObject(
                   process.env.MINIO_BUCKET_NAME,
                   file.thumbnail,
-                  24 * 60 * 60
+                  24 * 60 * 60,
                 );
               } catch (error) {
                 console.error(
                   `Error generating presigned URL for file ${file.name}: `,
-                  error
+                  error,
                 );
               }
             }
 
             const fileFolders = await Folder.find({ files: file._id }).select(
-              "name"
+              "name",
             );
 
             return {
@@ -696,7 +696,7 @@ const ListFolder = async (req, res) => {
               thumbnail: preSignedThumbnailUrl,
               folders: fileFolders.map((f) => f.name),
             };
-          })
+          }),
         );
 
         return {
@@ -705,7 +705,7 @@ const ListFolder = async (req, res) => {
           createdAt: folder.createdAt,
           files: files,
         };
-      })
+      }),
     );
 
     return res.status(200).json({ success: true, folders: folderDetails });
@@ -789,7 +789,7 @@ const removeFileFromFolder = async (req, res) => {
     }
 
     folder.files = folder.files.filter(
-      (id) => id.toString() !== fileId.toString()
+      (id) => id.toString() !== fileId.toString(),
     );
     await folder.save();
 
@@ -818,7 +818,7 @@ const renameFolder = async (req, res) => {
     const folder = await Folder.findOneAndUpdate(
       { _id: folderId, owner: userId },
       { name: newFolderName },
-      { new: true }
+      { new: true },
     );
 
     if (!folder) {
@@ -855,7 +855,7 @@ const listLiked = async (req, res) => {
 
     const likedFiles = await File.find(
       { isLiked: true, owner: userId },
-      "name type size createdAt _id isLiked thumbnail"
+      "name type size createdAt _id isLiked thumbnail",
     );
 
     if (!likedFiles || likedFiles.length === 0) {
@@ -872,12 +872,12 @@ const listLiked = async (req, res) => {
             preSignedThumbnailUrl = await minioClient.presignedGetObject(
               BUCKET_NAME,
               file.thumbnail,
-              60 * 60
+              60 * 60,
             );
           } catch (err) {
             console.warn(
               `Thumbnail not found or error fetching for file ${file.name}:`,
-              err.message
+              err.message,
             );
           }
         }
@@ -894,7 +894,7 @@ const listLiked = async (req, res) => {
           thumbnail: preSignedThumbnailUrl,
           folders: folders.map((folder) => folder.name),
         };
-      })
+      }),
     );
 
     return res.status(200).json({
@@ -978,7 +978,7 @@ const updateProfileImage = async (req, res) => {
             success: true,
             message: "Profile picture updated successfully",
           });
-        }
+        },
       );
     } catch (error) {
       console.error("Error processing request:", error);
@@ -1023,12 +1023,12 @@ const clearNotifications = async (req, res) => {
     if (isAll) {
       result = await UserNotification.updateOne(
         { userId },
-        { $set: { notifications: [] } }
+        { $set: { notifications: [] } },
       );
     } else if (notificationId) {
       result = await UserNotification.updateOne(
         { userId },
-        { $pull: { notifications: { _id: notificationId } } }
+        { $pull: { notifications: { _id: notificationId } } },
       );
     } else {
       return res.status(400).json({
@@ -1151,7 +1151,7 @@ const storageInfo = async (req, res) => {
     const totalSpaceBytes = user.totalSpace;
     const usedSpaceBytes = Object.values(storage).reduce(
       (acc, size) => acc + size,
-      0
+      0,
     );
 
     return res.json({
@@ -1195,7 +1195,7 @@ const deleteUser = async (req, res) => {
 const getAllPlans = async (req, res) => {
   try {
     const { userId } = req.query;
-    if(!userId) {
+    if (!userId) {
       return res.status(400).json({
         success: false,
         message: "User ID is required",
@@ -1207,7 +1207,6 @@ const getAllPlans = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-
 
     const plans = await Plan.find({});
 

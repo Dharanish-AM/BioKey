@@ -30,18 +30,20 @@ export default function App() {
 
     registerForPushNotifications();
 
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log("Foreground Notification Received:", notification);
+      });
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      console.log("Foreground Notification Received:", notification);
-    });
-
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log("User Tapped Notification:", response);
-    });
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("User Tapped Notification:", response);
+      });
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(
+        notificationListener.current,
+      );
       Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
@@ -53,7 +55,6 @@ export default function App() {
         return;
       }
 
-
       const existingToken = await AsyncStorage.getItem("expoPushToken");
       if (existingToken) {
         console.log("Push token already exists:", existingToken);
@@ -64,7 +65,8 @@ export default function App() {
       let finalStatus = status;
 
       if (status !== "granted") {
-        const { status: newStatus } = await Notifications.requestPermissionsAsync();
+        const { status: newStatus } =
+          await Notifications.requestPermissionsAsync();
         finalStatus = newStatus;
       }
 
@@ -72,7 +74,6 @@ export default function App() {
         console.log("Push notifications permission denied");
         return;
       }
-
 
       const pushTokenData = await Notifications.getExpoPushTokenAsync();
       console.log("Full Token Data:", pushTokenData);
@@ -85,14 +86,10 @@ export default function App() {
 
       console.log("Expo Push Token:", token);
       await AsyncStorage.setItem("expoPushToken", token);
-
-
     } catch (error) {
       console.error("Error registering for push notifications:", error);
     }
   };
-
-
 
   useEffect(() => {
     const fetchAuthStatus = async () => {
@@ -132,7 +129,7 @@ export default function App() {
     };
 
     fetchAuthStatus();
-  }, [dispatch,isAuthenticated]);
+  }, [dispatch, isAuthenticated]);
 
   if (loading) {
     return (

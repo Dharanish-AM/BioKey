@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   Button,
-  TextInput
+  TextInput,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,7 +19,11 @@ import {
 import FingyIcon from "../../assets/images/FINGY.png";
 import Logo from "../../assets/images/BioKey_Logo.png";
 import SupportIcon from "../../assets/images/support_icon.png";
-import { checkTokenIsValid, loginFp, registerUser } from "../../services/authOperations";
+import {
+  checkTokenIsValid,
+  loginFp,
+  registerUser,
+} from "../../services/authOperations";
 import { loadUser } from "../../services/userOperations";
 import { setAuthState, setUser } from "../../redux/actions";
 import Toast from "react-native-toast-message";
@@ -59,7 +63,7 @@ export default function DevicePairingScreen({ navigation, route }) {
           type: "error",
           text1: "Error",
           text2: "Device not registered.",
-        })
+        });
       }
 
       if (event.data.includes("Fingerprint ID:")) {
@@ -73,7 +77,10 @@ export default function DevicePairingScreen({ navigation, route }) {
         setSerialNumber(serial);
       }
 
-      if (event.data.includes("Encrypted Key:") && event.data.includes("Serial Number:")) {
+      if (
+        event.data.includes("Encrypted Key:") &&
+        event.data.includes("Serial Number:")
+      ) {
         const parts = event.data.split("Encrypted Key: ")[1];
         const [encryptedKey, serialPart] = parts.split(" Serial Number: ");
 
@@ -89,7 +96,6 @@ export default function DevicePairingScreen({ navigation, route }) {
           handleFpLogin();
         }
       }
-
     };
 
     socket.onerror = (error) => {
@@ -147,23 +153,21 @@ export default function DevicePairingScreen({ navigation, route }) {
         }
         Toast.show({
           type: "success",
-          text1: "Login success!"
+          text1: "Login success!",
         });
-
       } else {
         Toast.show({
           type: "error",
           text1: "Login failed!",
-          text2: tokenValidationResponse.message || "Unknown error occurred"
+          text2: tokenValidationResponse.message || "Unknown error occurred",
         });
       }
-
     } else {
       console.log("Login Failed");
       Toast.show({
         type: "error",
         text1: "Login failed!",
-        text2: loginResponse.message || "Unknown error occurred"
+        text2: loginResponse.message || "Unknown error occurred",
       });
     }
   };
@@ -186,7 +190,7 @@ export default function DevicePairingScreen({ navigation, route }) {
       fingerPrint: { id: fingerprintId, name: fingerprintName },
     };
 
-    const notificationToken = AsyncStorage.getItem("expoPushToken")
+    const notificationToken = AsyncStorage.getItem("expoPushToken");
 
     try {
       const response = await registerUser(formData, notificationToken);
@@ -253,14 +257,17 @@ export default function DevicePairingScreen({ navigation, route }) {
               onChangeText={setFingerprintName}
               style={styles.input}
             />
-            <Button title="Save" onPress={() => {
-              if (fingerprintName.trim()) {
-                setModalVisible(false);
-                registerUserWithDevice();
-              } else {
-                console.log("Please enter a valid fingerprint name.");
-              }
-            }} />
+            <Button
+              title="Save"
+              onPress={() => {
+                if (fingerprintName.trim()) {
+                  setModalVisible(false);
+                  registerUserWithDevice();
+                } else {
+                  console.log("Please enter a valid fingerprint name.");
+                }
+              }}
+            />
           </View>
         </View>
       </Modal>

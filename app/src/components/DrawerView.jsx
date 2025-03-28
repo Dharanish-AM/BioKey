@@ -21,13 +21,12 @@ import DeviceIcon from "../assets/images/device.png";
 
 export default function DrawerView({ navigation }) {
   const user = useSelector((state) => state.user, shallowEqual);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("authToken")
-    dispatch(setAuthState(false, ""))
-
-  }
+    await AsyncStorage.removeItem("authToken");
+    dispatch(setAuthState(false, ""));
+  };
 
   return (
     <View style={styles.container}>
@@ -59,32 +58,42 @@ export default function DrawerView({ navigation }) {
       </View>
       <View style={styles.border}></View>
       <View style={styles.center}>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("Accounts")
-        }
-        }>
+        <TouchableOpacity
+          style={styles.optionsButton}
+          onPress={() => {
+            navigation.navigate("Accounts");
+          }}
+        >
           <Image source={AccountsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Accounts</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("ManageDevice");
-        }}>
+        <TouchableOpacity
+          style={styles.optionsButton}
+          onPress={() => {
+            navigation.navigate("ManageDevice");
+          }}
+        >
           <Image source={DeviceIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Manage Device</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("Notifications");
-        }}>
+        <TouchableOpacity
+          style={styles.optionsButton}
+          onPress={() => {
+            navigation.navigate("Notifications");
+          }}
+        >
           <Image source={NotificationsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Notifications</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionsButton} onPress={() => {
-          navigation.navigate("ActivityLogs");
-        }}>
+        <TouchableOpacity
+          style={styles.optionsButton}
+          onPress={() => {
+            navigation.navigate("ActivityLogs");
+          }}
+        >
           <Image source={LogsIcon} style={styles.optionsIcon} />
           <Text style={styles.optionsText}>Activity Logs</Text>
         </TouchableOpacity>
-
       </View>
       <View style={styles.bottom}>
         <TouchableOpacity style={styles.logout} onPress={handleLogout}>

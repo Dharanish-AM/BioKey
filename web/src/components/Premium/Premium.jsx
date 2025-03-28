@@ -20,7 +20,7 @@ export default function Premium({ onClose }) {
             color="var(--text-color3)"
             onClick={onClose}
             style={{
-                cursor: "pointer",
+              cursor: "pointer",
             }}
           />
         </div>
@@ -47,11 +47,13 @@ export default function Premium({ onClose }) {
                   </ul>
                   <button
                     className={`subscribe-button ${
-                        userPlan == plan._id ? "current-plan-button" : ""
+                      userPlan == plan._id ? "current-plan-button" : ""
                     }`}
                     disabled={userPlan == plan._id}
                   >
-                    {userPlan == plan._id ? "Current Plan" : `Choose ${plan.name}`}
+                    {userPlan == plan._id
+                      ? "Current Plan"
+                      : `Choose ${plan.name}`}
                   </button>
                 </div>
               );

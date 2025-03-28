@@ -36,7 +36,7 @@ const fileSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 fileSchema.index({ owner: 1, createdAt: -1 });

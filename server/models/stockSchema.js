@@ -1,33 +1,31 @@
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 
 const stockSchema = new mongoose.Schema({
-    serialNumber: {
-        type: Number,
-        required: true,
-        unique: true
-    },
-    manufacturedDate: {
-        type: Date,
-        required: true
-    },
-    assignedTo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        default: null
-    },
-    warrantyExpiration: {
-        type: Date,
-        required: true
-    },
-    deviceStatus: {
-        type: String,
-        enum: ['registered', 'unregistered'],
-        default: 'unregistered'
-    }
+  serialNumber: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
+  manufacturedDate: {
+    type: Date,
+    required: true,
+  },
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  warrantyExpiration: {
+    type: Date,
+    required: true,
+  },
+  deviceStatus: {
+    type: String,
+    enum: ["registered", "unregistered"],
+    default: "unregistered",
+  },
 });
 
-
-const Stock = mongoose.model('Stock', stockSchema);
+const Stock = mongoose.model("Stock", stockSchema);
 
 module.exports = Stock;

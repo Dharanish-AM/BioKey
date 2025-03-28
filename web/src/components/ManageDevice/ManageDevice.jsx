@@ -42,7 +42,9 @@ export default function ManageDevice() {
         </div>
         <div className="manage-device-actions">
           <button className="manage-device-action-button">Edit Name</button>
-          <button className="manage-device-action-button unlink">Unlink Device</button>
+          <button className="manage-device-action-button unlink">
+            Unlink Device
+          </button>
         </div>
       </div>
     </div>

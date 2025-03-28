@@ -162,7 +162,10 @@ function FoldersStack() {
       }}
     >
       <Stack.Screen name="FoldersScreen" component={FoldersScreen} />
-      <Stack.Screen name="FolderPreviewScreen" component={FolderPreviewScreen} />
+      <Stack.Screen
+        name="FolderPreviewScreen"
+        component={FolderPreviewScreen}
+      />
       <Stack.Screen name="FilePreviewScreen" component={FilePreviewScreen} />
     </Stack.Navigator>
   );

@@ -30,10 +30,21 @@ export default function Passwords() {
   const [sortOption, setSortOption] = useState("name-asc");
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [breachStatuses, setBreachStatuses] = useState({});
-  const [selectedFile, setSelectedPassword] = useState()
-  const [isEditing, setIsEditing] = useState(false)
+  const [selectedFile, setSelectedPassword] = useState();
+  const [isEditing, setIsEditing] = useState(false);
 
-  const availableIcons = ["amazon","facebook","flipkart","google","instagram","netflix","pinterest","reddit","snapchat","twitter"];
+  const availableIcons = [
+    "amazon",
+    "facebook",
+    "flipkart",
+    "google",
+    "instagram",
+    "netflix",
+    "pinterest",
+    "reddit",
+    "snapchat",
+    "twitter",
+  ];
 
   useEffect(() => {
     if (userId && token) {
@@ -103,7 +114,7 @@ export default function Passwords() {
       ...prev,
       [id]: false,
     }));
-  }
+  };
 
   const copyToClipboard = (text) => {
     if (!text) return;
@@ -173,10 +184,13 @@ export default function Passwords() {
       <div className="passwords-container-body">
         <div className="passwords-list">
           {passwords?.map((password) => (
-            <div onMouseLeave={()=>{
-              noShowPassword(password._id)
-
-            }} key={password._id} className="passwords-list-item">
+            <div
+              onMouseLeave={() => {
+                noShowPassword(password._id);
+              }}
+              key={password._id}
+              className="passwords-list-item"
+            >
               <div></div>
               <div className="password-list-item-header">
                 <div className="password-list-item-icon-container">
@@ -285,10 +299,10 @@ export default function Passwords() {
                 </div>
               </div>
               <TbEdit
-              onClick={()=>{
-                setSelectedPassword(password)
-                setIsEditing(true)
-              }}
+                onClick={() => {
+                  setSelectedPassword(password);
+                  setIsEditing(true);
+                }}
                 color="var(--text-color3)"
                 size="1.7rem"
                 style={{
@@ -298,7 +312,6 @@ export default function Passwords() {
                   top: "1rem",
                   right: "1rem",
                   cursor: "pointer",
-                
                 }}
               />
               {breachStatuses[password._id]?.breached ? (
@@ -339,14 +352,15 @@ export default function Passwords() {
           }}
         />
       )}
-      {
-        isEditing && (
-          <EditPassword password={selectedFile} onClose={()=>{
+      {isEditing && (
+        <EditPassword
+          password={selectedFile}
+          onClose={() => {
             setIsEditing(false);
             setSelectedPassword("");
-          }} />
-        )
-      }
+          }}
+        />
+      )}
     </div>
   );
 }

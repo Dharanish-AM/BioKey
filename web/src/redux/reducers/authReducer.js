@@ -2,7 +2,7 @@ import { SET_AUTH_STATE } from "../types";
 
 const initialState = {
   isAuthenticated: false,
-  token: ""
+  token: "",
 };
 
 export function authReducer(state = initialState, action) {
@@ -11,8 +11,8 @@ export function authReducer(state = initialState, action) {
       return {
         ...state,
         isAuthenticated: action.payload.isAuthenticated,
-        token: action.payload.token
-      }; 
+        token: action.payload.token,
+      };
     default:
       return state;
   }

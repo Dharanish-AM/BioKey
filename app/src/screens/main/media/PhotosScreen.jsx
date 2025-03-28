@@ -59,11 +59,11 @@ export default function PhotosScreen({ navigation }) {
     (state) => ({
       images: state.files.images,
     }),
-    shallowEqual
+    shallowEqual,
   );
 
   const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.imagesScreen
+    (state) => state.appConfig.isFirstRender.imagesScreen,
   );
 
   const fetchData = async () => {
@@ -88,7 +88,7 @@ export default function PhotosScreen({ navigation }) {
   useEffect(() => {
     if (searchTerm) {
       const filteredData = images.filter((image) =>
-        image.name.toLowerCase().includes(searchTerm.toLowerCase())
+        image.name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
       setFilteredImages(filteredData);
     } else {
@@ -96,10 +96,9 @@ export default function PhotosScreen({ navigation }) {
     }
   }, [images, searchTerm]);
 
-
   const handlePress = async (file) => {
     await navigation.navigate("FilePreviewScreen", {
-      file
+      file,
     });
   };
 
@@ -153,7 +152,7 @@ export default function PhotosScreen({ navigation }) {
   const handleSearchChange = (text) => {
     setSearchTerm(text);
     const filteredData = images.filter((image) =>
-      image.name.toLowerCase().includes(text.toLowerCase())
+      image.name.toLowerCase().includes(text.toLowerCase()),
     );
     setFilteredImages(filteredData);
   };
@@ -208,18 +207,22 @@ export default function PhotosScreen({ navigation }) {
               text: "OK",
               onPress: async () => {
                 setIsUploading(true);
-                const uploadResponse = await uploadMedia(userId, files, dispatch);
+                const uploadResponse = await uploadMedia(
+                  userId,
+                  files,
+                  dispatch,
+                );
 
                 if (uploadResponse.success) {
                   Toast.show({
-                    type: 'success',
+                    type: "success",
                     text1: `File uploaded successfully!`,
                     text2: `Total files: ${files.length}.`,
                   });
                   console.log("All files uploaded successfully");
                 } else {
                   Toast.show({
-                    type: 'error',
+                    type: "error",
                     text1: "Upload Failed",
                     text2: uploadResponse.message || "Unknown error occurred.",
                   });
@@ -231,20 +234,20 @@ export default function PhotosScreen({ navigation }) {
                 console.log("Upload finished...");
               },
             },
-          ]
+          ],
         );
       } else {
         console.log("No files selected or invalid data");
         Alert.alert(
           "No Selection",
           "Please select valid media files to upload.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     } catch (error) {
       console.error(
         "An error occurred during the media picking or upload process:",
-        error
+        error,
       );
     } finally {
       setIsSelecting(false);
@@ -401,14 +404,18 @@ export default function PhotosScreen({ navigation }) {
               }
               ListEmptyComponent={() => {
                 return (
-                  <Text style={{
-                    fontSize: hp("2.5%"),
-                    color: colors.textColor2,
-                    fontFamily: "Afacad-Italic",
-                    alignSelf: "center",
-                    marginTop:hp("35%")
-                  }}>No images found, try adding!</Text>
-                )
+                  <Text
+                    style={{
+                      fontSize: hp("2.5%"),
+                      color: colors.textColor2,
+                      fontFamily: "Afacad-Italic",
+                      alignSelf: "center",
+                      marginTop: hp("35%"),
+                    }}
+                  >
+                    No images found, try adding!
+                  </Text>
+                );
               }}
             />
           )}
@@ -451,7 +458,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: wp("8%"),
     justifyContent: "center",
-    marginRight: wp("1%")
+    marginRight: wp("1%"),
   },
   backIcon: {
     width: wp("5%"),
@@ -475,7 +482,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
-    marginRight: wp("2%")
+    marginRight: wp("2%"),
   },
   searchIcon: {
     width: "100%",

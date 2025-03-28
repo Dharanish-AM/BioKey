@@ -24,7 +24,6 @@ import { TbEdit } from "react-icons/tb";
 import Trash from "../Trash/Trash";
 import { useSearchParams } from "react-router-dom";
 
-
 export default function Folders() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -34,8 +33,8 @@ export default function Folders() {
   const userId = useSelector((state) => state.user.userId);
   const token = useSelector((state) => state.auth.token);
   const folders = useSelector((state) => state.user.folders) || [];
-  
-const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,7 +55,7 @@ const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     if (folderId) {
       const selectedFolder = folders.find(
-        (folder) => folder.folderId === folderId
+        (folder) => folder.folderId === folderId,
       );
       setFolderFiles(selectedFolder?.files || []);
     }
@@ -73,7 +72,7 @@ const [searchParams, setSearchParams] = useSearchParams();
       userId,
       newFolderName,
       token,
-      dispatch
+      dispatch,
     );
 
     if (response.success) {
@@ -88,7 +87,7 @@ const [searchParams, setSearchParams] = useSearchParams();
   const filteredFolders = useMemo(() => {
     return folders
       .filter((folder) =>
-        folder.folderName.toLowerCase().includes(searchTerm.toLowerCase())
+        folder.folderName.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .sort((a, b) => {
         if (sortOption === "alphabetical-asc")
@@ -106,7 +105,7 @@ const [searchParams, setSearchParams] = useSearchParams();
   const filteredFiles = useMemo(() => {
     return [...folderFiles]
       .filter((file) =>
-        file.name.toLowerCase().includes(fileSearchTerm.toLowerCase())
+        file.name.toLowerCase().includes(fileSearchTerm.toLowerCase()),
       )
       .sort((a, b) => {
         if (fileSortOption === "name-asc") return a.name.localeCompare(b.name);
@@ -122,22 +121,28 @@ const [searchParams, setSearchParams] = useSearchParams();
   }, [folderFiles, fileSearchTerm, fileSortOption]);
 
   const handleRenameFolder = async () => {
-    console.log(renameFolderName)
-    const response = await handleFolderRename(userId, folderId, renameFolderName, token, dispatch);
+    console.log(renameFolderName);
+    const response = await handleFolderRename(
+      userId,
+      folderId,
+      renameFolderName,
+      token,
+      dispatch,
+    );
     if (response.success) {
-      searchParams.set("folderName", renameFolderName); 
-      setSearchParams(searchParams); 
+      searchParams.set("folderName", renameFolderName);
+      setSearchParams(searchParams);
       toast.success("Folder renamed successfully");
-     
+
       setIsRenameFolderModalOpen(false);
       setRenameFolderName("");
     } else {
       toast.error("Failed to rename folder");
     }
   };
-  
+
   const handleDeleteFolder = async () => {
-    const isOk  = confirm("Are you sure you want to delete this folder?");
+    const isOk = confirm("Are you sure you want to delete this folder?");
     if (!isOk) return;
     const response = await deleteFolders(userId, folderId, token, dispatch);
     if (response.success) {
@@ -148,111 +153,146 @@ const [searchParams, setSearchParams] = useSearchParams();
     }
   };
 
-      return (
-        <div className="folders-container">
-          <div className="folders-header">
-            <span className="folders-title">
-              {folderId ? folderName : "Folders"}
-            </span>
+  return (
+    <div className="folders-container">
+      <div className="folders-header">
+        <span className="folders-title">
+          {folderId ? folderName : "Folders"}
+        </span>
 
-            <div className="folders-options-container">
-              <div
-                onClick={() => {
-                  setIsCreateFolderModalOpen(true);
-                }}
-                className="create-folder-button"
-              >
-                Create Folder
-              </div>
-              <div
+        <div className="folders-options-container">
+          <div
+            onClick={() => {
+              setIsCreateFolderModalOpen(true);
+            }}
+            className="create-folder-button"
+          >
+            Create Folder
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              position: "relative",
+            }}
+          >
+            <input
+              type="text"
+              placeholder={folderId ? "Search files..." : "Search folders..."}
+              className="folder-search-input"
+              value={folderId ? fileSearchTerm : searchTerm}
+              onChange={(e) =>
+                folderId
+                  ? setFileSearchTerm(e.target.value)
+                  : setSearchTerm(e.target.value)
+              }
+            />
+            <Search
+              style={{ position: "absolute", left: "1rem" }}
+              color="var(--text-color2)"
+              size={"1.5rem"}
+            />
+            {(folderId ? fileSearchTerm : searchTerm) && (
+              <X
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  position: "relative",
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder={folderId ? "Search files..." : "Search folders..."}
-                  className="folder-search-input"
-                  value={folderId ? fileSearchTerm : searchTerm}
-                  onChange={(e) =>
-                    folderId
-                      ? setFileSearchTerm(e.target.value)
-                      : setSearchTerm(e.target.value)
-                  }
-                />
-                <Search
-                  style={{ position: "absolute", left: "1rem" }}
-                  color="var(--text-color2)"
-                  size={"1.5rem"}
-                />
-                {(folderId ? fileSearchTerm : searchTerm) && (
-                  <X
-                    style={{
-                      position: "absolute",
-                      right: "1rem",
-                      cursor: "pointer",
-                    }}
-                    color="var(--text-color2)"
-                    size={"1.3rem"}
-                    onClick={() =>
-                      folderId ? setFileSearchTerm("") : setSearchTerm("")
-                    }
-                  />
-                )}
-              </div>
-
-              <SlidersHorizontal
-                color="var(--text-color3)"
-                size={"1.7rem"}
-                onClick={() =>
-                  folderId
-                    ? setIsFileFilterModalOpen(true)
-                    : setIsFilterModalOpen(true)
-                }
-                style={{ cursor: "pointer" }}
-              />
-              <MoreVertical
-                style={{
+                  position: "absolute",
+                  right: "1rem",
                   cursor: "pointer",
                 }}
-                onClick={() => {
-                  setIsShowFolderOptionsModal(true);
-                }}
-                color="var(--text-color3)"
-                size={"1.9rem"}
+                color="var(--text-color2)"
+                size={"1.3rem"}
+                onClick={() =>
+                  folderId ? setFileSearchTerm("") : setSearchTerm("")
+                }
               />
-            </div>
+            )}
           </div>
 
-          <div className="folders-content">
-            {folderId ? (
-              folderFiles && folderFiles.length > 0 ? (
-                <div className="folder-files-list">
-                  {filteredFiles.map((file) => (
-                    <div
-                      onClick={() => setPreviewFile(file)}
-                      key={file._id}
-                      className="folder-file-item"
-                    >
-                      <div className="folder-file-image-container">
-                        <img
-                          src={file.thumbnail}
-                          alt={file.name}
-                          className="folder-file-image"
-                        />
-                      </div>
-                      <div className="folder-file-info">
-                        <div className="folder-file-name">{file.name}</div>
-                        <div className="folder-file-size">
-                          {formatFileSize(file.size)}
-                        </div>
-                      </div>
+          <SlidersHorizontal
+            color="var(--text-color3)"
+            size={"1.7rem"}
+            onClick={() =>
+              folderId
+                ? setIsFileFilterModalOpen(true)
+                : setIsFilterModalOpen(true)
+            }
+            style={{ cursor: "pointer" }}
+          />
+          <MoreVertical
+            style={{
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              setIsShowFolderOptionsModal(true);
+            }}
+            color="var(--text-color3)"
+            size={"1.9rem"}
+          />
+        </div>
+      </div>
+
+      <div className="folders-content">
+        {folderId ? (
+          folderFiles && folderFiles.length > 0 ? (
+            <div className="folder-files-list">
+              {filteredFiles.map((file) => (
+                <div
+                  onClick={() => setPreviewFile(file)}
+                  key={file._id}
+                  className="folder-file-item"
+                >
+                  <div className="folder-file-image-container">
+                    <img
+                      src={file.thumbnail}
+                      alt={file.name}
+                      className="folder-file-image"
+                    />
+                  </div>
+                  <div className="folder-file-info">
+                    <div className="folder-file-name">{file.name}</div>
+                    <div className="folder-file-size">
+                      {formatFileSize(file.size)}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                fontSize: "1.1rem",
+                fontStyle: "italic",
+                alignSelf: "center",
+              }}
+            >
+              ✖️ Oops! Looks like this folder is empty.
+            </div>
+          )
+        ) : (
+          <div className="folders-list">
+            {folders && folders.length > 0 ? (
+              filteredFolders.map((folder) => (
+                <div
+                  onClick={() =>
+                    navigation(
+                      `/folders?folderId=${folder.folderId}&folderName=${folder.folderName}`,
+                    )
+                  }
+                  className="folder-item"
+                  key={folder.folderId}
+                >
+                  <div className="folder-icon-container">
+                    <img
+                      src={FolderIcon}
+                      alt="folder-icon"
+                      className="folder-icon"
+                    />
+                  </div>
+                  <span className="folder-name">{folder.folderName}</span>
+                </div>
+              ))
+            ) : (
+              <div>
                 <div
                   style={{
                     fontSize: "1.1rem",
@@ -260,276 +300,240 @@ const [searchParams, setSearchParams] = useSearchParams();
                     alignSelf: "center",
                   }}
                 >
-                  ✖️ Oops! Looks like this folder is empty.
-                </div>
-              )
-            ) : (
-              <div className="folders-list">
-                {folders && folders.length > 0 ? (
-                  filteredFolders.map((folder) => (
-                    <div
-                      onClick={() =>
-                        navigation(
-                          `/folders?folderId=${folder.folderId}&folderName=${folder.folderName}`
-                        )
-                      }
-                      className="folder-item"
-                      key={folder.folderId}
-                    >
-                      <div className="folder-icon-container">
-                        <img
-                          src={FolderIcon}
-                          alt="folder-icon"
-                          className="folder-icon"
-                        />
-                      </div>
-                      <span className="folder-name">{folder.folderName}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "1.1rem",
-                        fontStyle: "italic",
-                        alignSelf: "center",
-                      }}
-                    >
-                      ✖️ Oops! Looks like you don&apos;t have any folders.
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            {folderId && isShowFolderOptionsModal && (
-              <div
-                onMouseLeave={() => setIsShowFolderOptionsModal(false)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1.2rem",
-                  position: "absolute",
-                  top: "0rem",
-                  right: "0.5rem",
-                  flexDirection: "column",
-                  backgroundColor: "var(--light-color1)",
-                  overflow: "hidden",
-                  borderRadius: "10px",
-                  padding: "0.7rem",
-                }}
-              >
-                <div
-                  onClick={() => {
-                    setIsShowFolderOptionsModal(false);
-                    setIsRenameFolderModalOpen(true);
-                  }}
-                  className="folder-each-option"
-                >
-                  <TbEdit
-                    color="var(--text-color3)"
-                    size="1.7rem"
-                    style={{
-                      stroke: "var(--text-color2)",
-                      strokeWidth: "1.3",
-                      cursor: "pointer",
-                    }}
-                  />
-                  <span>Rename Folder</span>
-                </div>
-                <div
-                  onClick={() => {
-                    setIsShowFolderOptionsModal(false);
-                    handleDeleteFolder();
-                  }}
-                  className="folder-each-option"
-                >
-                  <Trash2Icon
-                    style={{
-                      strokeWidth: "1.7",
-                      cursor: "pointer",
-                    }}
-                    size={"1.5rem"}
-                    color="var(--red)"
-                  />
-                  <span>Delete Folder</span>
+                  ✖️ Oops! Looks like you don&apos;t have any folders.
                 </div>
               </div>
             )}
           </div>
-          {isFilterModalOpen && !folderId && (
-            <div className="folder-filter-modal">
-              <div className="folder-modal-content">
-                <div className="folder-modal-header">
-                  <span className="folder-modal-title">Filter Options</span>
-                  <X
-                    size="1.3rem"
-                    color="var(--text-color3)"
-                    onClick={() => setIsFilterModalOpen(false)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </div>
-                <div className="folder-modal-body">
-                  <label>Sort by:</label>
-                  <select
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                    className="folder-sort-select"
-                  >
-                    <option value="date-newest">Date Created (Newest First)</option>
-                    <option value="date-oldest">Date Created (Oldest First)</option>
-                    <option value="alphabetical-asc">Alphabetical (A-Z)</option>
-                    <option value="alphabetical-desc">Alphabetical (Z-A)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isFileFilterModalOpen && folderId && (
-            <div className="folder-filter-modal">
-              <div className="folder-modal-content">
-                <div className="folder-modal-header">
-                  <span className="folder-modal-title">Filter Files</span>
-                  <X
-                    size="1.3rem"
-                    color="var(--text-color3)"
-                    onClick={() => setIsFileFilterModalOpen(false)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </div>
-                <div className="folder-modal-body">
-                  <label>Sort by:</label>
-                  <select
-                    value={fileSortOption}
-                    onChange={(e) => setFileSortOption(e.target.value)}
-                    className="folder-sort-select"
-                  >
-                    <option value="name-asc">Name (A-Z)</option>
-                    <option value="name-desc">Name (Z-A)</option>
-                    <option value="size-smallest">Size (Smallest First)</option>
-                    <option value="size-largest">Size (Largest First)</option>
-                    <option value="date-newest">Date Created (Newest First)</option>
-                    <option value="date-oldest">Date Created (Oldest First)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-          {previewFile && (
-            <FilePreview
-              file={previewFile}
-              onClose={() => {
-                setPreviewFile(null);
+        )}
+        {folderId && isShowFolderOptionsModal && (
+          <div
+            onMouseLeave={() => setIsShowFolderOptionsModal(false)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1.2rem",
+              position: "absolute",
+              top: "0rem",
+              right: "0.5rem",
+              flexDirection: "column",
+              backgroundColor: "var(--light-color1)",
+              overflow: "hidden",
+              borderRadius: "10px",
+              padding: "0.7rem",
+            }}
+          >
+            <div
+              onClick={() => {
+                setIsShowFolderOptionsModal(false);
+                setIsRenameFolderModalOpen(true);
               }}
-            />
-          )}
-          {isCreateFolderModalOpen && (
-            <div className="overlay">
-              <div className="create-folder-modal-content">
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "1.3rem",
-                      fontWeight: "600",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Folder Name:
-                  </label>
-                  <X
-                    color="var(--text-color3)"
-                    size="1.3rem"
-                    onClick={() => setIsCreateFolderModalOpen(false)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </div>
-                <input
-                  type="text"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Enter new folder name"
-                />
-                <button
-                  style={{
-                    color: "var(--text-color3)",
-                    backgroundColor: "var(--primary-color)",
-                    border: "none",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.5rem",
-                    cursor: "pointer",
-                    marginTop: "1rem",
-                    fontSize: "1rem",
-                    fontWeight: "600",
-                    width: "100%",
-                  }}
-                  onClick={handleCreateFolder}
-                >
-                  Create Folder
-                </button>
-              </div>
+              className="folder-each-option"
+            >
+              <TbEdit
+                color="var(--text-color3)"
+                size="1.7rem"
+                style={{
+                  stroke: "var(--text-color2)",
+                  strokeWidth: "1.3",
+                  cursor: "pointer",
+                }}
+              />
+              <span>Rename Folder</span>
             </div>
-          )}
-          {isRenameFolderModalOpen && (
-            <div className="overlay">
-              <div className="create-folder-modal-content">
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "1.3rem",
-                      fontWeight: "600",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Rename Folder:
-                  </label>
-                  <X
-                    color="var(--text-color3)"
-                    size="1.3rem"
-                    onClick={() => setIsRenameFolderModalOpen(false)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </div>
-                <input
-                  type="text"
-                  value={renameFolderName}
-                  onChange={(e) => setRenameFolderName(e.target.value)}
-                  placeholder="Enter new folder name"
-                />
-                <button
-                  style={{
-                    color: "var(--text-color3)",
-                    backgroundColor: "var(--primary-color)",
-                    border: "none",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.5rem",
-                    cursor: "pointer",
-                    marginTop: "1rem",
-                    fontSize: "1rem",
-                    fontWeight: "600",
-                    width: "100%",
-                  }}
-                  onClick={handleRenameFolder}
-                >
-                  Rename Folder
-                </button>
-              </div>
+            <div
+              onClick={() => {
+                setIsShowFolderOptionsModal(false);
+                handleDeleteFolder();
+              }}
+              className="folder-each-option"
+            >
+              <Trash2Icon
+                style={{
+                  strokeWidth: "1.7",
+                  cursor: "pointer",
+                }}
+                size={"1.5rem"}
+                color="var(--red)"
+              />
+              <span>Delete Folder</span>
             </div>
-          )}
+          </div>
+        )}
+      </div>
+      {isFilterModalOpen && !folderId && (
+        <div className="folder-filter-modal">
+          <div className="folder-modal-content">
+            <div className="folder-modal-header">
+              <span className="folder-modal-title">Filter Options</span>
+              <X
+                size="1.3rem"
+                color="var(--text-color3)"
+                onClick={() => setIsFilterModalOpen(false)}
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+            <div className="folder-modal-body">
+              <label>Sort by:</label>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="folder-sort-select"
+              >
+                <option value="date-newest">Date Created (Newest First)</option>
+                <option value="date-oldest">Date Created (Oldest First)</option>
+                <option value="alphabetical-asc">Alphabetical (A-Z)</option>
+                <option value="alphabetical-desc">Alphabetical (Z-A)</option>
+              </select>
+            </div>
+          </div>
         </div>
-      )
+      )}
 
+      {isFileFilterModalOpen && folderId && (
+        <div className="folder-filter-modal">
+          <div className="folder-modal-content">
+            <div className="folder-modal-header">
+              <span className="folder-modal-title">Filter Files</span>
+              <X
+                size="1.3rem"
+                color="var(--text-color3)"
+                onClick={() => setIsFileFilterModalOpen(false)}
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+            <div className="folder-modal-body">
+              <label>Sort by:</label>
+              <select
+                value={fileSortOption}
+                onChange={(e) => setFileSortOption(e.target.value)}
+                className="folder-sort-select"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="size-smallest">Size (Smallest First)</option>
+                <option value="size-largest">Size (Largest First)</option>
+                <option value="date-newest">Date Created (Newest First)</option>
+                <option value="date-oldest">Date Created (Oldest First)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+      {previewFile && (
+        <FilePreview
+          file={previewFile}
+          onClose={() => {
+            setPreviewFile(null);
+          }}
+        />
+      )}
+      {isCreateFolderModalOpen && (
+        <div className="overlay">
+          <div className="create-folder-modal-content">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.3rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Folder Name:
+              </label>
+              <X
+                color="var(--text-color3)"
+                size="1.3rem"
+                onClick={() => setIsCreateFolderModalOpen(false)}
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Enter new folder name"
+            />
+            <button
+              style={{
+                color: "var(--text-color3)",
+                backgroundColor: "var(--primary-color)",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                cursor: "pointer",
+                marginTop: "1rem",
+                fontSize: "1rem",
+                fontWeight: "600",
+                width: "100%",
+              }}
+              onClick={handleCreateFolder}
+            >
+              Create Folder
+            </button>
+          </div>
+        </div>
+      )}
+      {isRenameFolderModalOpen && (
+        <div className="overlay">
+          <div className="create-folder-modal-content">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.3rem",
+                  fontWeight: "600",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Rename Folder:
+              </label>
+              <X
+                color="var(--text-color3)"
+                size="1.3rem"
+                onClick={() => setIsRenameFolderModalOpen(false)}
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+            <input
+              type="text"
+              value={renameFolderName}
+              onChange={(e) => setRenameFolderName(e.target.value)}
+              placeholder="Enter new folder name"
+            />
+            <button
+              style={{
+                color: "var(--text-color3)",
+                backgroundColor: "var(--primary-color)",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                cursor: "pointer",
+                marginTop: "1rem",
+                fontSize: "1rem",
+                fontWeight: "600",
+                width: "100%",
+              }}
+              onClick={handleRenameFolder}
+            >
+              Rename Folder
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

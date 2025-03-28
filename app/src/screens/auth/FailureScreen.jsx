@@ -10,12 +10,9 @@ import {
 import Logo from "../../assets/images/BioKey_Logo.png";
 import SupportIcon from "../../assets/images/support_icon.png";
 import LottieView from "lottie-react-native";
-import FailureAnimation from "../../assets/animations/failure_animation.json"
-
+import FailureAnimation from "../../assets/animations/failure_animation.json";
 
 export default function FailureScreen({ navigation }) {
-
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -24,20 +21,27 @@ export default function FailureScreen({ navigation }) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity onPress={() => {
-            navigation.navigate("SupportScreen")
-          }} style={styles.supportContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("SupportScreen");
+            }}
+            style={styles.supportContainer}
+          >
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>
         <View style={styles.center}>
-
           <View style={styles.failureContainer}>
-            <LottieView style={styles.failureAnimation} source={FailureAnimation} autoPlay={true} loop={false} />
-            <Text style={styles.infoText}>Error While Registering
-              Fingerprint!</Text>
+            <LottieView
+              style={styles.failureAnimation}
+              source={FailureAnimation}
+              autoPlay={true}
+              loop={false}
+            />
+            <Text style={styles.infoText}>
+              Error While Registering Fingerprint!
+            </Text>
           </View>
-
         </View>
         <View style={styles.bottom}>
           <TouchableOpacity style={styles.button}>
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp("2%"),
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   title: {
     fontSize: hp("3.7%"),
@@ -114,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: hp("2.5%"),
     alignItems: "center",
     justifyContent: "center",
-    gap: hp("3%")
+    gap: hp("3%"),
   },
   failureAnimation: {
     aspectRatio: 1,
@@ -124,19 +128,19 @@ const styles = StyleSheet.create({
     width: "50%",
     height: "50%",
     position: "absolute",
-    top: hp("12%")
+    top: hp("12%"),
   },
   fpScanner: {
     width: "50%",
     height: "50%",
-    resizeMode: "contain"
+    resizeMode: "contain",
   },
   infoText: {
     fontSize: hp("3%"),
     fontFamily: "Afacad-Medium",
     color: colors.textColor1,
     textAlign: "center",
-    width: "90%"
+    width: "90%",
   },
   bottom: {
     width: wp("100%"),
@@ -158,5 +162,4 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
   },
-
 });

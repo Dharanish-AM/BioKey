@@ -38,7 +38,7 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
       Alert.alert(
         "Notice",
         "Name and Password are required, and either Username or Email must be provided. Please fill out all fields.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
       return;
     }
@@ -62,22 +62,21 @@ export default function AddPasswordSheet({ bottomSheetRef }) {
         password,
         website,
         note,
-        dispatch
+        dispatch,
       );
 
       if (response.status) {
         Toast.show({
-          type: 'success',
+          type: "success",
           text1: `Password added successfully!`,
         });
 
         if (bottomSheetRef.current) {
           bottomSheetRef.current.close();
         }
-
       } else {
         Toast.show({
-          type: 'error',
+          type: "error",
           text1: "Adding Failed",
           text2: uploadResponse.message || "Unknown error occurred.",
         });

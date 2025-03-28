@@ -53,26 +53,25 @@ const getPassword = async (req, res) => {
   try {
     const { userId, passwordId } = req.query;
 
-
     if (!userId || !passwordId) {
-      return res.status(400).json({ error: "userId and passwordId are required." });
+      return res
+        .status(400)
+        .json({ error: "userId and passwordId are required." });
     }
-
 
     const userExists = await User.findById(userId);
     if (!userExists) {
       return res.status(404).json({ error: "User not found." });
     }
 
-
-    const passwordRecord = await Password.findOne({ _id: passwordId, userId }).select(
-      "name userName email password website note updatedAt iv"
-    );
+    const passwordRecord = await Password.findOne({
+      _id: passwordId,
+      userId,
+    }).select("name userName email password website note updatedAt iv");
 
     if (!passwordRecord) {
       return res.status(404).json({ error: "Password not found." });
     }
-
 
     let decryptedPassword = passwordRecord.password;
     if (passwordRecord.iv && passwordRecord.password) {
@@ -82,10 +81,12 @@ const getPassword = async (req, res) => {
           content: passwordRecord.password,
         });
       } catch (decryptError) {
-        console.warn(`Decryption failed for password ID ${passwordRecord._id}:`, decryptError);
+        console.warn(
+          `Decryption failed for password ID ${passwordRecord._id}:`,
+          decryptError,
+        );
       }
     }
-
 
     res.status(200).json({
       message: "Password fetched successfully",
@@ -102,10 +103,11 @@ const getPassword = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching password:", error);
-    res.status(500).json({ error: "An error occurred while fetching the password." });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the password." });
   }
 };
-
 
 const getAllPasswords = async (req, res) => {
   try {
@@ -121,25 +123,23 @@ const getAllPasswords = async (req, res) => {
     }
 
     const passwords = await Password.find({ userId }).select(
-      "name userName email password iv website note updatedAt"
+      "name userName email password iv website note updatedAt",
     );
 
-    
     const decryptedPasswords = passwords.map((pwd) => {
       try {
         return {
-          ...pwd._doc, 
-          password: decrypt({ iv: pwd.iv, content: pwd.password }), 
+          ...pwd._doc,
+          password: decrypt({ iv: pwd.iv, content: pwd.password }),
         };
       } catch (error) {
         console.error(`Failed to decrypt password for ${pwd.name}:`, error);
-        return { ...pwd._doc, password: "Decryption failed" }; 
+        return { ...pwd._doc, password: "Decryption failed" };
       }
     });
 
-    
     const sortedPasswords = decryptedPasswords.sort((a, b) =>
-      a.name ? a.name.localeCompare(b.name) : -1
+      a.name ? a.name.localeCompare(b.name) : -1,
     );
 
     res.status(200).json({
@@ -148,7 +148,9 @@ const getAllPasswords = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching passwords:", error);
-    res.status(500).json({ error: "An error occurred while fetching passwords." });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching passwords." });
   }
 };
 
@@ -193,13 +195,13 @@ const updatePassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid input data" });
     }
 
-
     const password = await Password.findOne({ _id: passwordId, userId });
 
     if (!password) {
-      return res.status(404).json({ message: "Password not found or unauthorized access" });
+      return res
+        .status(404)
+        .json({ message: "Password not found or unauthorized access" });
     }
-
 
     if (updatedData.password) {
       const { iv, content } = encrypt(updatedData.password);
@@ -207,19 +209,18 @@ const updatePassword = async (req, res) => {
       updatedData.iv = iv;
     }
 
-
     Object.keys(updatedData).forEach((key) => {
       if (updatedData[key]) {
         password[key] = updatedData[key];
       }
     });
 
-
     const updatedPassword = await password.save();
 
-    return res
-      .status(200)
-      .json({ message: "Password updated successfully", data: updatedPassword });
+    return res.status(200).json({
+      message: "Password updated successfully",
+      data: updatedPassword,
+    });
   } catch (error) {
     console.error("Error updating password:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -231,5 +232,5 @@ module.exports = {
   getAllPasswords,
   deletePassword,
   updatePassword,
-  getPassword
+  getPassword,
 };

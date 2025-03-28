@@ -7,49 +7,47 @@
   width: 50rem;
 }
 
-
-.settings-container{
-    display: flex;
-    flex-direction: row;
-    flex: 1;
+.settings-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
 }
 
-.settings-header{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 1rem;
-    width: 100%;
+.settings-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
-.settings-title{
-    font-size: 1.7rem;
-    color: var(--text-color3);
-    font-weight: 500;
+.settings-title {
+  font-size: 1.7rem;
+  color: var(--text-color3);
+  font-weight: 500;
 }
 
-.settings-sidebar{
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    height: 100%;   
-    padding: 1.5rem;
-    padding-right: 5rem;
-    background-color: var(--light-color2);
-
+.settings-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  padding: 1.5rem;
+  padding-right: 5rem;
+  background-color: var(--light-color2);
 }
 
-.settings-tab{
-    font-size: 1.2rem;
-    color: var(--text-color2);
-    cursor: pointer;
+.settings-tab {
+  font-size: 1.2rem;
+  color: var(--text-color2);
+  cursor: pointer;
 }
 
-.settings-tab.active{
-    color: var(--text-color3);
+.settings-tab.active {
+  color: var(--text-color3);
 }
 
-.settings-content{
-    display: flex;
-    flex: 1;
+.settings-content {
+  display: flex;
+  flex: 1;
 }

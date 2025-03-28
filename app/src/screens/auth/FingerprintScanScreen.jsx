@@ -11,15 +11,12 @@ import Logo from "../../assets/images/BioKey_Logo.png";
 import SupportIcon from "../../assets/images/support_icon.png";
 import FpScanner from "../../assets/images/fpScanner.png";
 import LottieView from "lottie-react-native";
-import ScanAnimation from "../../assets/animations/scan_animation.json"
-
+import ScanAnimation from "../../assets/animations/scan_animation.json";
 
 export default function DevicePairingScreen({ navigation }) {
-
-
   const handlePress = () => {
-    navigation.navigate('FingerprintScanScreen')
-  }
+    navigation.navigate("FingerprintScanScreen");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,20 +26,33 @@ export default function DevicePairingScreen({ navigation }) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity onPress={()=>{
-            navigation.navigate("SupportScreen")
-          }} style={styles.supportContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("SupportScreen");
+            }}
+            style={styles.supportContainer}
+          >
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>
         <View style={styles.center}>
           <Text style={styles.title}>Register Your Fingerprint</Text>
           <View style={styles.scannerContainer}>
-            <Text style={styles.instructionText}>Place your finger on the sensor</Text>
-            <LottieView style={styles.scanAnimation} source={ScanAnimation} autoPlay={true} loop={true} />
+            <Text style={styles.instructionText}>
+              Place your finger on the sensor
+            </Text>
+            <LottieView
+              style={styles.scanAnimation}
+              source={ScanAnimation}
+              autoPlay={true}
+              loop={true}
+            />
             <Image source={FpScanner} style={styles.fpScanner} />
           </View>
-          <Text style={styles.infoText}>*Your fingerprint will be securely stored and used only for authentication purposes.</Text>
+          <Text style={styles.infoText}>
+            *Your fingerprint will be securely stored and used only for
+            authentication purposes.
+          </Text>
         </View>
         <View style={styles.bottom}>
           <TouchableOpacity style={styles.button}>
@@ -119,29 +129,29 @@ const styles = StyleSheet.create({
     borderRadius: hp("2.5%"),
     alignItems: "center",
     justifyContent: "center",
-    gap: hp("3%")
+    gap: hp("3%"),
   },
   instructionText: {
     fontSize: hp("2.7%"),
     fontFamily: "Afacad-Medium",
-    color: colors.textColor1
+    color: colors.textColor1,
   },
   scanAnimation: {
     width: "50%",
     height: "50%",
     position: "absolute",
-    top: hp("12%")
+    top: hp("12%"),
   },
   fpScanner: {
     width: "50%",
     height: "50%",
-    resizeMode: "contain"
+    resizeMode: "contain",
   },
   infoText: {
     fontSize: hp("2.1%"),
     fontFamily: "Afacad-Medium",
     color: colors.textColor3,
-    textAlign: "center"
+    textAlign: "center",
   },
   bottom: {
     width: wp("100%"),
@@ -163,5 +173,4 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-SemiBold",
   },
-
 });

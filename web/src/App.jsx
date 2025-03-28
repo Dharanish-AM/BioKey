@@ -1,27 +1,32 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import './App.css';
-import AuthPage from './pages/AuthPage/AuthPage';
-import Home from './pages/Home/Home';
-import Header from './components/Header/Header';
-import SideBar from './components/SideBar/SideBar';
-import { loadUser } from './services/userOperations';
-import { checkTokenIsValid } from './services/authOperations';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useEffect, useState } from "react";
+import "./App.css";
+import AuthPage from "./pages/AuthPage/AuthPage";
+import Home from "./pages/Home/Home";
+import Header from "./components/Header/Header";
+import SideBar from "./components/SideBar/SideBar";
+import { loadUser } from "./services/userOperations";
+import { checkTokenIsValid } from "./services/authOperations";
 import Lottie from "lottie-react";
 
-import LoadingAnimation from './assets/animations/loading.json';
-import { useDispatch, useSelector } from 'react-redux';
-import { setAuthState, setUser } from './redux/actions';
-import Folder from './pages/Folders/Folders';
-import Folders from './pages/Folders/Folders';
-import Favourites from './pages/Favourites/Favourites';
-import Trash from './pages/Trash/Trash';
-import Images from './pages/media/Images/Images';
-import Videos from './pages/media/videos/Videos';
-import Audios from './pages/media/audios/Audios';
-import Others from './pages/media/others/Others';
-import Passwords from './pages/media/passwords/Passwords';
-import Storage from './pages/Storage/Storage';
+import LoadingAnimation from "./assets/animations/loading.json";
+import { useDispatch, useSelector } from "react-redux";
+import { setAuthState, setUser } from "./redux/actions";
+import Folder from "./pages/Folders/Folders";
+import Folders from "./pages/Folders/Folders";
+import Favourites from "./pages/Favourites/Favourites";
+import Trash from "./pages/Trash/Trash";
+import Images from "./pages/media/Images/Images";
+import Videos from "./pages/media/videos/Videos";
+import Audios from "./pages/media/audios/Audios";
+import Others from "./pages/media/others/Others";
+import Passwords from "./pages/media/passwords/Passwords";
+import Storage from "./pages/Storage/Storage";
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -60,20 +65,27 @@ function App() {
   }, [dispatch]);
 
   if (loading) {
-    return <div className="loading-container">
-      <Lottie className='loading-animation' animationData={LoadingAnimation} loop={true} autoplay={true} />
-    </div>;
+    return (
+      <div className="loading-container">
+        <Lottie
+          className="loading-animation"
+          animationData={LoadingAnimation}
+          loop={true}
+          autoplay={true}
+        />
+      </div>
+    );
   }
 
   return (
     <Router>
       <div className="App">
         {isAuthenticated ? (
-          <div className='main-container'>
+          <div className="main-container">
             <Header />
-            <div className='main-row'>
+            <div className="main-row">
               <SideBar />
-              <div className='main-content'>
+              <div className="main-content">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/folders" element={<Folders />} />

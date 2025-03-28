@@ -11,7 +11,12 @@ import colors from "./src/constants/colors";
 const toastConfig = {
   success: ({ text1, text2 }) => (
     <View style={[styles.toastContainer, styles.success]}>
-      <Feather name="check-circle" size={wp("6%")} color="#22C55E" style={styles.icon} />
+      <Feather
+        name="check-circle"
+        size={wp("6%")}
+        color="#22C55E"
+        style={styles.icon}
+      />
       <View>
         <Text style={styles.title}>{text1}</Text>
         {text2 && <Text style={styles.message}>{text2}</Text>}
@@ -20,7 +25,12 @@ const toastConfig = {
   ),
   error: ({ text1, text2 }) => (
     <View style={[styles.toastContainer, styles.error]}>
-      <Feather name="x-circle" size={wp("6%")} color="#EF4444" style={styles.icon} />
+      <Feather
+        name="x-circle"
+        size={wp("6%")}
+        color="#EF4444"
+        style={styles.icon}
+      />
       <View>
         <Text style={styles.title}>{text1}</Text>
         {text2 && <Text style={styles.message}>{text2}</Text>}
@@ -29,7 +39,12 @@ const toastConfig = {
   ),
   warning: ({ text1, text2 }) => (
     <View style={[styles.toastContainer, styles.warning]}>
-      <Feather name="alert-circle" size={wp("6%")} color="#FACC15" style={styles.icon} />
+      <Feather
+        name="alert-circle"
+        size={wp("6%")}
+        color="#FACC15"
+        style={styles.icon}
+      />
       <View>
         <Text style={styles.title}>{text1}</Text>
         {text2 && <Text style={styles.message}>{text2}</Text>}
@@ -67,12 +82,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: wp("4.5%"),
     color: colors.textColor1,
-    fontFamily: "Afacad-Medium"
+    fontFamily: "Afacad-Medium",
   },
   message: {
     fontSize: wp("4%"),
     color: colors.textColor1,
-    fontFamily: "Afacad-Regular"
+    fontFamily: "Afacad-Regular",
   },
 });
 

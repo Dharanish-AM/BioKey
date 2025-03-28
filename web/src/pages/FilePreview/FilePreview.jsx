@@ -24,8 +24,6 @@ import { formatFileSize } from "../../utils/formatFileSize";
 import heartLiked from "../../assets/icons/like-heart.png";
 import { useLocation } from "react-router-dom";
 
-
-
 export default function FilePreview({ file, onClose }) {
   const userId = useSelector((state) => state.user.userId);
   const token = useSelector((state) => state.auth.token);
@@ -114,7 +112,7 @@ export default function FilePreview({ file, onClose }) {
       file._id,
       token,
       file.type,
-      dispatch
+      dispatch,
     );
 
     if (response.success) {
@@ -138,7 +136,7 @@ export default function FilePreview({ file, onClose }) {
         folderId,
         file._id,
         token,
-        dispatch
+        dispatch,
       );
       if (response.success) {
         toast.success(`${file.name} moved to folder successfully`);
@@ -170,7 +168,7 @@ export default function FilePreview({ file, onClose }) {
       file._id,
       file.type,
       token,
-      dispatch
+      dispatch,
     );
     console.log(response);
     if (response.success) {
@@ -182,7 +180,9 @@ export default function FilePreview({ file, onClose }) {
   };
 
   const handleRemoveFromFolder = async () => {
-    const isOk  = confirm("Are you sure you want to remove this file from the folder?");
+    const isOk = confirm(
+      "Are you sure you want to remove this file from the folder?",
+    );
     if (!isOk) return;
     console.log("Removing file from folder:", file.name);
     const response = await removeFileFromFolder(
@@ -190,10 +190,10 @@ export default function FilePreview({ file, onClose }) {
       folderId,
       file._id,
       token,
-      dispatch
+      dispatch,
     );
     if (response.success) {
-        onClose();
+      onClose();
       toast.success(`${file.name} removed from folder successfully`);
       setIsAddToFolder(false);
     } else {
@@ -287,7 +287,7 @@ export default function FilePreview({ file, onClose }) {
               {folders.length > 0 ? (
                 folders.map((folder, index) => {
                   const fileExists = folder.files.some(
-                    (f) => f._id === file._id
+                    (f) => f._id === file._id,
                   );
 
                   return (
@@ -349,8 +349,8 @@ export default function FilePreview({ file, onClose }) {
                     file.folders.length === 0
                       ? "no-folders"
                       : file.folders.length >= 3
-                      ? "folders-wrap"
-                      : ""
+                        ? "folders-wrap"
+                        : ""
                   }`}
                 >
                   {file.folders.length > 0
@@ -395,8 +395,7 @@ export default function FilePreview({ file, onClose }) {
           )}
         </div>
       )}
-   </div>
-   
+    </div>
   );
 }
 
@@ -472,7 +471,7 @@ const OtherFilePreview = ({ fileData, fileName }) => {
   const fileExtension = fileName?.split(".").pop()?.toLowerCase();
 
   const isIframeSupported = ["pdf", "html", "svg", "txt"].includes(
-    fileExtension
+    fileExtension,
   );
 
   return (

@@ -27,14 +27,14 @@ const deviceSchema = new mongoose.Schema(
         },
         date: {
           type: Date,
-          default: Date.now()
+          default: Date.now(),
         },
       },
     ],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null
+      default: null,
     },
     status: {
       type: String,
@@ -44,7 +44,7 @@ const deviceSchema = new mongoose.Schema(
     privateKey: {
       type: String,
       default: "",
-      required: false
+      required: false,
     },
     createdAt: {
       type: Date,
@@ -53,8 +53,7 @@ const deviceSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
-
 
 module.exports = mongoose.model("Device", deviceSchema);

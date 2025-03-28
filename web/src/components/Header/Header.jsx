@@ -61,7 +61,7 @@ export default function Header({ onSearch }) {
 
     if (allFilesMetaData?.files) {
       const filtered = allFilesMetaData.files.filter((file) =>
-        file.name.toLowerCase().includes(query)
+        file.name.toLowerCase().includes(query),
       );
       setFilteredFiles(filtered);
       onSearch(filtered);
@@ -98,11 +98,11 @@ export default function Header({ onSearch }) {
       userId,
       notificationId,
       false,
-      token
+      token,
     );
     if (response) {
       setNotifications((prev) =>
-        prev.filter((item) => item._id !== notificationId)
+        prev.filter((item) => item._id !== notificationId),
       );
     }
   };
@@ -292,44 +292,42 @@ export default function Header({ onSearch }) {
             <Settings size={18} className="profile-option-icon" />
             Settings
           </div>
-          <div onClick={()=>{
-            setIsProfileOpen(false);
-            setIsSupportOpen(true);
-          }} className="profile-option">
+          <div
+            onClick={() => {
+              setIsProfileOpen(false);
+              setIsSupportOpen(true);
+            }}
+            className="profile-option"
+          >
             <LifeBuoy size={18} className="profile-option-icon" />
             Support
           </div>
         </div>
       )}
-      {
-        isAccountOpen && (
-          <AccountCard
-            onClose={() => {
-              setIsAccountOpen(false);
-              setIsProfileOpen(false);
-            }}
-          />
-        )
-      }
-      {
-        isSettingsOpen && (
-          <SettingsCard
-            onClose={() => {
-              setIsSettingsOpen(false);
-              setIsProfileOpen(false);
-            }}
-          />
-        )
-      }{
-        isSupportOpen && (
-          <SupportCard
-            onClose={() => {
-              setIsSupportOpen(false);
-              setIsProfileOpen(false);
-            }}
-          />
-        )
-      }
+      {isAccountOpen && (
+        <AccountCard
+          onClose={() => {
+            setIsAccountOpen(false);
+            setIsProfileOpen(false);
+          }}
+        />
+      )}
+      {isSettingsOpen && (
+        <SettingsCard
+          onClose={() => {
+            setIsSettingsOpen(false);
+            setIsProfileOpen(false);
+          }}
+        />
+      )}
+      {isSupportOpen && (
+        <SupportCard
+          onClose={() => {
+            setIsSupportOpen(false);
+            setIsProfileOpen(false);
+          }}
+        />
+      )}
       {previewFile && (
         <FilePreview file={previewFile} onClose={() => setPreviewFile(null)} />
       )}

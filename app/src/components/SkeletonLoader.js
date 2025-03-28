@@ -24,7 +24,7 @@ const SkeletonLoader = ({
         duration: shimmerSpeed,
         useNativeDriver: true,
         easing: Easing.ease,
-      })
+      }),
     ).start();
   }, [shimmerSpeed]);
 

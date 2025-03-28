@@ -47,7 +47,7 @@ const sendPushNotifications = async (req, res) => {
       await Notification.updateOne(
         { userId: user._id },
         { $push: { notifications: { title, message, createdAt: new Date() } } },
-        { upsert: true }
+        { upsert: true },
       );
     }
 
@@ -68,7 +68,6 @@ const createPlan = async (req, res) => {
   try {
     const { name, price, features } = req.body;
 
-    
     if (!name || !price || !Array.isArray(features) || features.length === 0) {
       return res.status(400).json({
         success: false,

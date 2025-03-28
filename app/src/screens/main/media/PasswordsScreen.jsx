@@ -62,7 +62,7 @@ export default function PasswordsScreen({ navigation }) {
   const passwords = useSelector((state) => state.passwords.passwords);
 
   const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.passwordsScreen
+    (state) => state.appConfig.isFirstRender.passwordsScreen,
   );
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function PasswordsScreen({ navigation }) {
     const filteredData = passwords.filter(
       (password) =>
         password.name.toLowerCase().includes(text.toLowerCase()) ||
-        password.email.toLowerCase().includes(text.toLowerCase())
+        password.email.toLowerCase().includes(text.toLowerCase()),
     );
     setFilteredPasswords(filteredData);
   };
@@ -153,9 +153,11 @@ export default function PasswordsScreen({ navigation }) {
   };
 
   const renderSkeletonItem = () => (
-    <View style={{
-      marginBottom: hp("2%")
-    }}>
+    <View
+      style={{
+        marginBottom: hp("2%"),
+      }}
+    >
       <View>
         <SkeletonLoader boxHeight={hp("10%")} boxWidth={wp("90%")} />
       </View>
@@ -168,7 +170,6 @@ export default function PasswordsScreen({ navigation }) {
       </View>
     </View>
   );
-
 
   const renderItem = ({ item }) => {
     let iconSource;
@@ -297,59 +298,62 @@ export default function PasswordsScreen({ navigation }) {
           </View>
         </View>
         <View style={styles.center}>
-          {
-            !filteredPasswords ? (
-              <FlatList
-                data={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
-                renderItem={renderSkeletonItem}
-                contentContainerStyle={{
-                  flexGrow: 1,
-                  paddingHorizontal: wp("3.5%"),
-                  paddingBottom: hp("3%"),
-                  alignItems: "center"
-                }}
-                style={{
-                  width: wp("100%"),
-                }}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={isRefreshing}
-                    onRefresh={handleRefresh}
-                  />
-                }
-              />
-            ) : (
-              <FlatList
-                data={filteredPasswords}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()}
-                contentContainerStyle={{
-                  flexGrow: 1,
-                  paddingHorizontal: wp("3.5%"),
-                  paddingBottom: hp("3%"),
-                }}
-                style={{
-                  width: wp("100%"),
-                }}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={isRefreshing}
-                    onRefresh={handleRefresh}
-                  />
-                }
-                ListEmptyComponent={() => {
-                  return (
-                    <Text style={{
+          {!filteredPasswords ? (
+            <FlatList
+              data={[1, 2, 3, 4, 5, 6, 7, 8, 9]}
+              renderItem={renderSkeletonItem}
+              contentContainerStyle={{
+                flexGrow: 1,
+                paddingHorizontal: wp("3.5%"),
+                paddingBottom: hp("3%"),
+                alignItems: "center",
+              }}
+              style={{
+                width: wp("100%"),
+              }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
+            />
+          ) : (
+            <FlatList
+              data={filteredPasswords}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={{
+                flexGrow: 1,
+                paddingHorizontal: wp("3.5%"),
+                paddingBottom: hp("3%"),
+              }}
+              style={{
+                width: wp("100%"),
+              }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
+              ListEmptyComponent={() => {
+                return (
+                  <Text
+                    style={{
                       fontSize: hp("2.5%"),
                       color: colors.textColor2,
                       fontFamily: "Afacad-Italic",
                       alignSelf: "center",
-                      marginTop: hp("35%")
-                    }}>No passwords found, try adding!</Text>
-                  )
-                }}
-              />)
-          }
+                      marginTop: hp("35%"),
+                    }}
+                  >
+                    No passwords found, try adding!
+                  </Text>
+                );
+              }}
+            />
+          )}
         </View>
         <TouchableOpacity
           style={styles.addButton}
@@ -412,7 +416,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: wp("8%"),
     justifyContent: "center",
-    marginRight: wp("1%")
+    marginRight: wp("1%"),
   },
   backIcon: {
     width: wp("5%"),
@@ -436,7 +440,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: hp("3.2%"),
     aspectRatio: 1,
-    marginRight: wp("2%")
+    marginRight: wp("2%"),
   },
   searchIcon: {
     width: "100%",
@@ -478,7 +482,8 @@ const styles = StyleSheet.create({
     width: wp("100%"),
     alignItems: "center",
     justifyContent: "flex-start",
-  }, noPasswordsText: {
+  },
+  noPasswordsText: {
     fontSize: hp("2.5%"),
     color: colors.textColor3,
     textAlign: "center",

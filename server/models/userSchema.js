@@ -26,11 +26,11 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       required: true,
-      enum: ["Male", "Female", "Others"]
+      enum: ["Male", "Female", "Others"],
     },
     location: {
       type: String,
-      required: true
+      required: true,
     },
     profile: {
       type: String,
@@ -48,15 +48,15 @@ const userSchema = new mongoose.Schema(
     },
     totalSpace: {
       type: Number,
-      default: 16106127360
+      default: 16106127360,
     },
     usedSpace: {
       type: Number,
-      default: 0
+      default: 0,
     },
     notificationToken: {
       type: String,
-      default: ""
+      default: "",
     },
     createdAt: {
       type: Date,
@@ -65,8 +65,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
-
 
 module.exports = mongoose.model("User", userSchema);

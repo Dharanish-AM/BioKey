@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Audio } from "expo-av";
-import { View, TouchableOpacity, Image, Text, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import Slider from "@react-native-community/slider";
 import PlayButtonIcon from "../../assets/images/play-button.png";
 import PauseButtonIcon from "../../assets/images/pause-icon.png";
@@ -33,7 +40,7 @@ export default function AudioPreview({ fileData, thumbnail }) {
         const { sound } = await Audio.Sound.createAsync(
           { uri: fileData },
           { shouldPlay: true },
-          updateStatus
+          updateStatus,
         );
         newSound = sound;
         setSound(sound);
@@ -49,7 +56,9 @@ export default function AudioPreview({ fileData, thumbnail }) {
     return () => {
       if (newSound) {
         console.log("Unloading audio...");
-        newSound.unloadAsync().catch((error) => console.error("Error unloading audio:", error));
+        newSound
+          .unloadAsync()
+          .catch((error) => console.error("Error unloading audio:", error));
       }
     };
   }, [fileData]);
@@ -70,10 +79,12 @@ export default function AudioPreview({ fileData, thumbnail }) {
       return () => {
         if (sound) {
           console.log("Stopping audio on screen unfocus...");
-          sound.stopAsync().catch((error) => console.error("Error stopping audio:", error));
+          sound
+            .stopAsync()
+            .catch((error) => console.error("Error stopping audio:", error));
         }
       };
-    }, [sound])
+    }, [sound]),
   );
 
   const updateStatus = (status) => {
@@ -144,7 +155,11 @@ export default function AudioPreview({ fileData, thumbnail }) {
     <View style={styles.container}>
       <View style={styles.thumbnailContainer}>
         {thumbnail ? (
-          <Image source={{ uri: thumbnail }} style={styles.thumbnail} onError={(e) => console.error("Thumbnail failed to load", e)} />
+          <Image
+            source={{ uri: thumbnail }}
+            style={styles.thumbnail}
+            onError={(e) => console.error("Thumbnail failed to load", e)}
+          />
         ) : (
           <Image source={HeadPhoneIcon} style={styles.headphone} />
         )}
@@ -176,7 +191,9 @@ export default function AudioPreview({ fileData, thumbnail }) {
           )}
         </View>
       </View>
-      {!isLoaded && <ActivityIndicator size="large" style={styles.activityIndicator} />}
+      {!isLoaded && (
+        <ActivityIndicator size="large" style={styles.activityIndicator} />
+      )}
     </View>
   );
 }
@@ -193,20 +210,20 @@ const styles = StyleSheet.create({
     width: "90%",
     aspectRatio: 1,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   headphone: {
     tintColor: colors.textColor2,
     width: wp("30%"),
     aspectRatio: 1,
-    height: hp("30%")
+    height: hp("30%"),
   },
   thumbnail: {
     aspectRatio: 1,
     resizeMode: "contain",
     borderRadius: hp("2%"),
     width: "100%",
-    height: "100%"
+    height: "100%",
   },
   controlsContainer: {
     width: "90%",

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { View, ActivityIndicator } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function VideoPreview({ fileData }) {
-
   const [isLoading, setIsLoading] = useState(true);
   const player = useVideoPlayer(fileData, (player) => {
     player.loop = true;
@@ -15,24 +14,25 @@ export default function VideoPreview({ fileData }) {
     if (player) {
       setIsLoading(false);
     }
-  }, [player])
+  }, [player]);
 
   useFocusEffect(
     React.useCallback(() => {
-
       return () => {
         if (player && player.pause) {
           player.pause();
         }
       };
-    }, [player])
+    }, [player]),
   );
 
   return (
-    <View style={{
-      width: "100%",
-      height: "100%"
-    }}>
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+    >
       <VideoView
         style={{
           width: "100%",
@@ -46,13 +46,17 @@ export default function VideoPreview({ fileData }) {
         resizeMode="contain"
         contentFit="cover"
         nativeControls={true}
-
       />
-      {isLoading && <ActivityIndicator style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-      }} size="large" />}
+      {isLoading && (
+        <ActivityIndicator
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+          }}
+          size="large"
+        />
+      )}
     </View>
   );
 }

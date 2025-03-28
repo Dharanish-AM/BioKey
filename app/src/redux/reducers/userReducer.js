@@ -15,7 +15,7 @@ const initialState = {
   folders: [],
   totalSpace: null,
   usedSpace: null,
-  activityLogs: []
+  activityLogs: [],
 };
 
 export default function userReducer(state = initialState, action) {
@@ -40,13 +40,13 @@ export default function userReducer(state = initialState, action) {
     case FETCH_FOLDERS:
       return {
         ...state,
-        folders: action.payload
-      }
+        folders: action.payload,
+      };
     case SET_ACTIVITY_LOGS:
       return {
         ...state,
-        activityLogs: action.payload
-      }
+        activityLogs: action.payload,
+      };
     default:
       return state;
   }

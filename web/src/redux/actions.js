@@ -14,9 +14,8 @@ import {
   SET_AUTH_STATE,
   SET_ACTIVITY_LOGS,
   SET_STORAGE_INFO,
-  SET_PLANS
+  SET_PLANS,
 } from "./types";
-
 
 export const setAuthState = (isAuthenticated, token) => ({
   type: SET_AUTH_STATE,
@@ -31,15 +30,12 @@ export const fetchFilesAction = (type, files = []) => {
   };
 };
 
-export const fetchUsedSpaceAction = (
-  usedSpaceBytes,
-  totalSpaceBytes
-) => {
+export const fetchUsedSpaceAction = (usedSpaceBytes, totalSpaceBytes) => {
   return {
     type: FETCH_USED_SPACE,
     payload: {
       usedSpaceBytes,
-      totalSpaceBytes
+      totalSpaceBytes,
     },
   };
 };
@@ -66,14 +62,13 @@ export const setUser = (user) => {
   return {
     type: SET_USER,
     payload: user,
-  }
-}
+  };
+};
 
 export const setPasswords = (passwords) => ({
   type: SET_PASSWORD,
   payload: passwords,
 });
-
 
 export const updateFileLikes = (fileId, isLiked, type) => {
   return {
@@ -81,57 +76,54 @@ export const updateFileLikes = (fileId, isLiked, type) => {
     payload: {
       fileId,
       isLiked,
-      type
-    }
+      type,
+    },
   };
 };
-
 
 export const setLikedFiles = (files) => {
   return {
     type: FETCH_LIKED_FILES,
-    payload: files
-  }
-}
+    payload: files,
+  };
+};
 
 export const setFolders = (folders) => {
   return {
     type: FETCH_FOLDERS,
-    payload: folders
-  }
-}
-
+    payload: folders,
+  };
+};
 
 export const setAllFilesMetadata = (allFiles) => ({
   type: SET_ALL_FILES_METADATA,
   payload: allFiles,
 });
 
-
 export const setRecycleBinFile = (file) => {
   return {
     type: SET_RECYCLE_BIN_FILES,
-    payload: file
-  }
-}
+    payload: file,
+  };
+};
 
 export const setActivityLogs = (logs) => {
   return {
     type: SET_ACTIVITY_LOGS,
-    payload: logs
-  }
-}
+    payload: logs,
+  };
+};
 
 export const setStorageInfo = (storageInfo) => {
   return {
     type: SET_STORAGE_INFO,
-    payload: storageInfo
-  }
-}
+    payload: storageInfo,
+  };
+};
 
 export const setPlans = (plans) => {
   return {
     type: SET_PLANS,
-    payload: plans
-  }
-}
+    payload: plans,
+  };
+};

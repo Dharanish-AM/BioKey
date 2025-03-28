@@ -17,8 +17,7 @@ import {
   updateUserProfile,
 } from "../../services/userOperations";
 import toast from "react-hot-toast";
-import DefualtProfileImg from  "../../assets/images/profile_icon.png"
-
+import DefualtProfileImg from "../../assets/images/profile_icon.png";
 
 export default function AccountCard({ onClose }) {
   const user = useSelector((state) => state.user);
@@ -54,7 +53,7 @@ export default function AccountCard({ onClose }) {
         userId,
         userData,
         token,
-        dispatch
+        dispatch,
       );
       if (response.success) {
         console.log("Profile updated successfully");
@@ -67,7 +66,7 @@ export default function AccountCard({ onClose }) {
     }
   };
 
-  const handleDeleteAccount = async() => {
+  const handleDeleteAccount = async () => {
     var isOk = window.confirm("Are you sure you want to delete your account?");
     if (isOk) {
       const response = await deleteAccount(userId, token);
@@ -87,7 +86,12 @@ export default function AccountCard({ onClose }) {
       alert("New password and confirm password do not match");
       return;
     }
-    const response = await changePassword(userId, oldPassword, newPassword, token);
+    const response = await changePassword(
+      userId,
+      oldPassword,
+      newPassword,
+      token,
+    );
     if (response.success) {
       toast.success("Password changed successfully");
       setIsChangingPassword(false);
@@ -114,7 +118,7 @@ export default function AccountCard({ onClose }) {
           userId,
           formData,
           token,
-          dispatch
+          dispatch,
         );
         if (response.success) {
           console.log("Profile image updated successfully");
@@ -296,13 +300,16 @@ export default function AccountCard({ onClose }) {
       )}
       {isChangingPassword && (
         <div className="change-password-modal">
-          <X style={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            cursor: "pointer",
-
-          }} color="var(--text-color3)" onClick={() => setIsChangingPassword(false)} />
+          <X
+            style={{
+              position: "absolute",
+              top: "1rem",
+              right: "1rem",
+              cursor: "pointer",
+            }}
+            color="var(--text-color3)"
+            onClick={() => setIsChangingPassword(false)}
+          />
           <div className="change-password-modal-input-group">
             <label className="change-password-modal-label">Old Password:</label>
             <input
@@ -335,12 +342,12 @@ export default function AccountCard({ onClose }) {
               placeholder="Confirm your new password"
             />
           </div>
-            <button
-              onClick={handleChangePassword}
-              className="change-password-modal-button"
-            >
-              Change Password
-            </button>
+          <button
+            onClick={handleChangePassword}
+            className="change-password-modal-button"
+          >
+            Change Password
+          </button>
         </div>
       )}
     </div>

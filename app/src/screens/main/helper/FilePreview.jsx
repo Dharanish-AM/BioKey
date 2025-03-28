@@ -14,10 +14,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import {
-  deleteFile,
-  previewFile,
-} from "../../../services/fileOperations";
+import { deleteFile, previewFile } from "../../../services/fileOperations";
 import FavIcon from "../../../assets/images/heart_bottom_icon.png";
 import ShareIcon from "../../../assets/images/share_bottom_icon.png";
 import AddFolder from "../../../assets/images/addfolder_bottom_icon.png";
@@ -27,12 +24,12 @@ import RBSheet from "react-native-raw-bottom-sheet";
 import { formatFileSize } from "../../../utils/formatFileSize";
 import { likeOrUnlikeFile } from "../../../services/userOperations";
 import LikedHeartIcon from "../../../assets/images/like-heart.png";
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-import ImagePreview from '../../../components/preview/ImagePreview';
-import VideoPreview from '../../../components/preview/VideoPreview';
-import AudioPreview from '../../../components/preview/AudioPreview';
-import OtherPreview from '../../../components/preview/OtherPreview';
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+import ImagePreview from "../../../components/preview/ImagePreview";
+import VideoPreview from "../../../components/preview/VideoPreview";
+import AudioPreview from "../../../components/preview/AudioPreview";
+import OtherPreview from "../../../components/preview/OtherPreview";
 import { useSelector } from "react-redux";
 import Toast from "react-native-toast-message";
 import AddFilesFolder from "../../../components/AddFilesFolder";
@@ -46,11 +43,10 @@ export default function FilePreviewScreen({ route, navigation }) {
   const dispatch = useDispatch();
   const refRBSheet = useRef();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLiked, setIsLike] = useState(false)
-  const addFolderSheet = useRef()
+  const [isLiked, setIsLike] = useState(false);
+  const addFolderSheet = useRef();
 
   const userId = useSelector((state) => state.user.userId);
-
 
   useEffect(() => {
     const fetchFilePreview = async () => {
@@ -78,8 +74,6 @@ export default function FilePreviewScreen({ route, navigation }) {
     fetchFilePreview();
   }, [file]);
 
-
-
   useEffect(() => {
     if (file.isLiked !== undefined) {
       setIsLike(file.isLiked);
@@ -105,16 +99,20 @@ export default function FilePreviewScreen({ route, navigation }) {
           break;
       }
 
-
       const isSharingAvailable = await Sharing.isAvailableAsync();
       if (!isSharingAvailable) {
-        Alert.alert('Sharing not available', 'Your device does not support sharing.');
+        Alert.alert(
+          "Sharing not available",
+          "Your device does not support sharing.",
+        );
         return;
       }
 
-
-      if (!uri || typeof uri !== 'string') {
-        Alert.alert('Invalid file path', 'The file path is missing or invalid.');
+      if (!uri || typeof uri !== "string") {
+        Alert.alert(
+          "Invalid file path",
+          "The file path is missing or invalid.",
+        );
         return;
       }
 
@@ -123,22 +121,24 @@ export default function FilePreviewScreen({ route, navigation }) {
         dialogTitle: `Share ${file.name}`,
       });
 
-      console.log('File shared successfully!');
-
-
+      console.log("File shared successfully!");
     } catch (error) {
-
-      if (error.message.includes('Network')) {
-        Alert.alert('Network error', 'Unable to share the file due to a network issue.');
-      } else if (error.message.includes('canceled')) {
-        console.log('User canceled the sharing process.');
+      if (error.message.includes("Network")) {
+        Alert.alert(
+          "Network error",
+          "Unable to share the file due to a network issue.",
+        );
+      } else if (error.message.includes("canceled")) {
+        console.log("User canceled the sharing process.");
       } else {
-        Alert.alert('Error sharing file', 'An unexpected error occurred while sharing the file.');
-        console.error('Error sharing file:', error.message);
+        Alert.alert(
+          "Error sharing file",
+          "An unexpected error occurred while sharing the file.",
+        );
+        console.error("Error sharing file:", error.message);
       }
     }
   };
-
 
   const handleLikeOrUnlike = async () => {
     if (isProcessing) return;
@@ -148,7 +148,12 @@ export default function FilePreviewScreen({ route, navigation }) {
     setIsLike(!previousState);
 
     try {
-      const response = await likeOrUnlikeFile(userId, file._id, dispatch, file.type);
+      const response = await likeOrUnlikeFile(
+        userId,
+        file._id,
+        dispatch,
+        file.type,
+      );
       if (!response.success) {
         setIsLike(previousState);
       }
@@ -173,37 +178,45 @@ export default function FilePreviewScreen({ route, navigation }) {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            const result = await deleteFile(userId, file._id, file.type, dispatch);
+            const result = await deleteFile(
+              userId,
+              file._id,
+              file.type,
+              dispatch,
+            );
 
             if (result.success === false) {
               Toast.show({
-                type: 'error',
+                type: "error",
                 text1: `Error deleting file.`,
-                text2: `Status code: ${response?.message}`
-              })
+                text2: `Status code: ${response?.message}`,
+              });
             } else {
-              navigation.goBack()
+              navigation.goBack();
               Toast.show({
-                type: 'success',
+                type: "success",
                 text1: `File deleted successfully!`,
-              })
+              });
             }
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
-
 
   const renderFilePreview = () => {
     switch (file.type) {
       case "images":
-        return imageData && <ImagePreview fileData={imageData} />
+        return imageData && <ImagePreview fileData={imageData} />;
       case "videos":
-        return videoData && <VideoPreview fileData={videoData} />
+        return videoData && <VideoPreview fileData={videoData} />;
       case "audios":
-        return audioData && <AudioPreview thumbnail={file.thumbnail} fileData={audioData} />
+        return (
+          audioData && (
+            <AudioPreview thumbnail={file.thumbnail} fileData={audioData} />
+          )
+        );
       default:
         return <OtherPreview name={file.name} fileData={otherData} />;
     }
@@ -225,11 +238,13 @@ export default function FilePreviewScreen({ route, navigation }) {
           <Text style={styles.fileName}>{file.name}</Text>
         </View>
 
-        <View style={styles.center}>{
-          renderFilePreview()
-        }</View>
+        <View style={styles.center}>{renderFilePreview()}</View>
         <View style={styles.bottom}>
-          <TouchableOpacity onPress={handleLikeOrUnlike} disabled={isProcessing} style={styles.opticonContainer}>
+          <TouchableOpacity
+            onPress={handleLikeOrUnlike}
+            disabled={isProcessing}
+            style={styles.opticonContainer}
+          >
             {isLiked ? (
               <Image source={LikedHeartIcon} style={styles.newoptiicon} />
             ) : (
@@ -237,18 +252,16 @@ export default function FilePreviewScreen({ route, navigation }) {
             )}
           </TouchableOpacity>
 
-
           <TouchableOpacity
             onPress={handleShare}
             style={styles.opticonContainer}
-
           >
             <Image source={ShareIcon} style={styles.opticon} />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => {
-              addFolderSheet.current.open()
+              addFolderSheet.current.open();
             }}
             style={styles.opticonContainer}
           >
@@ -256,15 +269,16 @@ export default function FilePreviewScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={
-              handleDelete
-            }
+            onPress={handleDelete}
             style={styles.opticonContainer}
           >
             <Image source={BinIcon} style={styles.opticon} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opticonContainer} onPress={() => refRBSheet.current.open()}>
+          <TouchableOpacity
+            style={styles.opticonContainer}
+            onPress={() => refRBSheet.current.open()}
+          >
             <Image source={InfoIcon} style={styles.opticon} />
           </TouchableOpacity>
         </View>
@@ -282,7 +296,7 @@ export default function FilePreviewScreen({ route, navigation }) {
               borderTopLeftRadius: hp("3%"),
               borderTopRightRadius: hp("3%"),
               backgroundColor: colors.lightColor2,
-              height: hp("40%")
+              height: hp("40%"),
             },
             mask: {
               backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -291,46 +305,57 @@ export default function FilePreviewScreen({ route, navigation }) {
         >
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Text style={[styles.infotext, styles.head,
-
-              ]}>File Name:</Text>
-              <Text style={[styles.infotext, styles.value, {
-                flexWrap: "wrap",
-                width: "90%",
-              }]}>{file.name}</Text>
+              <Text style={[styles.infotext, styles.head]}>File Name:</Text>
+              <Text
+                style={[
+                  styles.infotext,
+                  styles.value,
+                  {
+                    flexWrap: "wrap",
+                    width: "90%",
+                  },
+                ]}
+              >
+                {file.name}
+              </Text>
             </View>
 
             <View style={styles.infoRow}>
               <Text style={[styles.infotext, styles.head]}>File Type:</Text>
               <Text style={[styles.infotext, styles.value]}>
-                {file.type.includes('image')
-                  ? 'Image'
-                  : file.type.includes('video')
-                    ? 'Video'
-                    : file.type.includes('audio')
-                      ? 'Audio'
-                      : 'Other'}
+                {file.type.includes("image")
+                  ? "Image"
+                  : file.type.includes("video")
+                    ? "Video"
+                    : file.type.includes("audio")
+                      ? "Audio"
+                      : "Other"}
               </Text>
-
             </View>
 
             <View style={styles.infoRow}>
               <Text style={[styles.infotext, styles.head]}>File Size:</Text>
-              <Text style={[styles.infotext, styles.value]}>{formatFileSize(file.size)}</Text>
+              <Text style={[styles.infotext, styles.value]}>
+                {formatFileSize(file.size)}
+              </Text>
             </View>
 
             <View style={styles.infoRow}>
               <Text style={[styles.infotext, styles.head]}>Folders:</Text>
-              <Text style={[styles.infotext, styles.value]}>{file.folders && file.folders.map((item, index) => {
-                return (
-                  <View key={index}>
-                    <Text style={[styles.infotext, styles.value]}>
-                      {file.folders && file.folders.length > 0 ? `${item}, ` : "No Folders"}
-                    </Text>
-
-                  </View>
-                )
-              })}</Text>
+              <Text style={[styles.infotext, styles.value]}>
+                {file.folders &&
+                  file.folders.map((item, index) => {
+                    return (
+                      <View key={index}>
+                        <Text style={[styles.infotext, styles.value]}>
+                          {file.folders && file.folders.length > 0
+                            ? `${item}, `
+                            : "No Folders"}
+                        </Text>
+                      </View>
+                    );
+                  })}
+              </Text>
             </View>
 
             <View style={styles.infoRow}>
@@ -340,20 +365,22 @@ export default function FilePreviewScreen({ route, navigation }) {
               </Text>
             </View>
           </View>
-
-
         </RBSheet>
-        <RBSheet draggable={true} customStyles={{
-          container: {
-            backgroundColor: colors.lightColor1,
-            borderTopLeftRadius: hp("3%"),
-            borderTopRightRadius: hp("3%"),
-          }
-        }} ref={addFolderSheet}>
+        <RBSheet
+          draggable={true}
+          customStyles={{
+            container: {
+              backgroundColor: colors.lightColor1,
+              borderTopLeftRadius: hp("3%"),
+              borderTopRightRadius: hp("3%"),
+            },
+          }}
+          ref={addFolderSheet}
+        >
           <AddFilesFolder sheetRef={addFolderSheet} file={file} />
         </RBSheet>
       </View>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
 
@@ -384,7 +411,6 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-SemiBold",
     flex: 1,
     flexWrap: "wrap",
-
   },
   backIconContainer: {
     height: hp("4.7%"),
@@ -433,24 +459,24 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     gap: hp("1%"),
-    padding: hp("2%")
+    padding: hp("2%"),
   },
   infoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: wp("2%"),
-    alignItems: 'center',
+    alignItems: "center",
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(166, 166, 166, 0.1)',
+    borderBottomColor: "rgba(166, 166, 166, 0.1)",
     paddingVertical: hp("1%"),
   },
   head: {
     fontSize: hp("2.3%"),
     color: colors.textColor1,
-    fontFamily: "Afacad-Medium"
+    fontFamily: "Afacad-Medium",
   },
   value: {
     fontSize: hp("2.3%"),
     color: colors.textColor3,
-    fontFamily: "Afacad-Regular"
+    fontFamily: "Afacad-Regular",
   },
 });

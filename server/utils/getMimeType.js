@@ -6,16 +6,15 @@ const mime = require("mime-types");
  * @returns {string|null} - The MIME type (e.g., "image/jpeg") or null if not found.
  */
 const getMimeType = (filename) => {
-    if (!filename) {
-        return null;
-    }
+  if (!filename) {
+    return null;
+  }
 
+  const mimeType = mime.lookup(filename);
 
-    const mimeType = mime.lookup(filename);
-
-    return mimeType || null;
+  return mimeType || null;
 };
 
 module.exports = {
-    getMimeType,
+  getMimeType,
 };

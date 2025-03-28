@@ -2,16 +2,20 @@ const fs = require("fs");
 const path = require("path");
 const Folder = require("../models/folderSchema");
 const File = require("../models/fileSchema");
-const RecycleBin = require("../models/recycleBinSchema")
+const RecycleBin = require("../models/recycleBinSchema");
 const User = require("../models/userSchema");
 const mongoose = require("mongoose");
 const mime = require("mime-types");
-const minioClient = require("../config/minio")
-const { getUniqueFilePath, createThumbnail, getFileCategory, getFileSizeFromMinIO, streamToBuffer } = require("../utils/fileUtils");
+const minioClient = require("../config/minio");
+const {
+  getUniqueFilePath,
+  createThumbnail,
+  getFileCategory,
+  getFileSizeFromMinIO,
+  streamToBuffer,
+} = require("../utils/fileUtils");
 const formidable = require("formidable");
 const Password = require("../models/passwordSchema");
-
-
 
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 const maxThumbnailSize = 204800;
@@ -21,11 +25,14 @@ const TARGET_DIR = path.join(
   "Github_Repository",
   "BioKey",
   "server",
-  "uploads"
+  "uploads",
 );
 
 const uploadFile = async (req, res) => {
-  const form = new formidable.IncomingForm({ multiples: true, keepExtensions: true });
+  const form = new formidable.IncomingForm({
+    multiples: true,
+    keepExtensions: true,
+  });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
@@ -36,7 +43,6 @@ const uploadFile = async (req, res) => {
 
     const { userId } = fields;
     if (!userId) {
-      
       return res.status(400).json({ message: "Missing userId" });
     }
 
@@ -46,7 +52,9 @@ const uploadFile = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const uploadedFiles = Array.isArray(files.file) ? files.file : [files.file];
+      const uploadedFiles = Array.isArray(files.file)
+        ? files.file
+        : [files.file];
       if (!uploadedFiles || uploadedFiles.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
@@ -58,29 +66,41 @@ const uploadFile = async (req, res) => {
         let uniqueFilePath, thumbnailPath;
         let thumbnailSize = 0;
         try {
-
-
-          const originalFileName = file.originalFilename || `default_${Date.now()}`;
+          const originalFileName =
+            file.originalFilename || `default_${Date.now()}`;
           const fileCategory = getFileCategory(originalFileName);
           const fileSize = file.size;
 
           if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
             throw new Error("Insufficient space");
-          }  
+          }
 
           const folderPath = `${userId}/${fileCategory}`;
-          uniqueFilePath = await getUniqueFilePath(BUCKET_NAME, folderPath, originalFileName, minioClient);
+          uniqueFilePath = await getUniqueFilePath(
+            BUCKET_NAME,
+            folderPath,
+            originalFileName,
+            minioClient,
+          );
 
-          const fileStream = fs.createReadStream(filePath); 
+          const fileStream = fs.createReadStream(filePath);
           await minioClient.putObject(BUCKET_NAME, uniqueFilePath, fileStream);
           fileStream.close();
 
-          thumbnailPath = await createThumbnail(filePath, userId, fileCategory, uniqueFilePath, minioClient);
+          thumbnailPath = await createThumbnail(
+            filePath,
+            userId,
+            fileCategory,
+            uniqueFilePath,
+            minioClient,
+          );
           if (thumbnailPath) {
-            thumbnailSize = await getFileSizeFromMinIO(BUCKET_NAME, thumbnailPath, minioClient);
+            thumbnailSize = await getFileSizeFromMinIO(
+              BUCKET_NAME,
+              thumbnailPath,
+              minioClient,
+            );
           }
-
-
 
           const totalSize = fileSize + thumbnailSize;
           totalSizeChange += totalSize;
@@ -95,7 +115,7 @@ const uploadFile = async (req, res) => {
           });
           await fileMetadata.save();
 
-          await new Promise(resolve => {
+          await new Promise((resolve) => {
             fs.unlink(filePath, (err) => {
               if (err && err.code !== "ENOENT" && err.code !== "EPERM") {
                 console.error("Error deleting temp file:", err.message);
@@ -111,7 +131,6 @@ const uploadFile = async (req, res) => {
             category: fileCategory,
             size: totalSize,
           };
-
         } catch (error) {
           console.error("File processing error:", error.message);
           try {
@@ -169,7 +188,6 @@ const uploadFile = async (req, res) => {
   });
 };
 
-
 const moveToRecycleBin = async (req, res) => {
   try {
     const { userId, fileId } = req.body;
@@ -178,21 +196,21 @@ const moveToRecycleBin = async (req, res) => {
       return res.status(400).json({ error: "Provide userId and fileId." });
     }
 
-    const fileIdsArray = Array.isArray(fileId) ? fileId : [fileId]; 
+    const fileIdsArray = Array.isArray(fileId) ? fileId : [fileId];
 
-
-    const files = await File.find({ _id: { $in: fileIdsArray }, owner: userId });
+    const files = await File.find({
+      _id: { $in: fileIdsArray },
+      owner: userId,
+    });
 
     if (!files.length) {
       return res.status(404).json({ error: "No matching files found." });
     }
 
-
     await Folder.updateMany(
       { files: { $in: fileIdsArray } },
-      { $pull: { files: { $in: fileIdsArray } } }
+      { $pull: { files: { $in: fileIdsArray } } },
     );
-
 
     const recycleBinEntries = files.map((file) => ({
       name: file.name,
@@ -207,9 +225,7 @@ const moveToRecycleBin = async (req, res) => {
       isLiked: file.isLiked,
     }));
 
-
     await RecycleBin.insertMany(recycleBinEntries);
-
 
     await File.deleteMany({ _id: { $in: fileIdsArray } });
 
@@ -217,7 +233,6 @@ const moveToRecycleBin = async (req, res) => {
       success: true,
       message: `${files.length} file(s) moved to Recycle Bin successfully.`,
     });
-
   } catch (error) {
     console.error("Error moving file(s) to Recycle Bin:", error.message);
     return res.status(500).json({
@@ -227,18 +242,23 @@ const moveToRecycleBin = async (req, res) => {
   }
 };
 
-
 const restoreFile = async (req, res) => {
   try {
     const { userId, RecycleBinId } = req.body;
 
-    if (!userId || (!RecycleBinId || (Array.isArray(RecycleBinId) && RecycleBinId.length === 0))) {
-      return res.status(400).json({ error: "Provide a valid userId and at least one RecycleBinId." });
+    if (
+      !userId ||
+      !RecycleBinId ||
+      (Array.isArray(RecycleBinId) && RecycleBinId.length === 0)
+    ) {
+      return res.status(400).json({
+        error: "Provide a valid userId and at least one RecycleBinId.",
+      });
     }
 
-
-    const RecycleBinIdsArray = Array.isArray(RecycleBinId) ? RecycleBinId : [RecycleBinId];
-
+    const RecycleBinIdsArray = Array.isArray(RecycleBinId)
+      ? RecycleBinId
+      : [RecycleBinId];
 
     const filesToRestore = await RecycleBin.find({
       _id: { $in: RecycleBinIdsArray },
@@ -246,9 +266,10 @@ const restoreFile = async (req, res) => {
     });
 
     if (filesToRestore.length === 0) {
-      return res.status(404).json({ error: "No matching files found in Recycle Bin." });
+      return res
+        .status(404)
+        .json({ error: "No matching files found in Recycle Bin." });
     }
-
 
     const restoredFiles = filesToRestore.map((file) => ({
       name: file.name,
@@ -261,9 +282,7 @@ const restoreFile = async (req, res) => {
       isLiked: file.isLiked,
     }));
 
-
     await File.insertMany(restoredFiles);
-
 
     await RecycleBin.deleteMany({ _id: { $in: RecycleBinIdsArray } });
 
@@ -271,7 +290,6 @@ const restoreFile = async (req, res) => {
       success: true,
       message: `${filesToRestore.length} file(s) restored successfully.`,
     });
-
   } catch (error) {
     console.error("Error restoring file(s):", error);
     return res.status(500).json({
@@ -281,7 +299,6 @@ const restoreFile = async (req, res) => {
   }
 };
 
-
 const permanentlyDeleteFileAndThumbnail = async (req, res) => {
   try {
     const { userId, fileId, all } = req.body;
@@ -289,7 +306,9 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
 
     if (!userId || (!fileId && !all)) {
       console.error("Missing parameters:", { userId, fileId, all });
-      return res.status(400).json({ error: "Missing required parameters: userId or fileId." });
+      return res
+        .status(400)
+        .json({ error: "Missing required parameters: userId or fileId." });
     }
 
     const user = await User.findById(userId);
@@ -304,7 +323,9 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
 
       if (!files.length) {
         console.warn(`No files found in Recycle Bin for user: ${userId}`);
-        return res.status(404).json({ error: "No files found in Recycle Bin." });
+        return res
+          .status(404)
+          .json({ error: "No files found in Recycle Bin." });
       }
 
       let totalSize = 0;
@@ -316,16 +337,22 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
         console.log(`Processing file: ${file.originalPath}, Size: ${fileSize}`);
 
         deletePromises.push(
-          minioClient.removeObject(BUCKET_NAME, file.originalPath)
+          minioClient
+            .removeObject(BUCKET_NAME, file.originalPath)
             .then(() => console.log(`Deleted file: ${file.originalPath}`))
-            .catch(err => console.error("Error deleting file from MinIO:", err))
+            .catch((err) =>
+              console.error("Error deleting file from MinIO:", err),
+            ),
         );
 
         if (file.thumbnail) {
           deletePromises.push(
-            minioClient.removeObject(BUCKET_NAME, file.thumbnail)
+            minioClient
+              .removeObject(BUCKET_NAME, file.thumbnail)
               .then(() => console.log(`Deleted thumbnail: ${file.thumbnail}`))
-              .catch(err => console.warn("Failed to delete thumbnail:", file.thumbnail))
+              .catch((err) =>
+                console.warn("Failed to delete thumbnail:", file.thumbnail),
+              ),
           );
         }
       }
@@ -334,7 +361,10 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
 
       await Promise.all(deletePromises);
 
-      await User.updateOne({ _id: userId }, { $inc: { usedSpace: -totalSize } });
+      await User.updateOne(
+        { _id: userId },
+        { $inc: { usedSpace: -totalSize } },
+      );
       await RecycleBin.deleteMany({ owner: userId });
 
       console.log(`All files permanently deleted for user: ${userId}`);
@@ -345,7 +375,6 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
       });
     }
 
-    
     if (Array.isArray(fileId) && fileId.length > 0) {
       const deletePromises = [];
       let totalSize = 0;
@@ -356,7 +385,7 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
 
         if (!fileRecord) {
           console.warn(`File not found in Recycle Bin: ${id}`);
-          continue; 
+          continue;
         }
 
         const { originalPath, thumbnail, size, thumbnailSize = 0 } = fileRecord;
@@ -366,26 +395,39 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
         console.log(`Processing file: ${originalPath}, Size: ${sizeToReduce}`);
 
         deletePromises.push(
-          minioClient.removeObject(BUCKET_NAME, originalPath)
+          minioClient
+            .removeObject(BUCKET_NAME, originalPath)
             .then(() => console.log(`Deleted file: ${originalPath}`))
-            .catch(err => { throw new Error(`Failed to delete file from MinIO: ${err.message}`); })
+            .catch((err) => {
+              throw new Error(
+                `Failed to delete file from MinIO: ${err.message}`,
+              );
+            }),
         );
 
         if (thumbnail) {
           deletePromises.push(
-            minioClient.removeObject(BUCKET_NAME, thumbnail)
+            minioClient
+              .removeObject(BUCKET_NAME, thumbnail)
               .then(() => console.log(`Deleted thumbnail: ${thumbnail}`))
-              .catch(err => console.warn(`Failed to delete thumbnail: ${thumbnail}`))
+              .catch((err) =>
+                console.warn(`Failed to delete thumbnail: ${thumbnail}`),
+              ),
           );
         }
       }
 
       await Promise.all(deletePromises);
-      await User.updateOne({ _id: userId }, { $inc: { usedSpace: -totalSize } });
+      await User.updateOne(
+        { _id: userId },
+        { $inc: { usedSpace: -totalSize } },
+      );
 
       await RecycleBin.deleteMany({ _id: { $in: fileId }, owner: userId });
 
-      console.log(`Files permanently deleted for user: ${userId}, Files: ${fileId.join(", ")}`);
+      console.log(
+        `Files permanently deleted for user: ${userId}, Files: ${fileId.join(", ")}`,
+      );
 
       return res.status(200).json({
         success: true,
@@ -394,7 +436,6 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
     }
 
     return res.status(400).json({ error: "Invalid fileId format." });
-
   } catch (error) {
     console.error("Error during permanent deletion:", error.message);
     return res.status(500).json({
@@ -404,41 +445,47 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
   }
 };
 
-
-
-
 const getRecycleBinFiles = async (req, res) => {
   try {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ error: "Missing required parameter: userId." });
+      return res
+        .status(400)
+        .json({ error: "Missing required parameter: userId." });
     }
 
     const files = await RecycleBin.find({ owner: userId });
 
-
-    const updatedFiles = await Promise.all(files.map(async (file) => {
-      let thumbnailUrl = null;
-      if (file.thumbnail) {
-        try {
-          thumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 24 * 60 * 60);
-        } catch (err) {
-          console.warn(`Failed to generate presigned URL for thumbnail: ${file.thumbnail}`, err.message);
+    const updatedFiles = await Promise.all(
+      files.map(async (file) => {
+        let thumbnailUrl = null;
+        if (file.thumbnail) {
+          try {
+            thumbnailUrl = await minioClient.presignedGetObject(
+              BUCKET_NAME,
+              file.thumbnail,
+              24 * 60 * 60,
+            );
+          } catch (err) {
+            console.warn(
+              `Failed to generate presigned URL for thumbnail: ${file.thumbnail}`,
+              err.message,
+            );
+          }
         }
-      }
 
-      return {
-        ...file.toObject(),
-        thumbnailUrl,
-      };
-    }));
+        return {
+          ...file.toObject(),
+          thumbnailUrl,
+        };
+      }),
+    );
 
     return res.status(200).json({
       success: true,
       files: updatedFiles,
     });
-
   } catch (error) {
     console.error("Error fetching recycle bin files:", error.message);
     return res.status(500).json({
@@ -447,9 +494,6 @@ const getRecycleBinFiles = async (req, res) => {
     });
   }
 };
-
-
-
 
 const getRecentFiles = async (req, res) => {
   const { userId } = req.query;
@@ -487,9 +531,15 @@ const getRecentFiles = async (req, res) => {
         if (file.thumbnail) {
           try {
             preSignedThumbnailUrl = await minioClient.presignedGetObject(
-              process.env.MINIO_BUCKET_NAME, file.thumbnail, 60 * 60);
+              process.env.MINIO_BUCKET_NAME,
+              file.thumbnail,
+              60 * 60,
+            );
           } catch (err) {
-            console.error(`Error fetching thumbnail for ${file.name}:`, err.message);
+            console.error(
+              `Error fetching thumbnail for ${file.name}:`,
+              err.message,
+            );
           }
         }
 
@@ -503,9 +553,9 @@ const getRecentFiles = async (req, res) => {
           createdAt: file.createdAt,
           thumbnail: preSignedThumbnailUrl,
           isLiked: file.isLiked,
-          folders: folders.map(folder => folder.name),
+          folders: folders.map((folder) => folder.name),
         };
-      })
+      }),
     );
 
     res.status(200).json({
@@ -518,8 +568,6 @@ const getRecentFiles = async (req, res) => {
   }
 };
 
-
-
 const getSpace = async (req, res) => {
   const userId = req.query.userId;
 
@@ -528,18 +576,15 @@ const getSpace = async (req, res) => {
   }
 
   try {
-
     const user = await User.findById(userId);
-
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-
     res.json({
       usedSpace: user.usedSpace,
-      totalSpace: user.totalSpace
+      totalSpace: user.totalSpace,
     });
   } catch (err) {
     console.error("Error fetching space:", err.message);
@@ -548,7 +593,6 @@ const getSpace = async (req, res) => {
       .json({ message: `Error fetching space: ${err.message}` });
   }
 };
-
 
 const listFile = async (req, res) => {
   try {
@@ -572,7 +616,10 @@ const listFile = async (req, res) => {
     const query = { owner: userId };
     if (category) query.type = category;
 
-    const files = await File.find(query, "name type size thumbnail createdAt isLiked _id");
+    const files = await File.find(
+      query,
+      "name type size thumbnail createdAt isLiked _id",
+    );
 
     if (!files || files.length === 0) {
       return res.status(200).json({ message: "No files found", files: [] });
@@ -583,12 +630,18 @@ const listFile = async (req, res) => {
         let preSignedThumbnailUrl = null;
         if (file.thumbnail) {
           try {
-            preSignedThumbnailUrl = await minioClient.presignedGetObject(BUCKET_NAME, file.thumbnail, 60 * 60);
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(
+              BUCKET_NAME,
+              file.thumbnail,
+              60 * 60,
+            );
           } catch (err) {
-            console.warn(`Thumbnail not found or error fetching for file ${file.name}:`, err.message);
+            console.warn(
+              `Thumbnail not found or error fetching for file ${file.name}:`,
+              err.message,
+            );
           }
         }
-
 
         const folders = await Folder.find({ files: file._id }).select("name");
 
@@ -600,9 +653,9 @@ const listFile = async (req, res) => {
           createdAt: file.createdAt,
           thumbnail: preSignedThumbnailUrl,
           isLiked: file.isLiked,
-          folders: folders.map(folder => folder.name),
+          folders: folders.map((folder) => folder.name),
         };
-      })
+      }),
     );
 
     return res.status(200).json({
@@ -614,8 +667,6 @@ const listFile = async (req, res) => {
     return res.status(500).json({ message: "Error retrieving files" });
   }
 };
-
-
 
 const loadFile = async (req, res) => {
   const { userId, fileId } = req.query;
@@ -631,59 +682,60 @@ const loadFile = async (req, res) => {
     }
 
     const filePath = fileRecord.path;
-    const contentType = mime.lookup(fileRecord.name) || "application/octet-stream";
+    const contentType =
+      mime.lookup(fileRecord.name) || "application/octet-stream";
 
-
-    const presignedUrl = await minioClient.presignedGetObject(BUCKET_NAME, filePath, 60 * 60, {
-      'Response-Content-Type': contentType
-    });
+    const presignedUrl = await minioClient.presignedGetObject(
+      BUCKET_NAME,
+      filePath,
+      60 * 60,
+      {
+        "Response-Content-Type": contentType,
+      },
+    );
 
     res.json({
       url: presignedUrl,
       contentType: contentType,
       filename: fileRecord.name,
-      size: fileRecord.size
+      size: fileRecord.size,
     });
-
   } catch (err) {
     console.error("Error generating presigned URL:", err);
     res.status(500).json({ message: "Error generating presigned URL" });
   }
 };
 
-
 const ListFolderFiles = async (req, res) => {
   try {
     const { userId, folderName } = req.body;
-
 
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
 
-
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid userId format" });
     }
-
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-
     const folder = user.folders.find((folder) => folder.name === folderName);
     if (!folder) {
       return res.status(404).json({ message: "Folder not found" });
     }
 
-
-    const files = await File.find({ _id: { $in: folder.files } }).select("name type size thumbnail createdAt _id");
+    const files = await File.find({ _id: { $in: folder.files } }).select(
+      "name type size thumbnail createdAt _id",
+    );
     if (!files || files.length === 0) {
-      return res.status(200).json({ message: "No files found in the folder", files: [] });
+      return res
+        .status(200)
+        .json({ message: "No files found in the folder", files: [] });
     }
-
 
     const processedFiles = await Promise.all(
       files.map(async (file) => {
@@ -695,7 +747,10 @@ const ListFolderFiles = async (req, res) => {
             const thumbnailData = await fs.promises.readFile(thumbnailPath);
             base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString("base64")}`;
           } catch (err) {
-            console.error(`Error reading thumbnail for file ${file.name}:`, err.message);
+            console.error(
+              `Error reading thumbnail for file ${file.name}:`,
+              err.message,
+            );
           }
         }
 
@@ -707,9 +762,8 @@ const ListFolderFiles = async (req, res) => {
           createdAt: file.createdAt,
           thumbnail: base64Thumbnail,
         };
-      })
+      }),
     );
-
 
     return res.status(200).json({
       message: "Files retrieved successfully from folder",
@@ -717,12 +771,11 @@ const ListFolderFiles = async (req, res) => {
     });
   } catch (error) {
     console.error("Error listing folder files:", error.message);
-    return res.status(500).json({ message: "Error retrieving files from folder" });
+    return res
+      .status(500)
+      .json({ message: "Error retrieving files from folder" });
   }
 };
-
-
-
 
 const allFileMetaData = async (req, res) => {
   try {
@@ -732,51 +785,55 @@ const allFileMetaData = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const files = await File.find(
+      { owner: userId },
+      "name type size createdAt _id",
+    );
 
-    const files = await File.find({ owner: userId }, "name type size createdAt _id");
+    const passwords = await Password.find(
+      { userId },
+      "name userName email website note createdAt _id",
+    );
 
+    const processedFiles = files.map(
+      ({ _id, name, type, size, createdAt }) => ({
+        _id,
+        name,
+        type,
+        size,
+        createdAt,
+      }),
+    );
 
-    const passwords = await Password.find({ userId }, "name userName email website note createdAt _id");
-
-
-    const processedFiles = files.map(({ _id, name, type, size, createdAt }) => ({
-      _id,
-      name,
-      type,
-      size,
-      createdAt,
-    }));
-
-
-    const processedPasswords = passwords.map(({ _id, name, userName, email, website, note, createdAt }) => ({
-      _id,
-      name,
-      userName,
-      email,
-      website,
-      note,
-      createdAt,
-    }));
+    const processedPasswords = passwords.map(
+      ({ _id, name, userName, email, website, note, createdAt }) => ({
+        _id,
+        name,
+        userName,
+        email,
+        website,
+        note,
+        createdAt,
+      }),
+    );
 
     return res.status(200).json({
       message: "Data retrieved successfully",
       files: processedFiles,
       passwords: processedPasswords,
     });
-
   } catch (error) {
     console.error("Error retrieving data:", error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 };
-
-
 
 module.exports = {
   uploadFile,
@@ -789,5 +846,5 @@ module.exports = {
   allFileMetaData,
   restoreFile,
   permanentlyDeleteFileAndThumbnail,
-  getRecycleBinFiles
+  getRecycleBinFiles,
 };

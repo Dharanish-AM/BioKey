@@ -19,7 +19,6 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
   flex-direction: column;
-  
 }
 
 .premium-modal-title {
@@ -30,7 +29,6 @@
 .premium-modal-content {
   display: flex;
   flex-direction: column;
-  
 }
 
 .plans-container {
@@ -65,30 +63,29 @@
   border: 1px solid #a6a6a638;
 }
 
-.plan-card.special-plan{
-  border: 1px solid #A49250;
-  
+.plan-card.special-plan {
+  border: 1px solid #a49250;
 }
 
-.plan-card ul{
-    display: flex;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.7rem;
+.plan-card ul {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
-.plan-card ul li{
-    font-size: 1.1rem;
+.plan-card ul li {
+  font-size: 1.1rem;
 }
 
-.plan-title{
-    font-size: 1.5rem;
-    font-weight: 500;
+.plan-title {
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .plan-price {
-    font-size: 1.1rem;
-    color: var(--text-color2);
+  font-size: 1.1rem;
+  color: var(--text-color2);
 }
 
 .subscribe-button {
@@ -102,9 +99,9 @@
   cursor: pointer;
 }
 
-.current-plan-button{
+.current-plan-button {
   padding: 0.5rem 1rem;
-  border:1px solid var(--primary-color);
+  border: 1px solid var(--primary-color);
   border-radius: 7px;
   margin-top: 1rem;
   background-color: transparent;
@@ -112,8 +109,7 @@
   cursor: not-allowed;
 }
 
-.basic-plan{
-    background-color: transparent;
-    border: 1px solid var(--primary-color);
-
+.basic-plan {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
 }

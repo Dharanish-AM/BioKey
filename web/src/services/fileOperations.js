@@ -1,9 +1,14 @@
 import axios from "axios";
-import { fetchFilesAction, fetchUsedSpaceAction, setAllFilesMetadata, setLikedFiles, setRecycleBinFile } from "../redux/actions";
+import {
+  fetchFilesAction,
+  fetchUsedSpaceAction,
+  setAllFilesMetadata,
+  setLikedFiles,
+  setRecycleBinFile,
+} from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
 import store from "../redux/store";
 import { fetchFolderList, getStorageInfo, loadUser } from "./userOperations";
-
 
 const getIP = () => {
   const state = store.getState();
@@ -20,7 +25,6 @@ export const uploadMedia = async (userId, files, token, dispatch) => {
     console.log("Uploading file:", file);
     formData.append("file", file);
   });
-
 
   try {
     const response = await axios.post(`${API_URL}/upload`, formData, {
@@ -42,7 +46,7 @@ export const uploadMedia = async (userId, files, token, dispatch) => {
 
       await fetchRecentFiles(userId, token, dispatch);
       await fetchUsedSpace(userId, token, dispatch);
-      await getAllfileMetadata(userId, token, dispatch)
+      await getAllfileMetadata(userId, token, dispatch);
 
       return { success: true, message: "Upload successful and files updated" };
     } else {
@@ -68,8 +72,12 @@ const handleUploadError = (error) => {
   }
 };
 
-
-export const fetchFilesByCategory = async (userId, category, token, dispatch) => {
+export const fetchFilesByCategory = async (
+  userId,
+  category,
+  token,
+  dispatch,
+) => {
   try {
     const response = await axios.get(`${API_URL}/list`, {
       params: {
@@ -109,12 +117,7 @@ export const fetchUsedSpace = async (userId, token, dispatch) => {
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
       const totalSpaceBytes = response.data.totalSpace || 0;
-      dispatch(
-        fetchUsedSpaceAction(
-          usedSpaceBytes,
-          totalSpaceBytes
-        )
-      );
+      dispatch(fetchUsedSpaceAction(usedSpaceBytes, totalSpaceBytes));
     } else {
       console.error("Error fetching used space:", response.statusText);
     }
@@ -123,14 +126,18 @@ export const fetchUsedSpace = async (userId, token, dispatch) => {
   }
 };
 
-
 export const previewFile = async (userId, fileId, token) => {
   try {
-    const response = await axios.get(`${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`);
+    const response = await axios.get(
+      `${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`,
+    );
     if (response.status === 200) {
       return response.data;
     } else {
-      console.error("Error fetching file preview:", response.data.message || response);
+      console.error(
+        "Error fetching file preview:",
+        response.data.message || response,
+      );
       return null;
     }
   } catch (error) {
@@ -138,7 +145,6 @@ export const previewFile = async (userId, fileId, token) => {
     return null;
   }
 };
-
 
 export const deleteFile = async (userId, fileId, type, token, dispatch) => {
   try {
@@ -154,9 +160,9 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
     await fetchFilesByCategory(userId, type, token, dispatch);
     await fetchRecentFiles(userId, token, dispatch);
     await fetchUsedSpace(userId, token, dispatch);
-    await fetchRecycleBinFiles(userId, token, dispatch)
-    await fetchFolderList(userId, token, dispatch)
-    await getAllfileMetadata(userId, token, dispatch)
+    await fetchRecycleBinFiles(userId, token, dispatch);
+    await fetchFolderList(userId, token, dispatch);
+    await getAllfileMetadata(userId, token, dispatch);
     await getStorageInfo(userId, token, dispatch);
 
     return {
@@ -168,7 +174,7 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
     if (error.response) {
       console.error(
         "Server Error:",
-        error.response.data.message || error.response.data
+        error.response.data.message || error.response.data,
       );
       console.error("Status Code:", error.response.status);
       return {
@@ -177,7 +183,7 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
       };
     } else if (error.request) {
       console.error(
-        "No response received from server. Check network connectivity."
+        "No response received from server. Check network connectivity.",
       );
       return {
         success: false,
@@ -194,37 +200,47 @@ export const deleteFile = async (userId, fileId, type, token, dispatch) => {
   }
 };
 
-export const permanentDelete = async (userId, fileId = null, all = false, token, dispatch) => {
-  console.log(userId, fileId)
+export const permanentDelete = async (
+  userId,
+  fileId = null,
+  all = false,
+  token,
+  dispatch,
+) => {
+  console.log(userId, fileId);
   try {
     const response = await axios.delete(`${API_URL}/permanentdelete`, {
       data: {
         userId,
         fileId,
-        all
-      }
-    })
+        all,
+      },
+    });
     if (response.status == 200) {
-      await fetchRecycleBinFiles(userId, token, dispatch)
-      await getAllfileMetadata(userId, token, dispatch)
-      return response.data
+      await fetchRecycleBinFiles(userId, token, dispatch);
+      await getAllfileMetadata(userId, token, dispatch);
+      return response.data;
+    } else {
+      return response.data;
     }
-    else {
-      return response.data
-    }
-  }
-  catch (err) {
+  } catch (err) {
     console.err(" Error deleting file:", err);
   }
-}
+};
 
-export const restoreFile = async (userId, RecycleBinId, type, token, dispatch) => {
-  console.log(RecycleBinId, type)
+export const restoreFile = async (
+  userId,
+  RecycleBinId,
+  type,
+  token,
+  dispatch,
+) => {
+  console.log(RecycleBinId, type);
   try {
     const response = await axios.post(`${API_URL}/restorefile`, {
       userId,
       RecycleBinId,
-      type
+      type,
     });
 
     if (response.status === 200) {
@@ -233,7 +249,7 @@ export const restoreFile = async (userId, RecycleBinId, type, token, dispatch) =
         fetchRecentFiles(userId, token, dispatch),
         fetchUsedSpace(userId, token, dispatch),
         fetchRecycleBinFiles(userId, token, dispatch),
-        getAllfileMetadata(userId, token, dispatch)
+        getAllfileMetadata(userId, token, dispatch),
       ]);
       return response.data;
     } else {
@@ -245,27 +261,27 @@ export const restoreFile = async (userId, RecycleBinId, type, token, dispatch) =
   }
 };
 
-
 export const fetchRecycleBinFiles = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/recyclebinfiles?userId=${userId}`)
+    const response = await axios.get(
+      `${API_URL}/recyclebinfiles?userId=${userId}`,
+    );
     if (response.status == 200) {
-      dispatch(setRecycleBinFile(response.data.files))
-      return response.data
+      dispatch(setRecycleBinFile(response.data.files));
+      return response.data;
+    } else {
+      return response.data;
     }
-    else {
-      return response.data
-    }
+  } catch (err) {
+    console.error("Error fetching recycle bin files:", err);
   }
-  catch (err) {
-    console.error("Error fetching recycle bin files:", err)
-  }
-}
-
+};
 
 export const getAllfileMetadata = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/allfilemetadata?userId=${userId}`);
+    const response = await axios.get(
+      `${API_URL}/allfilemetadata?userId=${userId}`,
+    );
 
     if (response.status === 200) {
       const { files = [], passwords = [], folders = [] } = response.data;

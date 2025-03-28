@@ -1,5 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
-import "setimmediate"
+import "setimmediate";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
@@ -8,8 +8,8 @@ import { Provider } from "react-redux";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { enableFreeze } from "react-native-screens";
-import Toast from 'react-native-toast-message';
-import toastConfig from './toastConfig';
+import Toast from "react-native-toast-message";
+import toastConfig from "./toastConfig";
 
 import useLoadFonts from "./src/hooks/useLoadFonts";
 import colors from "./src/constants/colors";

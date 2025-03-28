@@ -11,11 +11,10 @@ import Logo from "../../assets/images/BioKey_Logo.png";
 import illustration from "../../assets/images/landing-illustration.png";
 import SupportIcon from "../../assets/images/support_icon.png";
 
-export default function LandingScreen({navigation}) {
-
+export default function LandingScreen({ navigation }) {
   const handleGetStarted = () => {
-      navigation.navigate("UserFormScreen")
-  }
+    navigation.navigate("UserFormScreen");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,9 +24,12 @@ export default function LandingScreen({navigation}) {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
             <Text style={styles.logoText}>BioKey</Text>
           </View>
-          <TouchableOpacity onPress={()=>{
-            navigation.navigate("SupportScreen")
-          }} style={styles.supportContainer}>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("SupportScreen");
+            }}
+            style={styles.supportContainer}
+          >
             <Image style={styles.SupportIcon} source={SupportIcon} />
           </TouchableOpacity>
         </View>

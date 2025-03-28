@@ -11,7 +11,7 @@ const store = configureStore({
     files: fileReducer,
     appConfig: appConfigReducer,
     user: userReducer,
-    passwords: passwordReducer
+    passwords: passwordReducer,
   },
 });
 

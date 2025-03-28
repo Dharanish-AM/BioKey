@@ -47,9 +47,8 @@ const passwordSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
-
 
 passwordSchema.index({ userId: 1 });
 passwordSchema.index({ createdAt: -1 });

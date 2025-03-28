@@ -3,12 +3,13 @@ import { Provider } from "react-redux";
 import store from "./redux/store.js";
 import "./index.css";
 import App from "./App.jsx";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>
     <App />
-    <Toaster position="top-right"
+    <Toaster
+      position="top-right"
       toastOptions={{
         duration: 4000,
         style: {
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")).render(
           alignItems: "center",
           justifyContent: "space-between",
         },
-      }} />
-  </Provider>
+      }}
+    />
+  </Provider>,
 );

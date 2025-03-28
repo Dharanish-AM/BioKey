@@ -9,23 +9,31 @@ import {
   Animated,
   LayoutAnimation,
   UIManager,
-  Platform
+  Platform,
 } from "react-native";
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import colors from "../../../constants/colors";
 import Entypo from "@expo/vector-icons/Entypo";
 import { SafeAreaView } from "react-native-safe-area-context";
 import moment from "moment";
-import { clearNotification, getNotifications } from "../../../services/userOperations";
+import {
+  clearNotification,
+  getNotifications,
+} from "../../../services/userOperations";
 import { useSelector } from "react-redux";
 import SwipeableItem from "react-native-swipeable-item";
 
 const formatDate = (date) =>
   date ? moment(date).format("MMM DD, ddd  hh:mm A") : "UNKNOWN DATE";
 
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -45,9 +53,8 @@ export default function Notifications({ navigation }) {
       const response = await getNotifications(userId, token);
 
       const sortedNotifications = (response || []).sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
       );
-
 
       setNotifications(sortedNotifications);
     } catch (error) {
@@ -55,7 +62,6 @@ export default function Notifications({ navigation }) {
     }
     setLoading(false);
   };
-
 
   useEffect(() => {
     fetchNotifications();
@@ -67,20 +73,28 @@ export default function Notifications({ navigation }) {
     setRefreshing(false);
   };
 
-  const handleDeleteNotification = useCallback(async (item) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setNotifications((prev) => prev.filter((noti) => noti._id !== item._id));
+  const handleDeleteNotification = useCallback(
+    async (item) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setNotifications((prev) => prev.filter((noti) => noti._id !== item._id));
 
-    try {
-      const response = await clearNotification(userId, item._id, false, token);
-      if (!response.success) {
+      try {
+        const response = await clearNotification(
+          userId,
+          item._id,
+          false,
+          token,
+        );
+        if (!response.success) {
+          fetchNotifications();
+        }
+      } catch (error) {
+        console.error("Error deleting notification:", error);
         fetchNotifications();
       }
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-      fetchNotifications();
-    }
-  }, [userId, token]);
+    },
+    [userId, token],
+  );
 
   const renderItem = ({ item }) => {
     return (
@@ -116,19 +130,32 @@ export default function Notifications({ navigation }) {
       <View style={styles.innerContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Entypo name="chevron-thin-left" size={hp("4%")} color={colors.textColor3} />
+            <Entypo
+              name="chevron-thin-left"
+              size={hp("4%")}
+              color={colors.textColor3}
+            />
           </TouchableOpacity>
           <Text style={styles.headerText}>Notifications</Text>
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color={colors.primary} style={styles.loading} />
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+            style={styles.loading}
+          />
         ) : (
           <FlatList
             data={notifications}
             keyExtractor={(item) => item._id}
             renderItem={renderItem}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
             style={{ paddingHorizontal: wp("5%"), flexGrow: 1 }}
             ListEmptyComponent={() => (
               <Text style={styles.emptyListText}>No new notifications!</Text>

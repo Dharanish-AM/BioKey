@@ -1,4 +1,9 @@
-import { FETCH_FOLDERS, SET_ACTIVITY_LOGS, SET_USER, SET_STORAGE_INFO } from "../types";
+import {
+  FETCH_FOLDERS,
+  SET_ACTIVITY_LOGS,
+  SET_USER,
+  SET_STORAGE_INFO,
+} from "../types";
 
 const initialState = {
   userId: "",
@@ -16,7 +21,7 @@ const initialState = {
   totalSpace: null,
   usedSpace: null,
   activityLogs: [],
-  storageInfo: null
+  storageInfo: null,
 };
 
 export default function userReducer(state = initialState, action) {
@@ -42,18 +47,18 @@ export default function userReducer(state = initialState, action) {
     case FETCH_FOLDERS:
       return {
         ...state,
-        folders: action.payload
-      }
+        folders: action.payload,
+      };
     case SET_ACTIVITY_LOGS:
       return {
         ...state,
-        activityLogs: action.payload
-      }
+        activityLogs: action.payload,
+      };
     case SET_STORAGE_INFO:
       return {
         ...state,
-        storageInfo: action.payload
-      }
+        storageInfo: action.payload,
+      };
     default:
       return state;
   }

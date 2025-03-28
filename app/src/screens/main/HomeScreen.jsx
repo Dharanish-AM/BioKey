@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Keyboard,
-} from "react-native"
+} from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "../../constants/colors";
@@ -22,7 +22,7 @@ import SpinnerOverlay from "../../components/SpinnerOverlay";
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useDispatch, useSelector } from "react-redux";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
-import EvilIcons from '@expo/vector-icons/EvilIcons';
+import EvilIcons from "@expo/vector-icons/EvilIcons";
 
 import {
   fetchFilesByCategory,
@@ -59,38 +59,40 @@ import { setFirstRender } from "../../redux/actions";
 import { fetchFolderList, loadUser } from "../../services/userOperations";
 import Toast from "react-native-toast-message";
 import { BlurView } from "expo-blur";
-import { Pressable, TouchableWithoutFeedback } from "react-native-gesture-handler";
+import {
+  Pressable,
+  TouchableWithoutFeedback,
+} from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [allFilesSearchQuery, setAllFilesSearchQuery] = useState('')
-  const [filteredAllFilesMetadata, setFilteredAllFilesMetadata] = useState(allFilesMetadata)
+  const [allFilesSearchQuery, setAllFilesSearchQuery] = useState("");
+  const [filteredAllFilesMetadata, setFilteredAllFilesMetadata] =
+    useState(allFilesMetadata);
   const refRBSheet = useRef();
   const dispatch = useDispatch();
 
-
-  const { userId } = useSelector(
-    (state) => state.user,
-    shallowEqual)
+  const { userId } = useSelector((state) => state.user, shallowEqual);
 
   const recentFilesFromRedux = useSelector(
     (state) => state.files.recents,
-    shallowEqual
+    shallowEqual,
   );
 
-
   const isFirstRender = useSelector(
-    (state) => state.appConfig.isFirstRender.homeScreen
+    (state) => state.appConfig.isFirstRender.homeScreen,
   );
 
   const user = useSelector((state) => state.user);
 
-  const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata)
+  const allFilesMetadata = useSelector((state) => state.files.allFilesMetadata);
 
-  const { usedSpaceBytes, totalSpaceBytes } = useSelector((state) => state.files.usedSpace)
+  const { usedSpaceBytes, totalSpaceBytes } = useSelector(
+    (state) => state.files.usedSpace,
+  );
 
   useEffect(() => {
     if (!isFirstRender || !userId) return;
@@ -124,7 +126,7 @@ export default function HomeScreen({ navigation }) {
     }
 
     const filteredFiles = allFilesMetadata.filter((file) =>
-      file.name.toLowerCase().includes(allFilesSearchQuery.toLowerCase())
+      file.name.toLowerCase().includes(allFilesSearchQuery.toLowerCase()),
     );
 
     setFilteredAllFilesMetadata(filteredFiles);
@@ -147,7 +149,7 @@ export default function HomeScreen({ navigation }) {
       const uploadResponse = await uploadMedia(userId, fileData, dispatch);
       if (uploadResponse.success) {
         Toast.show({
-          type: 'success',
+          type: "success",
           text1: `File uploaded successfully!`,
           text2: `Total files: ${files.length}.`,
         });
@@ -155,7 +157,7 @@ export default function HomeScreen({ navigation }) {
         return files.length;
       } else {
         Toast.show({
-          type: 'error',
+          type: "error",
           text1: "Upload Failed",
           text2: uploadResponse.message || "Unknown error occurred.",
         });
@@ -165,15 +167,13 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error("Error uploading files:", error);
       Toast.show({
-        type: 'error',
+        type: "error",
         text1: "Upload Failed",
         text2: error.message || "An error occurred during upload.",
       });
       return 0;
     }
   };
-
-
 
   const handleImageVideoPick = async () => {
     if (isUploading) return;
@@ -202,20 +202,20 @@ export default function HomeScreen({ navigation }) {
 
             refRBSheet.current.close();
             onRefresh();
-          }
+          },
         );
       } else {
         console.log("No files selected or invalid data");
         Alert.alert(
           "No Selection",
           "Please select valid media files to upload.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
       }
     } catch (error) {
       console.error(
         "An error occurred during the media picking or upload process:",
-        error
+        error,
       );
     } finally {
       setIsUploading(false);
@@ -245,7 +245,7 @@ export default function HomeScreen({ navigation }) {
 
             refRBSheet.current.close();
             onRefresh();
-          }
+          },
         );
       } else {
         console.log("No files selected or invalid data");
@@ -253,7 +253,7 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error(
         "An error occurred during the media picking or upload process:",
-        error
+        error,
       );
     } finally {
       setIsUploading(false);
@@ -264,10 +264,9 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(true);
     await fetchRecentFiles(userId, dispatch);
     await fetchUsedSpace(userId, dispatch);
-    await getAllfileMetadata(userId, dispatch)
+    await getAllfileMetadata(userId, dispatch);
     setRefreshing(false);
   };
-
 
   const renderItem = ({ item }) => {
     const renderThumbnail = () => {
@@ -275,7 +274,10 @@ export default function HomeScreen({ navigation }) {
         if (item.type === "images") {
           return (
             <View style={styles.customThumbnailContainer}>
-              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+              <Image
+                source={{ uri: item.thumbnail }}
+                style={styles.fileImage}
+              />
             </View>
           );
         }
@@ -306,7 +308,10 @@ export default function HomeScreen({ navigation }) {
         if (item.thumbnail) {
           return (
             <View style={styles.customThumbnailContainer}>
-              <Image source={{ uri: item.thumbnail }} style={styles.fileImage} />
+              <Image
+                source={{ uri: item.thumbnail }}
+                style={styles.fileImage}
+              />
             </View>
           );
         } else {
@@ -335,16 +340,20 @@ export default function HomeScreen({ navigation }) {
           });
         }}
       >
-        <View style={styles.recentFileImageContainer}>
-          {renderThumbnail()}
-        </View>
+        <View style={styles.recentFileImageContainer}>{renderThumbnail()}</View>
         <View style={styles.fileDetailsContainer}>
           <View style={styles.aboutFile}>
-            <Text style={styles.recentFileName} numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              style={styles.recentFileName}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {item.name}
             </Text>
             <View style={styles.fileDetails}>
-              <Text style={styles.recentFileSize}>{formatFileSize(item.size)}</Text>
+              <Text style={styles.recentFileSize}>
+                {formatFileSize(item.size)}
+              </Text>
               <Text style={styles.modifiedTime}>
                 {new Date(item.createdAt).toLocaleString("en-US", {
                   hour: "2-digit",
@@ -360,14 +369,11 @@ export default function HomeScreen({ navigation }) {
   };
 
   if (isLoading && !user) {
-    <SpinnerOverlay visible={isLoading} />
+    <SpinnerOverlay visible={isLoading} />;
   }
-
 
   return (
     <SafeAreaView edges={["right", "left", "top"]} style={styles.container}>
-
-
       {isUploading && (
         <ActivityIndicator
           size="large"
@@ -416,21 +422,28 @@ export default function HomeScreen({ navigation }) {
               onChangeText={setAllFilesSearchQuery}
               value={allFilesSearchQuery}
               onSubmitEditing={() => {
-                setAllFilesSearchQuery("")
-                Keyboard.dismiss()
+                setAllFilesSearchQuery("");
+                Keyboard.dismiss();
               }}
             />
-            {
-              allFilesSearchQuery.trim() != "" && allFilesSearchQuery.length > 0 ? <Pressable style={{
-                padding: hp("1%"),
-              }} onPress={() => {
-                setAllFilesSearchQuery("")
-                Keyboard.dismiss()
-              }}>
-                <Ionicons name="close-outline" size={hp("2.7%")} color='rgba(166, 166, 166, 0.6)' />
-              </Pressable> : null
-            }
-
+            {allFilesSearchQuery.trim() != "" &&
+            allFilesSearchQuery.length > 0 ? (
+              <Pressable
+                style={{
+                  padding: hp("1%"),
+                }}
+                onPress={() => {
+                  setAllFilesSearchQuery("");
+                  Keyboard.dismiss();
+                }}
+              >
+                <Ionicons
+                  name="close-outline"
+                  size={hp("2.7%")}
+                  color="rgba(166, 166, 166, 0.6)"
+                />
+              </Pressable>
+            ) : null}
           </View>
         </View>
         <View style={styles.center}>
@@ -554,14 +567,20 @@ export default function HomeScreen({ navigation }) {
                 >
                   <Image style={styles.optionIcon} source={HeartIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.optionsIconContainer} onPress={() => {
-                  navigation.navigate("RecycleBin");
-                }} >
+                <TouchableOpacity
+                  style={styles.optionsIconContainer}
+                  onPress={() => {
+                    navigation.navigate("RecycleBin");
+                  }}
+                >
                   <Image style={styles.optionIcon} source={BinIcon} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                  navigation.navigate("ManageStorage")
-                }} style={styles.optionsIconContainer}>
+                <TouchableOpacity
+                  onPress={() => {
+                    navigation.navigate("ManageStorage");
+                  }}
+                  style={styles.optionsIconContainer}
+                >
                   <Image style={styles.optionIcon} source={BrushIcon} />
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -619,7 +638,7 @@ export default function HomeScreen({ navigation }) {
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
-                    width: wp("100%")
+                    width: wp("100%"),
                   }}
                 />
               )}
@@ -667,37 +686,45 @@ export default function HomeScreen({ navigation }) {
           </View>
         </RBSheet>
       </View>
-      {allFilesSearchQuery.trim() !== "" && filteredAllFilesMetadata.length > 0 && (
-        <View style={styles.searchResultsContainer}>
-          {/* <Text style={styles.searchText}>Search results for: {allFilesSearchQuery}</Text> */}
-          <FlatList
-            data={filteredAllFilesMetadata}
-            keyExtractor={(file) => file._id}
-            renderItem={({ item }) => (
-              <Pressable onPress={() => {
-                Keyboard.dismiss();
-                navigation.navigate("FilePreviewScreen", {
-                  file: item,
-                  thumbnail: item.thumbnail ? item.thumbnail : null
-                })
-              }} style={styles.searchItem}>
-                <Text style={styles.searchFileName}>{item.name}</Text>
-                <View style={{
-                  flexDirection: "row",
-                  gap: wp("5%")
-                }}>
-                  <Text style={styles.searchFileSize}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-                  <Text style={styles.searchFileSize}>{formatFileSize(item.size)}</Text>
-                </View>
-              </Pressable>
-            )}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          />
-        </View>
-      )}
-
-
+      {allFilesSearchQuery.trim() !== "" &&
+        filteredAllFilesMetadata.length > 0 && (
+          <View style={styles.searchResultsContainer}>
+            {/* <Text style={styles.searchText}>Search results for: {allFilesSearchQuery}</Text> */}
+            <FlatList
+              data={filteredAllFilesMetadata}
+              keyExtractor={(file) => file._id}
+              renderItem={({ item }) => (
+                <Pressable
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    navigation.navigate("FilePreviewScreen", {
+                      file: item,
+                      thumbnail: item.thumbnail ? item.thumbnail : null,
+                    });
+                  }}
+                  style={styles.searchItem}
+                >
+                  <Text style={styles.searchFileName}>{item.name}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      gap: wp("5%"),
+                    }}
+                  >
+                    <Text style={styles.searchFileSize}>
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </Text>
+                    <Text style={styles.searchFileSize}>
+                      {formatFileSize(item.size)}
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            />
+          </View>
+        )}
     </SafeAreaView>
   );
 }
@@ -823,7 +850,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     flexDirection: "column",
-    justifyContent: "space-evenly"
+    justifyContent: "space-evenly",
   },
   storageDetailsContainer: {
     flexDirection: "column",
@@ -1005,7 +1032,6 @@ const styles = StyleSheet.create({
     borderRadius: hp("1.5%"),
     alignItems: "center",
     justifyContent: "center",
-
   },
   fileImage: {
     width: "100%",
@@ -1034,7 +1060,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: hp("1.5%"),
-
   },
   playIcon: {
     position: "absolute",
@@ -1080,7 +1105,6 @@ const styles = StyleSheet.create({
     fontFamily: "Afacad-Regular",
     color: colors.textColor3,
     width: "100%",
-
   },
   fileDetails: {
     height: "30%",
@@ -1169,7 +1193,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: colors.lightColor1,
     borderColor: "rgba(166, 166, 166, 0.15)",
-    borderWidth: hp("0.15%")
+    borderWidth: hp("0.15%"),
   },
 
   searchText: {
@@ -1200,6 +1224,4 @@ const styles = StyleSheet.create({
     color: colors.textColor3,
     fontFamily: "Afacad-Regular",
   },
-
-
 });

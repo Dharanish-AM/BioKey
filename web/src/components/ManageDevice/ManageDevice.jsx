@@ -6,6 +6,10 @@ import "./ManageDevice.css";
 export default function ManageDevice() {
   const device = { id: "DVC-001", name: "FINGY", status: "Active" };
 
+  const handleUnlinkDevice = () => {
+    alert("Please plug in your device to unlink it.");
+  }
+
   return (
     <div className="manage-device-container">
       <div className="manage-device-title">Manage Device</div>
@@ -41,8 +45,8 @@ export default function ManageDevice() {
           </div>
         </div>
         <div className="manage-device-actions">
-          <button className="manage-device-action-button">Edit Name</button>
-          <button className="manage-device-action-button unlink">
+  
+          <button onClick={handleUnlinkDevice} className="manage-device-action-button unlink">
             Unlink Device
           </button>
         </div>

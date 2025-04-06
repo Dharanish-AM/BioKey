@@ -79,7 +79,7 @@ export const getAllPasswords = async (userId, token, dispatch) => {
   }
 };
 
-export const deletePassword = async (userId, passwordId, dispatch) => {
+export const deletePassword = async (userId, passwordId, token,dispatch) => {
   try {
     const response = await axios.delete(`${API_URL}/deletepassword`, {
       params: {
@@ -89,16 +89,16 @@ export const deletePassword = async (userId, passwordId, dispatch) => {
     });
 
     if (response.status === 200) {
-      getAllPasswords(userId, dispatch);
+      await getAllPasswords(userId,token, dispatch);
 
       return {
-        status: true,
+        success: true,
         message: response.data.message || "Password deleted successfully.",
       };
     } else {
       console.error("Unexpected response status:", response.status);
       return {
-        status: false,
+        success: false,
         message:
           response.data.message ||
           "Failed to delete password. Please try again.",
@@ -190,6 +190,7 @@ export const handlePasswordUpdate = async (
   userId,
   passwordId,
   updatedData,
+  token,
   dispatch,
 ) => {
   try {
@@ -199,16 +200,16 @@ export const handlePasswordUpdate = async (
       updatedData,
     });
     if (response.status === 200) {
-      getAllPasswords(userId, dispatch);
+      getAllPasswords(userId, token,dispatch);
       return {
-        status: true,
+        success: true,
         message: response.data.message || "Password updated successfully.",
         data: response.data.data,
       };
     } else {
       console.error("Unexpected response status:", response.status);
       return {
-        status: false,
+        success: false,
         message:
           response.data.message ||
           "Failed to update password. Please try again.",

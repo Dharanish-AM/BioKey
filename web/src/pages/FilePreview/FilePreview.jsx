@@ -40,6 +40,7 @@ export default function FilePreview({ file, onClose }) {
   const folderId = queryParams.get("folderId");
   const folders = useSelector((state) => state.user.folders);
 
+
   useEffect(() => {
     const fetchFilePreview = async () => {
       if (!file) return;

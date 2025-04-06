@@ -5,7 +5,6 @@ import {
   Search,
   SlidersHorizontal,
   Trash2Icon,
-  TrashIcon,
   X,
 } from "lucide-react";
 import "./Folders.css";
@@ -16,12 +15,11 @@ import {
   handleFolderRename,
 } from "../../services/userOperations";
 import FolderIcon from "../../assets/images/folder.png";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { formatFileSize } from "../../utils/formatFileSize";
 import FilePreview from "../FilePreview/FilePreview";
 import toast from "react-hot-toast";
 import { TbEdit } from "react-icons/tb";
-import Trash from "../Trash/Trash";
 import { useSearchParams } from "react-router-dom";
 
 export default function Folders() {
@@ -32,7 +30,7 @@ export default function Folders() {
   const dispatch = useDispatch();
   const userId = useSelector((state) => state.user.userId);
   const token = useSelector((state) => state.auth.token);
-  const folders = useSelector((state) => state.user.folders) || [];
+  const folders = useSelector((state) => state.user.folders);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigate();
@@ -55,7 +53,7 @@ export default function Folders() {
   useEffect(() => {
     if (folderId) {
       const selectedFolder = folders.find(
-        (folder) => folder.folderId === folderId,
+        (folder) => folder.folderId === folderId
       );
       setFolderFiles(selectedFolder?.files || []);
     }
@@ -72,7 +70,7 @@ export default function Folders() {
       userId,
       newFolderName,
       token,
-      dispatch,
+      dispatch
     );
 
     if (response.success) {
@@ -87,7 +85,7 @@ export default function Folders() {
   const filteredFolders = useMemo(() => {
     return folders
       .filter((folder) =>
-        folder.folderName.toLowerCase().includes(searchTerm.toLowerCase()),
+        folder.folderName.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .sort((a, b) => {
         if (sortOption === "alphabetical-asc")
@@ -105,7 +103,7 @@ export default function Folders() {
   const filteredFiles = useMemo(() => {
     return [...folderFiles]
       .filter((file) =>
-        file.name.toLowerCase().includes(fileSearchTerm.toLowerCase()),
+        file.name.toLowerCase().includes(fileSearchTerm.toLowerCase())
       )
       .sort((a, b) => {
         if (fileSortOption === "name-asc") return a.name.localeCompare(b.name);
@@ -127,7 +125,7 @@ export default function Folders() {
       folderId,
       renameFolderName,
       token,
-      dispatch,
+      dispatch
     );
     if (response.success) {
       searchParams.set("folderName", renameFolderName);
@@ -237,7 +235,9 @@ export default function Folders() {
             <div className="folder-files-list">
               {filteredFiles.map((file) => (
                 <div
-                  onClick={() => setPreviewFile(file)}
+                  onClick={() => {
+                    setPreviewFile(file)
+                  }}
                   key={file._id}
                   className="folder-file-item"
                 >
@@ -275,7 +275,7 @@ export default function Folders() {
                 <div
                   onClick={() =>
                     navigation(
-                      `/folders?folderId=${folder.folderId}&folderName=${folder.folderName}`,
+                      `/folders?folderId=${folder.folderId}&folderName=${folder.folderName}`
                     )
                   }
                   className="folder-item"

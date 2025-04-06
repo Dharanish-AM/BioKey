@@ -652,10 +652,7 @@ const ListFolder = async (req, res) => {
   const { userId } = req.query;
 
   try {
-    const folders = await Folder.find({ owner: userId }).populate({
-      path: "files",
-      select: "name type size thumbnail createdAt",
-    });
+    const folders = await Folder.find({ owner: userId }).populate("files");
 
     if (!folders || folders.length === 0) {
       return res
@@ -695,6 +692,7 @@ const ListFolder = async (req, res) => {
               createdAt: file.createdAt,
               thumbnail: preSignedThumbnailUrl,
               folders: fileFolders.map((f) => f.name),
+              isLiked: file.isLiked,
             };
           }),
         );

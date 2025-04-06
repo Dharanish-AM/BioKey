@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   X,
@@ -191,7 +191,6 @@ export default function Passwords() {
               key={password._id}
               className="passwords-list-item"
             >
-              <div></div>
               <div className="password-list-item-header">
                 <div className="password-list-item-icon-container">
                   {getFavicon(password.name) != null ? (

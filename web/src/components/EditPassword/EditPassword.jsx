@@ -1,18 +1,61 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import "./EditPassword.css";
 import { X } from "lucide-react";
+import {
+  deletePassword,
+  handlePasswordUpdate,
+} from "../../services/passwordOperations";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 export default function EditPassword({ onClose, password }) {
   const [formData, setFormData] = useState({
-    website: "www.instagram.com",
-    userName: "dharanish_15",
-    email: "dharanish816@gmail.com",
-    password: password || "e21f242bf73683a2d9029c362adc0029",
-    note: "Personal Account",
+    name: password.name || "",
+    website: password.website || "",
+    userName: password.userName || "",
+    email: password.email || "",
+    password: password.password || "",
+    note: password.note || "",
   });
+
+  const userId = useSelector((state) => state.user.userId);
+  const token = useSelector((state) => state.auth.token);
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleDeletePassword = async () => {
+    const response = await deletePassword(
+      userId,
+      password._id,
+      token,
+      dispatch
+    );
+    if (response.success) {
+      toast.success("Password deleted successfully");
+      onClose();
+    } else {
+      toast.error("Failed to delete password");
+    }
+  };
+
+  const handleSavePassword = async () => {
+    const response = await handlePasswordUpdate(
+      userId,
+      password._id,
+      formData,
+      token,
+      dispatch
+    );
+    if (response.success) {
+      toast.success("Password updated successfully");
+      onClose();
+    } else {
+      toast.error("Failed to update password");
+    }
   };
 
   return (
@@ -30,6 +73,15 @@ export default function EditPassword({ onClose, password }) {
           <div className="edit-password-title">Edit Password</div>
           <X onClick={onClose} className="edit-password-close-icon" />
         </div>
+
+        <label className="edit-password-label">Name</label>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="edit-password-input"
+        />
 
         <label className="edit-password-label">Website</label>
         <input
@@ -76,7 +128,15 @@ export default function EditPassword({ onClose, password }) {
         />
 
         <div className="edit-password-actions">
-          <button className="edit-password-save">Save</button>
+          <button onClick={handleSavePassword} className="edit-password-save">
+            Save
+          </button>
+          <button
+            onClick={handleDeletePassword}
+            className="edit-password-save delete"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>

@@ -1095,7 +1095,7 @@ const changePassword = async (req, res) => {
     await User.updateOne(
       { _id: userId },
       { $set: { password: hashedPassword } }
-    );
+    ).lean();
 
     return res
       .status(200)

@@ -15,7 +15,7 @@ const initialState = {
     recycleBinScreen: true,
   },
   plans: null,
-  API_IP: "biokey.ddns.net:8000",
+  API_IP: import.meta.env.VITE_API_URL,
   version: "1.0",
 };
 
@@ -25,7 +25,7 @@ export const appConfigReducer = (state = initialState, action) => {
       return {
         ...state,
         tabBarVisible: action.payload,
-      };
+      }; 
     case SET_FIRST_RENDER:
       return {
         ...state,

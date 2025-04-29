@@ -6,7 +6,7 @@ const getIP = () => {
   return state.appConfig.API_IP;
 };
 
-const API_URL = `http://${getIP()}/api/users`;
+const API_URL = `https://${getIP()}/api/users`;
 
 export const registerUser = async (form, notificationToken) => {
   try {

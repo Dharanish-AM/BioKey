@@ -19,6 +19,8 @@ const initialState = {
   version: "1.0",
 };
 
+console.log("API_IP", initialState.API_IP);
+
 export const appConfigReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_TAB_BAR_VISIBLE:

@@ -15,7 +15,7 @@ const getIP = () => {
   return state.appConfig.API_IP;
 };
 
-const API_URL = `https://${getIP()}/api/files`;
+const API_URL = `http://${getIP()}/api/files`;
 
 export const uploadMedia = async (userId, files, token, dispatch) => {
   const formData = new FormData();

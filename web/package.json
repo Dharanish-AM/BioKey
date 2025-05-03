@@ -30,6 +30,7 @@
     "react-minimal-pie-chart": "^9.1.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.29.0",
+    "react-select": "^5.10.1",
     "react-window": "^1.8.11",
     "recharts": "^2.15.1",
     "three": "^0.174.0"

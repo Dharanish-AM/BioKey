@@ -32,7 +32,7 @@ export default function Storage() {
   const recycleBin = useSelector((state) => state.files.recycleBinFiles);
 
   const { storage, usedSpaceBytes, totalSpaceBytes } = useSelector(
-    (state) => state.user.storageInfo,
+    (state) => state.user.storageInfo
   ) || {
     storage: { images: 0, videos: 0, audios: 0, others: 0, recycleBin: 0 },
     usedSpaceBytes: 0,
@@ -126,7 +126,7 @@ export default function Storage() {
 
     return files
       .filter((file) =>
-        file.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        file.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort((a, b) => {
         switch (sortOption) {
@@ -158,7 +158,7 @@ export default function Storage() {
         file._id,
         file.type,
         token,
-        dispatch,
+        dispatch
       );
       if (apiResponse.success) {
         toast.success(`${file.name} delete successfully!`);
@@ -204,7 +204,6 @@ export default function Storage() {
                 <span className="legend-label">{label}:</span>
                 <span className="legend-value">
                   {formatFileSize(doughnutData.datasets[0].data[index])}
-                  {console.log(label, fileCounts[label])}
                   {" (" + fileCounts[label] + " files)"}
                 </span>
               </div>
@@ -219,7 +218,9 @@ export default function Storage() {
             {["all", "images", "videos", "audios", "others"].map((category) => (
               <div
                 key={category}
-                className={`media-btn-item ${selectedCategory === category ? "active" : ""}`}
+                className={`media-btn-item ${
+                  selectedCategory === category ? "active" : ""
+                }`}
                 onClick={() => setSelectedCategory(category)}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}

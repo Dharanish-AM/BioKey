@@ -15,6 +15,7 @@ import FilePreview from "../FilePreview/FilePreview";
 import toast from "react-hot-toast";
 import { Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import FilledHeartIcon from "../../assets/icons/like-heart.png";
+import TipsIcon from "../../assets/images/light-bulb.png";
 
 ChartJS.register(ArcElement, Tooltip);
 
@@ -210,7 +211,37 @@ export default function Storage() {
             ))}
           </div>
         </div>
-        <div className="storage-container-top-right"></div>
+        <div className="storage-container-top-right">
+          <div>
+            <div className="storage-container-top-right-title">
+              Storage Tips
+            </div>
+            <ul className="storage-container-top-right-tips">
+              <li>Regularly clear unnecessary files to free up space.</li>
+              <li>Use cloud storage for important backups and easy access.</li>
+              <li>Organize files into folders for better management.</li>
+              <li>Monitor storage usage to avoid performance issues.</li>
+            </ul>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <img
+              src={TipsIcon}
+              alt="Storage Tips"
+              style={{
+                aspectRatio: "1",
+                width: "8rem",
+                height: "8rem",
+                rotate: "10deg",
+              }}
+            />
+          </div>
+        </div>
       </div>
       <div className="storage-container-bottom">
         <div className="storage-container-bottom-header">

@@ -20,7 +20,7 @@ const API_URL = `http://${getIP()}/api/users`;
 export const loadUser = async (userId) => {
   try {
     const response = await axios.get(
-      `${API_URL}/user-details?userId=${userId}`,
+      `${API_URL}/user-details?userId=${userId}`
     );
     return response.data.user;
   } catch (error) {
@@ -33,7 +33,7 @@ export const likeOrUnlikeFile = async (
   fileId,
   token,
   type,
-  dispatch,
+  dispatch
 ) => {
   try {
     const response = await axios.post(`${API_URL}/likeorunlikefile`, {
@@ -108,7 +108,7 @@ export const handleFolderCreate = async (
   userId,
   folderName,
   token,
-  dispatch,
+  dispatch
 ) => {
   const response = await axios.post(
     `${API_URL}/createfolder`,
@@ -120,7 +120,7 @@ export const handleFolderCreate = async (
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    },
+    }
   );
   if (response.status == 200 || response.status == 201) {
     fetchFolderList(userId, token, dispatch);
@@ -150,7 +150,7 @@ export const handleFolderRename = async (
   folderId,
   newFolderName,
   token,
-  dispatch,
+  dispatch
 ) => {
   console.log(userId, folderId, newFolderName);
   const response = await axios.put(`${API_URL}/renamefolder`, {
@@ -172,7 +172,7 @@ export const removeFileFromFolder = async (
   folderId,
   fileId,
   token,
-  dispatch,
+  dispatch
 ) => {
   const response = await axios.post(`${API_URL}/removefilefromfolder`, {
     userId,
@@ -192,7 +192,7 @@ export const handleFolderMove = async (
   folderId,
   fileId,
   token,
-  dispatch,
+  dispatch
 ) => {
   try {
     const response = await axios.post(`${API_URL}/addfilestofolder`, {
@@ -216,7 +216,7 @@ export const updateUserProfile = async (
   userId,
   profileData,
   token,
-  dispatch,
+  dispatch
 ) => {
   try {
     const response = await axios.put(`${API_URL}/updateuserprofile`, {
@@ -241,7 +241,7 @@ export const handleProfileImageSet = async (
   userId,
   formData,
   token,
-  dispatch,
+  dispatch
 ) => {
   try {
     const response = await axios.post(
@@ -251,7 +251,7 @@ export const handleProfileImageSet = async (
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      },
+      }
     );
 
     if (response.status == 200) {
@@ -285,7 +285,7 @@ export const registerNotificationToken = async (token, userId) => {
 export const getNotifications = async (userId, token) => {
   try {
     const response = await axios.get(
-      `${API_URL}/getallnotifications?userId=${userId}`,
+      `${API_URL}/getallnotifications?userId=${userId}`
     );
     return response.data.notifications;
   } catch (err) {
@@ -297,7 +297,7 @@ export const clearNotification = async (
   userId,
   notificationId,
   isAll = false,
-  token,
+  token
 ) => {
   try {
     const response = await axios.post(`${API_URL}/clearnotification`, {
@@ -320,8 +320,14 @@ export const getActivityLogs = async (userId, token, dispatch) => {
   try {
     const response = await axios.get(
       `${API_URL}/getactivitylogs?userId=${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    dispatch(setActivityLogs(response.data.logs));
+    const logs = response.data.logs;
+    dispatch(setActivityLogs(logs));
   } catch (err) {
     console.log(err);
   }
@@ -353,7 +359,7 @@ export const changePassword = async (
   userId,
   oldPassword,
   newPassword,
-  token,
+  token
 ) => {
   try {
     const response = await axios.post(`${API_URL}/changepassword`, {
@@ -392,7 +398,7 @@ export const getAllPlans = async (userId, token, dispatch) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
     if (response.data.success) {
       dispatch(setPlans(response.data.plans));

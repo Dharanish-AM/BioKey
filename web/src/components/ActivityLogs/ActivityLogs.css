@@ -1,0 +1,78 @@
+.activity-logs-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.activity-logs-container::-webkit-scrollbar {
+  width: 0px;
+}
+
+.activity-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-logs-list::-webkit-scrollbar {
+  width: 0px;
+}
+
+.activity-log-card {
+  background-color: var(--light-color2);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.activity-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.log-date {
+  font-size: 1rem;
+  color: #cccccc;
+}
+.log-status {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.log-status.success {
+  color: #4caf50; /* Green for success */
+}
+
+.log-status.failed {
+  color: #f44336; /* Red for failure */
+}
+
+.log-device {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.log-location {
+  font-size: 1rem;
+  color: #bbbbbb;
+  margin-bottom: 4px;
+}
+
+.log-ip {
+  font-size: 0.9rem;
+  color: #999999;
+  margin-bottom: 8px;
+}
+
+.log-location-link a {
+  color: #b084f5;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.log-location-link a:hover {
+  text-decoration: underline;
+}

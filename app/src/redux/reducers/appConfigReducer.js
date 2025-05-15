@@ -14,15 +14,15 @@ const initialState = {
     folderPreviewScreen: true,
     recycleBinScreen: true,
   },
-  API_IP: "biokey.ddns.net:8000",
+  API_IP: "172.17.19.215:8000",
   version: "1.0",
 };
 
 export const appConfigReducer = (state = initialState, action) => {
-  switch (action.type) {
+  switch (action.type) { 
     case SET_TAB_BAR_VISIBLE:
       return {
-        ...state,
+        ...state, 
         tabBarVisible: action.payload,
       };
     case SET_FIRST_RENDER:

@@ -6,11 +6,11 @@ const activityLogSchema = new mongoose.Schema({
     ref: "User",
     required: false,
   },
-  date: {
+  date: { 
     type: Date,
     default: Date.now,
   },
-  deviceName: {
+  deviceName: { 
     type: String,
     required: true,
   },
@@ -21,7 +21,7 @@ const activityLogSchema = new mongoose.Schema({
   location: {
     region: String,
     country: String,
-    district: String,
+    district: String, 
   },
   latitude: { type: Number },
   longitude: { type: Number },

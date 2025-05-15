@@ -107,7 +107,7 @@ export const setRecycleBinFile = (file) => {
   };
 };
 
-export const setActivityLogs = (logs) => {
+export const setActivityLogs = (logs) => {  
   return {
     type: SET_ACTIVITY_LOGS,
     payload: logs,

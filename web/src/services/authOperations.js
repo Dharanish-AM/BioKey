@@ -5,12 +5,12 @@ const getIP = () => {
   const state = store.getState();
   return state.appConfig.API_IP;
 };
-
+ 
 const API_URL = `http://${getIP()}/api/users`;
 
 export const registerUser = async (form, notificationToken) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, {
+    const response = await axios.post(`${API_URL}/register`, { 
       form,
       notificationToken,
     });

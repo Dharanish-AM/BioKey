@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { Activity, ArrowLeft } from "lucide-react";
 import ManageDevice from "../ManageDevice/ManageDevice";
 import AppPreferences from "../AppPreferences/AppPreferences";
 import "./SettingsCard.css";
+import ActivityLogs from "../ActivityLogs/ActivityLogs";
 
 export default function SettingsCard({ onClose }) {
   const [activeTab, setActiveTab] = useState("Manage Devices");
@@ -10,6 +11,7 @@ export default function SettingsCard({ onClose }) {
   const settingsOptions = [
     { name: "Manage Devices", component: <ManageDevice /> },
     { name: "App Preferences", component: <AppPreferences /> },
+    { name: "Activity Logs", component: <ActivityLogs /> },
   ];
 
   return (

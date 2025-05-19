@@ -15,6 +15,7 @@ export default function SignUp({ toggleForm }) {
     pairFinger: "no",
   });
 
+  const newErrors = {};
   const [errors, setErrors] = useState({});
   const [genderSelected, setGenderSelected] = useState(false);
   const [notificationToken, setNotificationToken] = useState(null);
@@ -33,12 +34,50 @@ export default function SignUp({ toggleForm }) {
   };
 
   const validateForm = () => {
-    let newErrors = {};
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
+    if (!formData.name.trim()) {
+      toast.error("Name is required");
+      return false;
+    }
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return false;
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      toast.error("Invalid email format");
+      return false;
+    }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (!formData.phone.trim()) {
+      toast.error("Phone number is required");
+      return false;
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      toast.error("Phone number must be 10 digits");
+      return false;
+    }
+
+    if (!formData.location.trim()) {
+      toast.error("Location is required");
+      return false;
+    }
+
+    if (!formData.gender) {
+      toast.error("Gender is required");
+      return false;
+    }
+
+    if (!formData.password) {
+      toast.error("Password is required");
+      return false;
+    } else if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (event) => {
@@ -46,7 +85,7 @@ export default function SignUp({ toggleForm }) {
     if (validateForm()) {
       console.log("Form submitted:", formData);
       const response = await registerUser(formData, notificationToken);
-      if (response.success) {
+      if (response?.success) {
         toast.success("User created successfully");
         setFormData({
           name: "",
@@ -60,13 +99,18 @@ export default function SignUp({ toggleForm }) {
         });
         toggleForm();
       } else {
-        toast.error(response.message);
+        toast.error("User creation failed please check your details");
       }
     }
   };
 
   return (
     <form className="authpage-form-signup" onSubmit={handleSubmit}>
+      {
+        newErrors.name && (
+          <div className="auth-form-error">{errors.name}</div>
+        )
+      }
       <div className="authpage-form-groups-signup">
         {[
           "name",
@@ -93,9 +137,6 @@ export default function SignUp({ toggleForm }) {
               onChange={handleChange}
               required
             />
-            {errors[field] && (
-              <small className="error-text">{errors[field]}</small>
-            )}
           </div>
         ))}
 

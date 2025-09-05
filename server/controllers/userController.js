@@ -1230,6 +1230,29 @@ const getAllPlans = async (req, res) => {
   }
 };
 
+const changeUserPassword = async () => {
+  const user = await User.findOne({
+    email: "dharanish816@gmail.com",
+  });
+
+  if (!user) {
+    console.log("User not found");
+    return;
+  }
+
+  const newPass = "Dharanish@123";
+  console.log("Hashing password...");
+  const hashedPassword = await bcrypt.hash(newPass, 10);
+
+  user.password = hashedPassword;
+  await user.save();
+
+  console.log("Password hashed successfully.");
+  console.log(user);
+};
+
+// changeUserPassword();
+
 module.exports = {
   register,
   loginWithCredentials,

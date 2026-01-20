@@ -14,7 +14,7 @@ const initialState = {
     folderPreviewScreen: true,
     recycleBinScreen: true,
   },
-  API_IP: "172.17.18.129:8000",
+  API_IP: "172.17.4.208:8000",
   version: "1.0",
 };
 

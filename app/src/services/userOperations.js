@@ -1,4 +1,4 @@
-import axios from "axios";
+import httpClient from "./httpClient";
 import {
   setActivityLogs,
   setFolders,
@@ -8,16 +8,11 @@ import {
 } from "../redux/actions";
 import store from "../redux/store";
 
-const getIP = () => {
-  const state = store.getState();
-  return state.appConfig.API_IP;
-};
-
-const API_URL = `http://${getIP()}/api/users`;
+const API_URL = `/api/users`;
 
 export const loadUser = async (userId) => {
   try {
-    const response = await axios.get(
+    const response = await httpClient.get(
       `${API_URL}/user-details?userId=${userId}`,
     );
     return response.data.user;
@@ -28,7 +23,7 @@ export const loadUser = async (userId) => {
 
 export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
   try {
-    const response = await axios.post(`${API_URL}/likeorunlikefile`, {
+    const response = await httpClient.post(`${API_URL}/likeorunlikefile`, {
       userId,
       fileId,
     });
@@ -57,7 +52,7 @@ export const likeOrUnlikeFile = async (userId, fileId, dispatch, type) => {
 
 export const fetchLikedFiles = async (userId, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/listfavourite`, {
+    const response = await httpClient.get(`${API_URL}/listfavourite`, {
       params: { userId },
     });
 
@@ -81,7 +76,7 @@ export const fetchFolderList = async (userId, dispatch) => {
     return;
   }
   try {
-    const response = await axios.get(`${API_URL}/listfolder`, {
+    const response = await httpClient.get(`${API_URL}/listfolder`, {
       params: { userId },
     });
     if (response.status == 200) {
@@ -96,7 +91,7 @@ export const fetchFolderList = async (userId, dispatch) => {
 };
 
 export const handleFolderCreate = async (userId, folderName, dispatch) => {
-  const response = await axios.post(`${API_URL}/createfolder`, {
+  const response = await httpClient.post(`${API_URL}/createfolder`, {
     userId,
     folderName,
   });
@@ -108,7 +103,7 @@ export const handleFolderCreate = async (userId, folderName, dispatch) => {
 };
 
 export const deleteFolders = async (userId, folderIds, dispatch) => {
-  const response = await axios.delete(`${API_URL}/deletefolder`, {
+  const response = await httpClient.delete(`${API_URL}/deletefolder`, {
     data: {
       userId,
       folderIds,
@@ -128,7 +123,7 @@ export const handleFolderRename = async (
   newFolderName,
   dispatch,
 ) => {
-  const response = await axios.put(`${API_URL}/renamefolder`, {
+  const response = await httpClient.put(`${API_URL}/renamefolder`, {
     userId,
     folderId,
     newFolderName,
@@ -143,7 +138,7 @@ export const handleFolderRename = async (
 
 export const handleFolderMove = async (userId, folderId, fileId, dispatch) => {
   try {
-    const response = await axios.post(`${API_URL}/addfilestofolder`, {
+    const response = await httpClient.post(`${API_URL}/addfilestofolder`, {
       userId,
       folderId,
       fileId,
@@ -162,7 +157,7 @@ export const handleFolderMove = async (userId, folderId, fileId, dispatch) => {
 
 export const updateUserProfile = async (userId, profileData, dispatch) => {
   try {
-    const response = await axios.put(`${API_URL}/updateuserprofile`, {
+    const response = await httpClient.put(`${API_URL}/updateuserprofile`, {
       userId,
       profileData,
     });
@@ -180,7 +175,7 @@ export const updateUserProfile = async (userId, profileData, dispatch) => {
 
 export const handleProfileImageSet = async (userId, formData, dispatch) => {
   try {
-    const response = await axios.post(
+    const response = await httpClient.post(
       `${API_URL}/updateuserprofileimage`,
       formData,
       {
@@ -202,7 +197,7 @@ export const handleProfileImageSet = async (userId, formData, dispatch) => {
 
 export const registerNotificationToken = async (token) => {
   try {
-    const response = await axios.post(`${API_URL}/registernotificationtoken`, {
+    const response = await httpClient.post(`${API_URL}/registernotificationtoken`, {
       token,
       userId,
     });
@@ -218,7 +213,7 @@ export const registerNotificationToken = async (token) => {
 
 export const getNotifications = async (userId, token) => {
   try {
-    const response = await axios.get(
+    const response = await httpClient.get(
       `${API_URL}/getallnotifications?userId=${userId}`,
     );
     return response.data.notifications;
@@ -234,7 +229,7 @@ export const clearNotification = async (
   token,
 ) => {
   try {
-    const response = await axios.post(`${API_URL}/clearnotification`, {
+    const response = await httpClient.post(`${API_URL}/clearnotification`, {
       userId,
       notificationId,
       isAll,
@@ -252,7 +247,7 @@ export const clearNotification = async (
 
 export const getActivityLogs = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(
+    const response = await httpClient.get(
       `${API_URL}/getactivitylogs?userId=${userId}`,
     );
     dispatch(setActivityLogs(response.data.logs));
@@ -268,7 +263,7 @@ export const changePassword = async (
   token,
 ) => {
   try {
-    const response = await axios.post(`${API_URL}/changepassword`, {
+    const response = await httpClient.post(`${API_URL}/changepassword`, {
       userId,
       oldPassword,
       newPassword,

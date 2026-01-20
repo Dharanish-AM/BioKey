@@ -15,9 +15,16 @@
     "updates": {
       "enabled": true
     },
-    "platforms": ["ios", "android"],
-    "newArchEnabled": true,
-    "plugins": ["expo-audio", "expo-asset"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "plugins": [
+      "expo-audio",
+      "expo-asset",
+      "expo-font",
+      "expo-video"
+    ],
     "splash": {
       "image": "./src/assets/images/BioKey_Logo.png",
       "resizeMode": "contain",
@@ -28,6 +35,9 @@
         "projectId": "95757e05-69a2-4bcd-843b-c05470ccbb43"
       }
     },
-    "assetBundlePatterns": ["**/*", "assets/models/*.glb"]
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/models/*.glb"
+    ]
   }
 }

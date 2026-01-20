@@ -146,10 +146,12 @@ export default function DevicePairingScreen({ navigation, route }) {
 
       const tokenValidationResponse = await checkTokenIsValid(token);
       if (tokenValidationResponse?.success) {
+        // Set auth state FIRST so token is available in Redux for subsequent API calls
+        dispatch(setAuthState(true, token));
+        
         const user = await loadUser(tokenValidationResponse.user.userId);
         if (user) {
           dispatch(setUser(user));
-          dispatch(setAuthState(true, token));
         }
         Toast.show({
           type: "success",

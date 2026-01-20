@@ -59,11 +59,14 @@ const uploadFile = async (req, res) => {
     console.log("Received Files:", files);
 
     const authenticatedUserId = req.user?.userId;
-    const userId = fields.userId || authenticatedUserId;
+    const userId = fields.userId ? fields.userId[0] : authenticatedUserId;
+    
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
     }
-    if (authenticatedUserId && userId !== authenticatedUserId) {
+    
+    // If userId is provided in form, it must match authenticated user
+    if (fields.userId && fields.userId[0] !== authenticatedUserId) {
       return res.status(403).json({ message: "User mismatch" });
     }
 

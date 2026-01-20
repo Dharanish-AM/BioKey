@@ -51,13 +51,12 @@ export default function App() {
   const registerForPushNotifications = async () => {
     try {
       if (!Device.isDevice) {
-        console.log("Must use a physical device for push notifications");
+        // Push notifications only work on physical devices
         return;
       }
 
       const existingToken = await AsyncStorage.getItem("expoPushToken");
       if (existingToken) {
-        console.log("Push token already exists:", existingToken);
         return;
       }
 
@@ -71,23 +70,17 @@ export default function App() {
       }
 
       if (finalStatus !== "granted") {
-        console.log("Push notifications permission denied");
         return;
       }
 
       const pushTokenData = await Notifications.getExpoPushTokenAsync();
-      console.log("Full Token Data:", pushTokenData);
-
       const token = pushTokenData?.data;
-      if (!token) {
-        console.log("Failed to retrieve push token");
-        return;
+      if (token) {
+        await AsyncStorage.setItem("expoPushToken", token);
       }
-
-      console.log("Expo Push Token:", token);
-      await AsyncStorage.setItem("expoPushToken", token);
     } catch (error) {
-      console.error("Error registering for push notifications:", error);
+      // Push notifications are optional - silently fail in development
+      // This commonly fails in Expo Go due to EAS project ID issues
     }
   };
 
@@ -107,10 +100,12 @@ export default function App() {
         if (token) {
           const response = await checkTokenIsValid(token);
           if (response.success) {
+            // Set auth state FIRST so token is available in Redux for subsequent API calls
+            dispatch(setAuthState(true, token));
+            
             const user = await loadUser(response.user.userId);
             if (user) {
               dispatch(setUser(user));
-              dispatch(setAuthState(true, token));
             } else {
               dispatch(setAuthState(false, ""));
             }

@@ -1,14 +1,9 @@
-import axios from "axios";
+import httpClient from "./httpClient";
 import { setPasswords } from "../redux/actions";
 import store from "../redux/store";
 import sha1 from "crypto-js/sha1";
 
-const getIP = () => {
-  const state = store.getState();
-  return state.appConfig.API_IP;
-};
-
-const API_URL = `http://${getIP()}/api/passwords`;
+const API_URL = `/api/passwords`;
 
 export const addPassword = async (
   userId,
@@ -21,7 +16,7 @@ export const addPassword = async (
   dispatch,
 ) => {
   try {
-    const response = await axios.post(`${API_URL}/addpassword`, {
+    const response = await httpClient.post(`${API_URL}/addpassword`, {
       userId,
       name,
       userName,
@@ -59,7 +54,7 @@ export const addPassword = async (
 
 export const getAllPasswords = async (userId, dispatch) => {
   try {
-    const response = await axios.get(
+    const response = await httpClient.get(
       `${API_URL}/getallpasswords?userId=${userId}`,
     );
     if (response.status === 200) {
@@ -79,7 +74,7 @@ export const getAllPasswords = async (userId, dispatch) => {
 
 export const deletePassword = async (userId, passwordId, dispatch) => {
   try {
-    const response = await axios.delete(`${API_URL}/deletepassword`, {
+    const response = await httpClient.delete(`${API_URL}/deletepassword`, {
       params: {
         userId,
         passwordId,
@@ -120,7 +115,7 @@ export const deletePassword = async (userId, passwordId, dispatch) => {
 
 export const getPassword = async (userId, passwordId) => {
   try {
-    const response = await axios.get(`${API_URL}/getpassword`, {
+    const response = await httpClient.get(`${API_URL}/getpassword`, {
       params: {
         userId,
         passwordId,
@@ -144,7 +139,7 @@ export const getPasswordBreachStatus = async (password) => {
   const hashSuffix = hashedPassword.slice(5);
 
   try {
-    const response = await axios.get(
+    const response = await httpClient.get(
       `https://api.pwnedpasswords.com/range/${hashPrefix}`,
     );
 
@@ -191,7 +186,7 @@ export const handlePasswordUpdate = async (
   dispatch,
 ) => {
   try {
-    const response = await axios.put(`${API_URL}/updatepassword`, {
+    const response = await httpClient.put(`${API_URL}/updatepassword`, {
       userId,
       passwordId,
       updatedData,

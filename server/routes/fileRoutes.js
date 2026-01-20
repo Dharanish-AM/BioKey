@@ -1,6 +1,9 @@
 const express = require("express");
 const fileController = require("../controllers/fileController");
 const router = express.Router();
+const { verifyToken } = require("../utils/checkToken");
+
+router.use(verifyToken);
 
 router.post("/upload", fileController.uploadFile);
 router.delete("/delete", fileController.moveToRecycleBin);

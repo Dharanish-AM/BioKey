@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const Folder = require("../models/folderSchema");
 const File = require("../models/fileSchema");
 const RecycleBin = require("../models/recycleBinSchema");
@@ -20,18 +21,34 @@ const Password = require("../models/passwordSchema");
 const BUCKET_NAME = process.env.MINIO_BUCKET_NAME;
 const maxThumbnailSize = 204800;
 
-const TARGET_DIR = path.join(
-  "D:",
-  "Github_Repository",
-  "BioKey",
-  "server",
-  "uploads",
-);
+const uploadTempDir = path.join(os.tmpdir(), "biokey-uploads");
+if (!fs.existsSync(uploadTempDir)) {
+  fs.mkdirSync(uploadTempDir, { recursive: true });
+}
+
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/quicktime",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/mp4",
+  "application/pdf",
+  "text/plain",
+  "application/zip",
+  "application/json",
+]);
+const maxFileSizeBytes = 200 * 1024 * 1024; // 200MB per file cap
 
 const uploadFile = async (req, res) => {
   const form = new formidable.IncomingForm({
     multiples: true,
     keepExtensions: true,
+    maxFileSize: maxFileSizeBytes,
+    uploadDir: uploadTempDir,
   });
 
   form.parse(req, async (err, fields, files) => {
@@ -41,9 +58,13 @@ const uploadFile = async (req, res) => {
     }
     console.log("Received Files:", files);
 
-    const { userId } = fields;
+    const authenticatedUserId = req.user?.userId;
+    const userId = fields.userId || authenticatedUserId;
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     try {
@@ -70,6 +91,15 @@ const uploadFile = async (req, res) => {
             file.originalFilename || `default_${Date.now()}`;
           const fileCategory = getFileCategory(originalFileName);
           const fileSize = file.size;
+          const mimeType = file.mimetype || mime.lookup(originalFileName);
+
+          if (!mimeType || !allowedMimeTypes.has(mimeType)) {
+            throw new Error("Unsupported file type");
+          }
+
+          if (fileSize > maxFileSizeBytes) {
+            throw new Error("File exceeds maximum allowed size");
+          }
 
           if (user.totalSpace < user.usedSpace + fileSize + maxThumbnailSize) {
             throw new Error("Insufficient space");
@@ -190,10 +220,15 @@ const uploadFile = async (req, res) => {
 
 const moveToRecycleBin = async (req, res) => {
   try {
-    const { userId, fileId } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, fileId } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId || !fileId) {
       return res.status(400).json({ error: "Provide userId and fileId." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const fileIdsArray = Array.isArray(fileId) ? fileId : [fileId];
@@ -244,7 +279,9 @@ const moveToRecycleBin = async (req, res) => {
 
 const restoreFile = async (req, res) => {
   try {
-    const { userId, RecycleBinId } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, RecycleBinId } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (
       !userId ||
@@ -254,6 +291,9 @@ const restoreFile = async (req, res) => {
       return res.status(400).json({
         error: "Provide a valid userId and at least one RecycleBinId.",
       });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const RecycleBinIdsArray = Array.isArray(RecycleBinId)
@@ -301,7 +341,9 @@ const restoreFile = async (req, res) => {
 
 const permanentlyDeleteFileAndThumbnail = async (req, res) => {
   try {
-    const { userId, fileId, all } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, fileId, all } = req.body;
+    const userId = providedUserId || authenticatedUserId;
     console.log("Received request:", { userId, fileId, all });
 
     if (!userId || (!fileId && !all)) {
@@ -309,6 +351,9 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
       return res
         .status(400)
         .json({ error: "Missing required parameters: userId or fileId." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const user = await User.findById(userId);
@@ -447,12 +492,16 @@ const permanentlyDeleteFileAndThumbnail = async (req, res) => {
 
 const getRecycleBinFiles = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res
         .status(400)
         .json({ error: "Missing required parameter: userId." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const files = await RecycleBin.find({ owner: userId });
@@ -496,10 +545,15 @@ const getRecycleBinFiles = async (req, res) => {
 };
 
 const getRecentFiles = async (req, res) => {
-  const { userId } = req.query;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId } = req.query;
+  const userId = providedUserId || authenticatedUserId;
 
   if (!userId) {
     return res.status(400).json({ message: "Missing userId" });
+  }
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res.status(403).json({ message: "User mismatch" });
   }
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -569,10 +623,14 @@ const getRecentFiles = async (req, res) => {
 };
 
 const getSpace = async (req, res) => {
-  const userId = req.query.userId;
+  const authenticatedUserId = req.user?.userId;
+  const userId = req.query.userId || authenticatedUserId;
 
   if (!userId) {
     return res.status(400).json({ message: "userId is required" });
+  }
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res.status(403).json({ message: "User mismatch" });
   }
 
   try {
@@ -596,12 +654,16 @@ const getSpace = async (req, res) => {
 
 const listFile = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId || req.params.userId;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || req.body.userId || req.params.userId || authenticatedUserId;
     const category =
       req.query.category || req.body.category || req.params.category;
 
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -669,10 +731,15 @@ const listFile = async (req, res) => {
 };
 
 const loadFile = async (req, res) => {
-  const { userId, fileId } = req.query;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, fileId } = req.query;
+  const userId = providedUserId || authenticatedUserId;
 
   if (!userId || !fileId) {
     return res.status(400).json({ message: "Missing userId or fileId" });
+  }
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res.status(403).json({ message: "User mismatch" });
   }
 
   try {
@@ -708,7 +775,9 @@ const loadFile = async (req, res) => {
 
 const ListFolderFiles = async (req, res) => {
   try {
-    const { userId, folderName } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, folderName } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
@@ -716,6 +785,10 @@ const ListFolderFiles = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid userId format" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     const user = await User.findById(userId);
@@ -739,16 +812,17 @@ const ListFolderFiles = async (req, res) => {
 
     const processedFiles = await Promise.all(
       files.map(async (file) => {
-        let base64Thumbnail = null;
+        let preSignedThumbnailUrl = null;
         if (file.thumbnail) {
-          const thumbnailPath = path.join(TARGET_DIR, userId, file.thumbnail);
           try {
-            await fs.promises.access(thumbnailPath);
-            const thumbnailData = await fs.promises.readFile(thumbnailPath);
-            base64Thumbnail = `data:image/webp;base64,${thumbnailData.toString("base64")}`;
+            preSignedThumbnailUrl = await minioClient.presignedGetObject(
+              BUCKET_NAME,
+              file.thumbnail,
+              60 * 60,
+            );
           } catch (err) {
-            console.error(
-              `Error reading thumbnail for file ${file.name}:`,
+            console.warn(
+              `Thumbnail not found or error fetching for file ${file.name}:`,
               err.message,
             );
           }
@@ -760,7 +834,7 @@ const ListFolderFiles = async (req, res) => {
           type: file.type,
           size: file.size,
           createdAt: file.createdAt,
-          thumbnail: base64Thumbnail,
+          thumbnail: preSignedThumbnailUrl,
         };
       }),
     );
@@ -779,10 +853,15 @@ const ListFolderFiles = async (req, res) => {
 
 const allFileMetaData = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     const user = await User.findById(userId);

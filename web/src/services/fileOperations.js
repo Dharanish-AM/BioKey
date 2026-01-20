@@ -1,4 +1,4 @@
-import axios from "axios";
+import client from "./httpClient";
 import {
   fetchFilesAction,
   fetchUsedSpaceAction,
@@ -7,15 +7,9 @@ import {
   setRecycleBinFile,
 } from "../redux/actions";
 import { formatFileSize } from "../utils/formatFileSize";
-import store from "../redux/store";
 import { fetchFolderList, getStorageInfo, loadUser } from "./userOperations";
 
-const getIP = () => {
-  const state = store.getState();
-  return state.appConfig.API_IP;
-};
-
-const API_URL = `http://${getIP()}/api/files`;
+const API_URL = `/api/files`;
 
 export const uploadMedia = async (userId, files, token, dispatch) => {
   const formData = new FormData();
@@ -27,7 +21,7 @@ export const uploadMedia = async (userId, files, token, dispatch) => {
   });
 
   try {
-    const response = await axios.post(`${API_URL}/upload`, formData, {
+    const response = await client.post(`${API_URL}/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -79,7 +73,7 @@ export const fetchFilesByCategory = async (
   dispatch,
 ) => {
   try {
-    const response = await axios.get(`${API_URL}/list`, {
+    const response = await client.get(`${API_URL}/list`, {
       params: {
         userId,
         category,
@@ -99,7 +93,9 @@ export const fetchFilesByCategory = async (
 
 export const fetchRecentFiles = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/recent?userId=${userId}`, {});
+    const response = await client.get(`${API_URL}/recent`, {
+      params: { userId },
+    });
 
     if (response.status === 200) {
       dispatch(fetchFilesAction("recents", response.data.files || []));
@@ -113,7 +109,9 @@ export const fetchRecentFiles = async (userId, token, dispatch) => {
 
 export const fetchUsedSpace = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(`${API_URL}/usedspace?userId=${userId}`);
+    const response = await client.get(`${API_URL}/usedspace`, {
+      params: { userId },
+    });
     if (response.status === 200) {
       const usedSpaceBytes = response.data.usedSpace || 0;
       const totalSpaceBytes = response.data.totalSpace || 0;
@@ -128,9 +126,9 @@ export const fetchUsedSpace = async (userId, token, dispatch) => {
 
 export const previewFile = async (userId, fileId, token) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/previewfile?userId=${userId}&fileId=${fileId}`,
-    );
+    const response = await client.get(`${API_URL}/previewfile`, {
+      params: { userId, fileId },
+    });
     if (response.status === 200) {
       return response.data;
     } else {
@@ -148,7 +146,7 @@ export const previewFile = async (userId, fileId, token) => {
 
 export const deleteFile = async (userId, fileId, type, token, dispatch) => {
   try {
-    const response = await axios.delete(`${API_URL}/delete`, {
+    const response = await client.delete(`${API_URL}/delete`, {
       data: {
         userId,
         fileId,
@@ -209,7 +207,7 @@ export const permanentDelete = async (
 ) => {
   console.log(userId, fileId);
   try {
-    const response = await axios.delete(`${API_URL}/permanentdelete`, {
+    const response = await client.delete(`${API_URL}/permanentdelete`, {
       data: {
         userId,
         fileId,
@@ -237,7 +235,7 @@ export const restoreFile = async (
 ) => {
   console.log(RecycleBinId, type);
   try {
-    const response = await axios.post(`${API_URL}/restorefile`, {
+    const response = await client.post(`${API_URL}/restorefile`, {
       userId,
       RecycleBinId,
       type,
@@ -263,9 +261,9 @@ export const restoreFile = async (
 
 export const fetchRecycleBinFiles = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/recyclebinfiles?userId=${userId}`,
-    );
+    const response = await client.get(`${API_URL}/recyclebinfiles`, {
+      params: { userId },
+    });
     if (response.status == 200) {
       dispatch(setRecycleBinFile(response.data.files));
       return response.data;
@@ -279,9 +277,9 @@ export const fetchRecycleBinFiles = async (userId, token, dispatch) => {
 
 export const getAllfileMetadata = async (userId, token, dispatch) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/allfilemetadata?userId=${userId}`,
-    );
+    const response = await client.get(`${API_URL}/allfilemetadata`, {
+      params: { userId },
+    });
 
     if (response.status === 200) {
       const { files = [], passwords = [], folders = [] } = response.data;

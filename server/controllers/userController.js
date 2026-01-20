@@ -380,12 +380,18 @@ const loginWithFingerPrint = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const userId = req.query.userId;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "UserId is required." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch." });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -443,8 +449,22 @@ const getUser = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { userId, profileData } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, profileData } = req.body;
+    const userId = providedUserId || authenticatedUserId;
     console.log(userId, profileData);
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
 
     const user = await User.findById(userId);
 
@@ -484,9 +504,14 @@ const setProfile = async (req, res) => {
         .json({ message: "Error processing profile upload" });
     }
 
-    const { userId } = fields;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId } = fields;
+    const userId = providedUserId || authenticatedUserId;
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch." });
     }
 
     const user = await User.findById(userId);
@@ -527,13 +552,20 @@ const setProfile = async (req, res) => {
 };
 
 const createFolder = async (req, res) => {
-  const { userId, folderName } = req.body;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, folderName } = req.body;
+  const userId = providedUserId || authenticatedUserId;
 
   if (!userId || !folderName) {
     return res.status(400).json({
       success: false,
       message: "User ID and folder name are required",
     });
+  }
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res
+      .status(403)
+      .json({ success: false, message: "User mismatch" });
   }
 
   try {
@@ -573,9 +605,23 @@ const createFolder = async (req, res) => {
 };
 
 const addFilesToFolder = async (req, res) => {
-  const { userId, folderId, fileId } = req.body;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, folderId, fileId } = req.body;
+  const userId = providedUserId || authenticatedUserId;
 
   try {
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       return res
@@ -624,8 +670,18 @@ const addFilesToFolder = async (req, res) => {
 };
 
 const likeOrUnlikeFile = async (req, res) => {
-  const { userId, fileId } = req.body;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, fileId } = req.body;
+  const userId = providedUserId || authenticatedUserId;
   try {
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ success: false, message: "User mismatch" });
+    }
+
     const user = await User.findById(userId);
     const file = await File.findById(fileId);
 
@@ -649,9 +705,16 @@ const likeOrUnlikeFile = async (req, res) => {
 };
 
 const ListFolder = async (req, res) => {
-  const { userId } = req.query;
+  const authenticatedUserId = req.user?.userId;
+  const userId = req.query.userId || authenticatedUserId;
 
   try {
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
+
     const folders = await Folder.find({ owner: userId }).populate("files");
 
     if (!folders || folders.length === 0) {
@@ -716,13 +779,21 @@ const ListFolder = async (req, res) => {
 };
 
 const deleteFolder = async (req, res) => {
-  const { userId, folderIds } = req.body;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, folderIds } = req.body;
+  const userId = providedUserId || authenticatedUserId;
 
   if (!userId || !folderIds) {
     return res.status(400).json({
       success: false,
       message: "User ID and folder ID(s) are required",
     });
+  }
+
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res
+      .status(403)
+      .json({ success: false, message: "User mismatch" });
   }
 
   try {
@@ -762,13 +833,21 @@ const deleteFolder = async (req, res) => {
 };
 
 const removeFileFromFolder = async (req, res) => {
-  const { userId, folderId, fileId } = req.body;
+  const authenticatedUserId = req.user?.userId;
+  const { userId: providedUserId, folderId, fileId } = req.body;
+  const userId = providedUserId || authenticatedUserId;
 
   if (!userId || !folderId || !fileId) {
     return res.status(400).json({
       success: false,
       message: "User ID, Folder ID, and File ID are required",
     });
+  }
+
+  if (authenticatedUserId && userId !== authenticatedUserId) {
+    return res
+      .status(403)
+      .json({ success: false, message: "User mismatch" });
   }
 
   try {
@@ -805,12 +884,20 @@ const removeFileFromFolder = async (req, res) => {
 
 const renameFolder = async (req, res) => {
   try {
-    const { userId, folderId, newFolderName } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, folderId, newFolderName } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId || !folderId || !newFolderName) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields." });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch." });
     }
 
     const folder = await Folder.findOneAndUpdate(
@@ -835,11 +922,16 @@ const renameFolder = async (req, res) => {
 };
 
 const listLiked = async (req, res) => {
-  const { userId } = req.query;
+  const authenticatedUserId = req.user?.userId;
+  const userId = req.query.userId || authenticatedUserId;
 
   try {
     if (!userId) {
       return res.status(400).json({ message: "Missing userId" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -915,7 +1007,21 @@ const updateProfileImage = async (req, res) => {
         .json({ success: false, message: "Error parsing form data" });
     }
 
-    const { userId } = fields;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId } = fields;
+    const userId = providedUserId || authenticatedUserId;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
 
     try {
       const user = await User.findById(userId);
@@ -990,7 +1096,16 @@ const updateProfileImage = async (req, res) => {
 
 const getUserNotifications = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ success: false, message: "User mismatch" });
+    }
 
     const userNotifications = await UserNotification.findOne({ userId });
 
@@ -1008,12 +1123,20 @@ const getUserNotifications = async (req, res) => {
 
 const clearNotifications = async (req, res) => {
   try {
-    const { userId, notificationId, isAll = false } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, notificationId, isAll = false } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
     }
 
     let result;
@@ -1048,12 +1171,19 @@ const clearNotifications = async (req, res) => {
 
 const getActivityLogs = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
     }
 
     const logs = await ActivityLog.find({ userId }).sort({ date: -1 });
@@ -1073,7 +1203,21 @@ const getActivityLogs = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-    const { userId, oldPassword, newPassword } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, oldPassword, newPassword } = req.body;
+    const userId = providedUserId || authenticatedUserId;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
 
     const user = await User.findOne({ _id: userId });
     if (!user) {
@@ -1110,12 +1254,19 @@ const changePassword = async (req, res) => {
 
 const storageInfo = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
     }
 
     const user = await User.findOne({ _id: userId });
@@ -1168,7 +1319,22 @@ const storageInfo = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId } = req.body;
+    const userId = providedUserId || authenticatedUserId;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User mismatch" });
+    }
+
     const user = await User.findOne({ _id: userId });
     if (!user) {
       return res
@@ -1192,12 +1358,16 @@ const deleteUser = async (req, res) => {
 
 const getAllPlans = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
     if (!userId) {
       return res.status(400).json({
         success: false,
         message: "User ID is required",
       });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ success: false, message: "User mismatch" });
     }
     const user = await User.findById({ _id: userId });
     if (!user) {

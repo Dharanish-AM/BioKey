@@ -1,16 +1,10 @@
-import axios from "axios";
-import store from "../redux/store";
+import client from "./httpClient";
 
-const getIP = () => {
-  const state = store.getState();
-  return state.appConfig.API_IP;
-};
- 
-const API_URL = `http://${getIP()}/api/users`;
+const API_URL = `/api/users`;
 
 export const registerUser = async (form, notificationToken) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, { 
+    const response = await client.post(`${API_URL}/register`, {
       form,
       notificationToken,
     });
@@ -26,7 +20,7 @@ export const registerUser = async (form, notificationToken) => {
 
 export const loginCreds = async (email, password, activityLog) => {
   try {
-    const response = await axios.post(`${API_URL}/login-credentials`, {
+    const response = await client.post(`${API_URL}/login-credentials`, {
       email,
       password,
       activityLog,
@@ -41,7 +35,7 @@ export const loginCreds = async (email, password, activityLog) => {
 
 export const loginFp = async (uniqueKeyEncrypted, serialNumber) => {
   try {
-    const response = await axios.post(`${API_URL}/login-fingerprint`, {
+    const response = await client.post(`${API_URL}/login-fingerprint`, {
       uniqueKeyEncrypted,
       serialNumber,
     });
@@ -53,14 +47,16 @@ export const loginFp = async (uniqueKeyEncrypted, serialNumber) => {
 
 export const checkTokenIsValid = async (token) => {
   try {
-    const response = await axios.post(
+    const response = await client.post(
       `${API_URL}/check-token-is-valid`,
       {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
+      token
+        ? {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        : {},
     );
 
     return response.data;

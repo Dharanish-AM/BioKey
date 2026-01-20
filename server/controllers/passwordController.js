@@ -4,11 +4,16 @@ const { encrypt, decrypt } = require("../utils/crypto");
 
 const addPassword = async (req, res) => {
   try {
+    const authenticatedUserId = req.user?.userId;
     let { userId, name, userName, email, password, website, note } = req.body;
+    userId = userId || authenticatedUserId;
     if (!userId || !name || !password) {
       return res.status(400).json({
         error: "userId, name, and password are required fields.",
       });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const userExists = await User.findById(userId);
@@ -51,12 +56,17 @@ const addPassword = async (req, res) => {
 
 const getPassword = async (req, res) => {
   try {
-    const { userId, passwordId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, passwordId } = req.query;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId || !passwordId) {
       return res
         .status(400)
         .json({ error: "userId and passwordId are required." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const userExists = await User.findById(userId);
@@ -111,10 +121,14 @@ const getPassword = async (req, res) => {
 
 const getAllPasswords = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const userId = req.query.userId || authenticatedUserId;
 
     if (!userId) {
       return res.status(400).json({ error: "userId is required." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const userExists = await User.findById(userId);
@@ -156,12 +170,17 @@ const getAllPasswords = async (req, res) => {
 
 const deletePassword = async (req, res) => {
   try {
-    const { userId, passwordId } = req.query;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, passwordId } = req.query;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId || !passwordId) {
       return res
         .status(400)
         .json({ error: "userId and passwordId are required fields." });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ error: "User mismatch" });
     }
 
     const userExists = await User.findById(userId);
@@ -189,10 +208,15 @@ const deletePassword = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
-    const { userId, passwordId, updatedData } = req.body;
+    const authenticatedUserId = req.user?.userId;
+    const { userId: providedUserId, passwordId, updatedData } = req.body;
+    const userId = providedUserId || authenticatedUserId;
 
     if (!userId || !passwordId || !updatedData) {
       return res.status(400).json({ message: "Invalid input data" });
+    }
+    if (authenticatedUserId && userId !== authenticatedUserId) {
+      return res.status(403).json({ message: "User mismatch" });
     }
 
     const password = await Password.findOne({ _id: passwordId, userId });
